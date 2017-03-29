@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href='/' />
+		<title>Materia</title>
+		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
+		<link rel='stylesheet' href='build/devmateria_creator.css' type='text/css' />
+		<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
+		<script src='//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'></script>
+		<script src='//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js'></script>
+	</head>
+	<body>
+		<div id='topbar'>
+			<a class='logo' href='/'>Materia Dev</a>
+			<div class='tools'>
+				<button class='edit_button orange' id='importLink'>Import Questions</button>
+				<button class='edit_button orange' onclick='location.href="/download";'>Download package</button>
+				<button class='edit_button orange' onclick='location.href="/player";'>Demo Mode</button>
+				<button id='creatorSaveBtn' class='edit_button orange'>Save Draft</button>
+				<button id='creatorPreviewBtn' class='edit_button orange'><span id='previewBtnTxt'>Preview</span></button>
+			</div>
+		</div>
+		<div class='center'>
+			<div id='container'>
+			</div>
+		</div>
+
+		<script src='build/creator_req.js'></script>
+
+		<script>
+			var __PLAY_ID = 'demo';
+			var BASE_URL = 'http://localhost:3000/';
+			var API_LINK = 'http://localhost:3000/';
+			var WIDGET_URL = 'http://localhost:3000/';
+			var STATIC_CROSSDOMAIN = 'http://localhost:3000/';
+			var COMPILE_URL = '/.build/';
+			var TEST_URL = 'tests/creator.html';
+			// Test only variables -- Start
+			var TEST; // Needed in Materia.Creator.js to choose btwn regular html and test html
+			if(window.location['pathname'].indexOf('/test/') > -1) TEST = true;
+			else TEST = false;
+
+			Materia.Creator.init('container', null, '{{instance}}');
+		</script>
+	</body>
+</html>

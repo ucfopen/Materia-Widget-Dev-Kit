@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="/" />
+		<title>Materia</title>
+		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
+		<link rel='stylesheet' href='build/devmateria_datatable.css' type='text/css' />
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+		<script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+	</head>
+	<body>
+		<div style="width:100%">
+			<form id="import-form">
+				<h1>Question Catalog</h1>
+				<table id="question-table" width="100%">
+					<thead width="100%">
+						<tr>
+							<th>Question Text</th>
+							<th>Type</th>
+							<th>Date</th>
+							<th>Used</th>
+						</tr>
+					</thead>
+				</table>
+				<div class="actions">
+					<a id="cancel-button" href="#" onClick="self.close();">Cancel</a>
+					<input id="submit-button" type="button" class="action_button" value="Import Selected">
+				</div>
+			</form>
+		</div>
+
+		<script src='build/question_import_req.js'></script>
+
+		<script type="text/javascript">
+			var API_LINK = 'http://localhost:3000/';
+			var $selectedAssets = [];
+			var $table = null;
+
+			var _setupTable = function () {
+				// listener for selecting a question row
+				$(document).on('click', '#question-table tbody tr', function(e) {
+					var $checkbox = $(this).find(':checkbox');
+					var $selected = $(this).toggleClass('row_selected').hasClass('row_selected');
+					$checkbox.prop('checked', $selected); // update checkbox
+
+					// stop the bubbling to prevent the row's click event
+					if (e.target.type == 'checkbox') e.stopPropagation();
+
+					// add or remove the item from the selected ids
+					if ($selected)
+					{
+						$selectedAssets.push($checkbox.prop('value'));
+					}
+					else
+					{
+						$selectedAssets.splice($selectedAssets.indexOf($checkbox.prop('value')), 1);
+					}
+				});
+
+				$('#submit-button').click(function(e){
+					e.stopPropagation();
+					_loadSelectedQuestions($selectedAssets);
+					return false;
+				});
+
+				$('#cancel-button').click(function(e){
+					e.preventDefault();
+					e.stopPropagation();
+					window.parent.Materia.Creator.onQuestionImportComplete(null);
+				});
+
+				// when the url has changes, reload the questions
+				$(window).bind('hashchange', _loadAllQuestions);
+
+				// on resize, re-fit the table size
+				$(window).resize(function(){
+					$('div.dataTables_scrollBody').height($(window).height() - 150);
+					$table.fnAdjustColumnSizing();
+				});
+
+				// setup the table
+				$table = $('#question-table').dataTable({
+					paginate: false, // don't paginate
+					lengthChange: true, // resize the fields
+					autoWidth: true,
+					processing: true, // show processing dialog
+					scrollY: '500px', // setup to be a scrollable table
+					language: {
+						search: '',
+						infoFiltered: ' / _MAX_',
+						info: 'showing: _TOTAL_'
+					},
+					// columns to display
+					columns: [
+						{ data: 'text' },
+						{ data: 'type' },
+						{ data: 'created_at' },
+						{ data: 'uses' }
+					],
+					// special sorting options
+					sorting: [[2, 'desc']],
+					// item renderers
+					columnDefs: [
+						// date render
+						{
+							render: function(data, type, full, meta){
+								var d = new Date(data*1000);
+								return (d.getMonth()+1)+'/'+d.getDate()+'/'+d.getFullYear();
+							},
+							targets: 2,
+						},
+						// select box
+						{
+							render: function(data, type, full, meta){
+								return '<input type="checkbox" name="id" value="'+full.id+'" > <span class="q">'+data+'</span>';
+							},
+							targets: 0
+						}
+					]
+				});
+
+				// re-fit the table now
+				$('div.dataTables_scrollBody').height($(window).height()-150);
+			};
+
+			var _loadAllQuestions = function(){
+				$selectedAssets = [];
+				$('#question-table').dataTable().fnClearTable() // clear the table
+				// determine the types from the url hash string
+				var questionTypes = _getType();
+				// load
+				_getQuestions (null, questionTypes, function(result){
+					// to prevent error messages when result is null
+					if (result != null && !('msg' in result) && result.length > 0)
+					{
+						$('#question-table').dataTable().fnClearTable();
+						$('#question-table').dataTable().fnAddData(result);
+					}
+				});
+			};
+
+			var _getQuestions = function(questionIds, questionTypes, callback){
+				Materia.Coms.Json.send('questions_get', [questionIds, questionTypes], callback);
+			};
+
+			var _loadSelectedQuestions = function(questionIds){
+				_getQuestions(questionIds, null, function(result){
+					if ((typeof result !== 'undefined' && result !== null) && !('msg' in result) && result.length > 0)
+					{
+						window.parent.Materia.Creator.onQuestionImportComplete(JSON.stringify(result));
+					}
+				});
+			};
+
+			var _getType = function(){
+				var l = document.location.href;
+				var type = l.substring(l.lastIndexOf('=')+1);
+				return type;
+			};
+
+			_setupTable();
+			_loadAllQuestions();
+		</script>
+	</body>
+</html>

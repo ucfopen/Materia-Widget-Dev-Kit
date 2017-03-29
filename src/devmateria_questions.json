@@ -1,0 +1,2085 @@
+{
+	"set": [
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "The Simpsons takes place in what fictional town?\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 0,
+					"text": "Wellville",
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 30,
+					"text": "Arlen",
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 100,
+					"text": "Springfield",
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Gotham",
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 1
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Futurama takes place in the year?"
+				}
+			],
+			"answers": [
+				{
+					"value": 0,
+					"text": "2,000 AD",
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 0,
+					"text": "2,500 AD",
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 100,
+					"text": "3,000 AD",
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": "15,000 AD",
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 2
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "This animated TV character sells \"Propane and propane accessories\".\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Hank Hill",
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Peter Griffin",
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Homer Simpson",
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Jay Sherman",
+					"options": {
+						"letter": "D"
+					}
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "The characters Ross, Monica, and Chandler come from what TV show?"
+				}
+			],
+			"answers": [
+				{
+					"value": 0,
+					"text": "Please Shoot Me",
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Suddenly Susan",
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Caroline in the City",
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 100,
+					"text": "Friends",
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 1
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Seinfeld originally aired in what year?"
+				}
+			],
+			"answers": [
+				{
+					"value": 0,
+					"text": 1986,
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 100,
+					"text": 1989,
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 0,
+					"text": 1991,
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": 1994,
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 2
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "The character John Becker from the TV sitcom Becker is played by\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 0,
+					"text": "Tom Selleck",
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 100,
+					"text": "Ted Danson",
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Burt Reynolds",
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": "David Hasselhoff",
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 3
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Bob Barker hosted The Price is Right for how many years?"
+				}
+			],
+			"answers": [
+				{
+					"value": 0,
+					"text": 15,
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 0,
+					"text": 25,
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 100,
+					"text": 35,
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": 45,
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 1
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Let's Make a Deal was hosted by which game show host?"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Monty Hall",
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Bob Barker",
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Wink Martendale",
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": "Dick Clark",
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 2
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Wheel of Fortune began airing in what year?\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 1975,
+					"options": {
+						"letter": "A"
+					}
+				},
+				{
+					"value": 0,
+					"text": 1981,
+					"options": {
+						"letter": "B"
+					}
+				},
+				{
+					"value": 0,
+					"text": 1985,
+					"options": {
+						"letter": "C"
+					}
+				},
+				{
+					"value": 0,
+					"text": 1989,
+					"options": {
+						"letter": "D"
+					}
+				}
+			],
+			"options": {
+				"index": 3
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "You're a nurse working in the Emergency Room one night when a mother and child come in. The mother claims the child is feeling ill, eating poorly, has no energy, and is suffering from diarrhea over the course of two days. Over the counter medication has not helped, and the mother was encouraged by a friend to bring the child to the hospital."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 1
+					}
+				}
+			],
+			"options": {
+				"layout": 2,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 0,
+				"asset": {
+					"id": "<%MEDIA=\"assets/1.png\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "After reviewing the patient's chart, what is your next reasonable step?"
+				}
+			],
+			"answers": [
+				{
+					"text": "Offer Mom some coffee.",
+					"value": 0,
+					"options": {
+						"isShortcut": true,
+						"link": 1,
+						"feedback": "While a nice thing to do, this is not the best choice at this time. Your focus should be on the child.\n"
+					}
+				},
+				{
+					"text": "Interview the Mom and child about the history of his illness and perform an initial examination.\n",
+					"value": 0,
+					"options": {
+						"link": 3,
+						"feedback": null
+					}
+				},
+				{
+					"text": "Time is short! Just perform an initial examination.\n",
+					"value": 0,
+					"options": {
+						"link": 4,
+						"feedback": null
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 2,
+				"id": 1
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "After reviewing your findings, you're ready to make a nursing diagnosis. The symptoms could be related to dehydration, influenza (the flu), or hyperglycemia (high blood sugar). What do you decide?"
+				}
+			],
+			"answers": [
+				{
+					"text": "These symptoms strongly suggest Dehydration.\n",
+					"value": 0,
+					"options": {
+						"link": 6,
+						"feedback": null
+					}
+				},
+				{
+					"text": "The child could have Influenza.",
+					"value": 0,
+					"options": {
+						"link": 7,
+						"feedback": null
+					}
+				},
+				{
+					"text": "I think the child has Hyperglycemia.",
+					"value": 0,
+					"options": {
+						"link": 8,
+						"feedback": null
+					}
+				}
+			],
+			"options": {
+				"layout": 2,
+				"randomize": true,
+				"type": 2,
+				"id": 2,
+				"asset": {
+					"id": "<%MEDIA=\"assets/2.png\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "You collect the results of your examination, as well as the history of the child's illness provided by the mother. Symptoms include consistent diarrhea, lethargy, rapid breathing, dry lips, and refuses to drink fluids. Through your interview with the mother, you also learn that the child has not been urinating, can't produce tears, and prior to becoming ill, spent the day outside on a hot day and didn't drink much water."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 2
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 3
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "You collect the results of your examination, as well as the history of the child's illness provided by the mother. Symptoms include consistent diarrhea, lethargy, rapid breathing, dry lips, and refusal to drink fluids."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 2,
+						"isShortcut": true
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 4
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "You're ready to contact the Healthcare Provider (HCP) for orders based on the child's symptoms and your diagnosis of dehydration. Which symptoms do you consider the most important?"
+				}
+			],
+			"answers": [
+				{
+					"text": "I think the child's diarrhea, lack of urination, and inability to drink fluids are the most important symptoms.",
+					"value": 0,
+					"options": {
+						"link": 10,
+						"feedback": "Correct. All of these are fairly clear signs of dehydration.\n"
+					}
+				},
+				{
+					"text": "I think the child's temperature (37.2 C), dry lips, and fatigue are the most important symptoms.",
+					"value": 0,
+					"options": {
+						"link": 11,
+						"feedback": "Incorrect. The temperature is normal, but the dry lips and fatigue are inconclusive of dehydration.\n"
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 2,
+				"id": 5
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Your next step is to contact the Healthcare Provider on-staff for orders. In a hospital setting, who might this be (e.g., a doctor, nurse, etc)?\n"
+				}
+			],
+			"answers": [
+				{
+					"text": "[All Other Answers]",
+					"value": 0,
+					"options": {
+						"isDefault": true,
+						"feedback": "Incorrect. This individual cannot issue orders or write a prescription. HCP's include doctors, physicians assistants, or nurse practitioners. ",
+						"link": 5
+					}
+				},
+				{
+					"text": "A doctor, Doctor, Nurse Practitioner, NP, Physicians Assistant, Physician's Assistant, PA, APRN",
+					"value": 0,
+					"options": {
+						"isShortcut": true,
+						"link": 5,
+						"feedback": "Correct. This individual can issue orders and write prescriptions.\n"
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 4,
+				"id": 6
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Your next step is to contact the Healthcare Provider on-staff for orders. In a hospital setting, who might this be (e.g., a doctor, nurse, etc)?\n"
+				}
+			],
+			"answers": [
+				{
+					"text": "[All Other Answers]",
+					"value": 0,
+					"options": {
+						"isDefault": true,
+						"isShortcut": true,
+						"feedback": "Incorrect. This individual cannot issue orders or write a prescription. HCP's include doctors, physicians assistants, or nurse practitioners.",
+						"link": 21
+					}
+				},
+				{
+					"text": "A doctor, Doctor, Nurse practitioner, NP, Physicians Assistant, Physician's Assistant, PA, APRN",
+					"value": 0,
+					"options": {
+						"link": 21,
+						"feedback": "Correct. This individual can issue orders and write prescriptions.\n"
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 4,
+				"id": 7
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Your next step is to contact the Healthcare Provider on-staff for orders. In a hospital setting, who might this be (e.g., a doctor, nurse, etc)?\n"
+				}
+			],
+			"answers": [
+				{
+					"text": "[All Other Answers]",
+					"value": 0,
+					"options": {
+						"isDefault": true,
+						"isShortcut": true,
+						"feedback": "Incorrect. This individual cannot issue orders or write a prescription. HCP's include doctors, physicians assistants, or nurse practitioners.",
+						"link": 20
+					}
+				},
+				{
+					"text": "A doctor, Doctor, Nurse practitioner, NP, Physicians Assistant, Physician's Assistant, PA, APRN",
+					"value": 0,
+					"options": {
+						"link": 20,
+						"feedback": "Correct. This individual can issue orders and write prescriptions.\n"
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 4,
+				"id": 8
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Several hours later, the child is feeling greatly improved. He sits up and asks for a drink and appears in good health. With hospital care completed, what's the next step?"
+				}
+			],
+			"answers": [
+				{
+					"text": "As soon as the paperwork is completed, the mother can take the child home.\n",
+					"value": 0,
+					"options": {
+						"link": 13,
+						"feedback": "Not quite! You should brief the mother on a home care plan to make sure the child stays healthy.\n"
+					}
+				},
+				{
+					"text": "Before leaving, the mother should be briefed on a home care plan to ensure the child remains in good health.\n",
+					"value": 0,
+					"options": {
+						"link": 14,
+						"feedback": "Good! A home care plan will ensure the child will remain properly hydrated in the near future.\n"
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 2,
+				"id": 9
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "The Healthcare Provider has returned with orders based on your diagnosis and the child's symptoms. You begin IV treatment to restore the child's fluids, and after collecting blood and urine samples for testing, begin to let the child recover."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 9
+					}
+				}
+			],
+			"options": {
+				"layout": 2,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 10,
+				"asset": {
+					"id": "<%MEDIA=\"assets/3.png\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Despite providing the wrong symptoms, the Healthcare Provider gives you orders after looking at the patient's chart and your diagnosis. You begin IV treatment to restore the child's fluids, and after collecting blood and urine samples for testing, begin to let the child recover."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 12
+					}
+				}
+			],
+			"options": {
+				"layout": 2,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 11,
+				"asset": {
+					"id": "<%MEDIA=\"assets/3.png\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Several hours later, the child is feeling greatly improved. He sits up and asks for a drink and appears in good health. With hospital care completed, what's the next step?"
+				}
+			],
+			"answers": [
+				{
+					"text": "As soon as the paperwork is completed, the mother can take the child home.\n",
+					"value": 0,
+					"options": {
+						"link": 15,
+						"feedback": "Not quite! You should brief the mother on a home care plan to make sure the child stays healthy.\n"
+					}
+				},
+				{
+					"text": "Before leaving, the mother should be briefed on a home care plan to ensure the child remains in good health.\n",
+					"value": 0,
+					"options": {
+						"link": 16,
+						"feedback": "Good! A home care plan will ensure the child will remain properly hydrated in the near future.\n"
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 2,
+				"id": 12
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "Great work! You've helped the child recover and successfully diagnosed and treated his dehydration. The mother thanks you earnestly as they leave.",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"proceedText": "Continue",
+				"id": 13,
+				"layout": 2,
+				"type": 5,
+				"finalScore": 90,
+				"asset": {
+					"id": "<%MEDIA=\"assets/5.JPG\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "Excellent work! You've helped the child recover and successfully diagnosed and treated his dehydration. The mother thanks you earnestly as they leave.",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"proceedText": "Continue",
+				"id": 14,
+				"layout": 2,
+				"type": 5,
+				"finalScore": 100,
+				"asset": {
+					"id": "<%MEDIA=\"assets/5.JPG\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "Good job! While flustering the Healthcare Provider and hospital staff with a few mistakes, you've helped the child recover and successfully diagnosed and treated his dehydration. The mother thanks you earnestly as they leave.",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"proceedText": "Continue",
+				"id": 15,
+				"layout": 2,
+				"type": 5,
+				"finalScore": 70,
+				"asset": {
+					"id": "<%MEDIA=\"assets/5.JPG\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "Nice job! Despite some missteps, you've helped the child recover and successfully diagnosed and treated his dehydration. The mother thanks you earnestly as they leave.",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"proceedText": "Continue",
+				"id": 16,
+				"layout": 2,
+				"type": 5,
+				"finalScore": 80,
+				"asset": {
+					"id": "<%MEDIA=\"assets/5.JPG\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "You've decided to run additional assessments to confirm your diagnosis of hyperglycemia in the child. What kind of examination do you decide to perform?"
+				}
+			],
+			"answers": [
+				{
+					"text": "Let's check the child's electrolytes - especially potassium.",
+					"value": 0,
+					"options": {
+						"link": 19,
+						"feedback": null
+					}
+				},
+				{
+					"text": "I want to check the child's blood glucose level.",
+					"value": 0,
+					"options": {
+						"link": 24,
+						"feedback": null
+					}
+				},
+				{
+					"text": "I think we should re-check respiration and blood pressure.\n",
+					"value": 0,
+					"options": {
+						"link": 25,
+						"feedback": null
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 2,
+				"id": 17
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "The Healthcare Provider agrees with your decision to check the child's electrolytes. After receiving the results, it's determined the child does not have hyperglycemia. The HCP suggests you reexamine the symptoms and select a different diagnosis."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 2,
+						"isShortcut": true
+					}
+				}
+			],
+			"options": {
+				"layout": 2,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 19,
+				"asset": {
+					"id": "<%MEDIA=\"assets/4.png\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "After reviewing the child's symptoms, the Healthcare Provider rejects your diagnosis of hyperglycemia! You're provided with two options: additional examination to confirm high blood sugar, or to reconsider your diagnosis. What do you choose?"
+				}
+			],
+			"answers": [
+				{
+					"text": "I'm still pretty sure it's hyperglycemia - let's run additional tests to see.",
+					"value": 0,
+					"options": {
+						"link": 17,
+						"feedback": null
+					}
+				},
+				{
+					"text": "The HCP is wrong! I know it's hyperglycemia. The child needs treatment immediately!",
+					"value": 0,
+					"options": {
+						"link": 22,
+						"feedback": null
+					}
+				},
+				{
+					"text": "I think hyperglycemia might be the wrong diagnosis. Let me reconsider what the child has.\n",
+					"value": 0,
+					"options": {
+						"isShortcut": true,
+						"link": 2,
+						"feedback": null
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"randomize": true,
+				"type": 2,
+				"id": 20
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "After reviewing the child's symptoms, the Healthcare Provider rejects your diagnosis of Influenza! Before going further, they point to the patient chart and demand to know what led you to believe the child has the flu."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 26
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 21
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "The Healthcare Provider balks at your decision to go ahead and perform treatment despite their refusal. You're immediately ordered to leave the emergency room and pack your things - time to find a new job!",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"layout": 1,
+				"type": 5,
+				"proceedText": "Continue",
+				"finalScore": 0,
+				"id": 22
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "The Healthcare Provider agrees with your decision to check the child's blood glucose level. The results are normal, and it's determined the child does not have hyperglycemia. The HCP suggests you reexamine the symptoms and select a different diagnosis."
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 2,
+						"isShortcut": true
+					}
+				}
+			],
+			"options": {
+				"layout": 2,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 24,
+				"asset": {
+					"id": "<%MEDIA=\"assets/4.png\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "The Healthcare Provider denies your recommendation to check the child's blood pressure and respiration again - you clearly don't know what you're doing, they say. You're immediately given the order to pack your things and leave!",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"layout": 1,
+				"type": 5,
+				"proceedText": "Continue",
+				"finalScore": 20,
+				"id": 25
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Which part of the chart do you think best provides a case for influenza?\n"
+				}
+			],
+			"answers": [
+				{
+					"text": "The patient's temperature",
+					"value": 100,
+					"options": {
+						"link": 27,
+						"hotspot": "220.9,167.15,331.2284308686394,43.82406931492768\n",
+						"feedback": null
+					}
+				},
+				{
+					"text": "The patient is lethargic",
+					"value": 100,
+					"options": {
+						"link": 28,
+						"hotspot": "210.7,285.4,283.32770394302077,17.325794845436523\n",
+						"feedback": null
+					}
+				},
+				{
+					"text": "The patient cannot urinate and won't take fluids",
+					"value": 100,
+					"options": {
+						"link": 29,
+						"hotspot": "2347.05,286.4,321.03678684191203,37.70908289889125\n",
+						"feedback": null
+					}
+				}
+			],
+			"options": {
+				"layout": 4,
+				"type": 3,
+				"id": 26,
+				"visibility": 0,
+				"asset": {
+					"id": "<%MEDIA=\"assets/6.png\"%>",
+					"materiaType": "asset"
+				}
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "The Healthcare Provider notes that the patient's temperature - 37 degrees Celsius, or 98.6 degrees Fahrenheit - is normal! The chart is taken away from you and you're asked to leave the emergency room and collect your things.",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"layout": 1,
+				"type": 5,
+				"finalScore": 10,
+				"proceedText": "Continue",
+				"id": 27
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "While lethargy is also a sign of influenza, the Healthcare Provider is not convinced the child has influenza. They suggest you review the symptoms and select a different diagnosis.\n"
+				}
+			],
+			"answers": [
+				{
+					"text": "[No Answer]",
+					"value": 0,
+					"options": {
+						"link": 2,
+						"isShortcut": true
+					}
+				}
+			],
+			"options": {
+				"layout": 1,
+				"type": 1,
+				"proceedText": "Continue",
+				"id": 28
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"questions": [
+				{
+					"text": "The Healthcare Provider calmly informs you that none of these symptoms are related to the flu. You're asked to leave the emergency room and collect your things.",
+					"options": []
+				}
+			],
+			"type": "MC",
+			"options": {
+				"layout": 1,
+				"type": 5,
+				"finalScore": 25,
+				"proceedText": "Continue",
+				"id": 29
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "exposition"
+				}
+			],
+			"answers": [
+				{
+					"text": "exposition",
+					"value": 100
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "protagonist"
+				}
+			],
+			"answers": [
+				{
+					"text": "protagonist",
+					"value": 100
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "diction"
+				}
+			],
+			"answers": [
+				{
+					"text": "diction",
+					"value": 100
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "style"
+				}
+			],
+			"answers": [
+				{
+					"text": "style",
+					"value": 100
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "theme"
+				}
+			],
+			"answers": [
+				{
+					"text": "theme",
+					"value": 100
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "flashback"
+				}
+			],
+			"answers": [
+				{
+					"text": "flashback",
+					"value": 100
+				}
+			],
+			"rand": false
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Which of these paintings is from the Baroque period?"
+				}
+			],
+			"answers": [
+				{
+					"text": "The Fall of Phaeton by Peter Paul Rubens",
+					"value": 100,
+					"options": {
+						"asset": {
+							"materiaType": "asset",
+							"id": "<%MEDIA=\"assets/img/demo/the_fall_of_phaeton.jpg\"%>"
+						}
+					}
+				},
+				{
+					"text": "The Mona Lisa by Leonardo DaVinci",
+					"value": 0,
+					"options": {
+						"asset": {
+							"materiaType": "asset",
+							"id": "<%MEDIA=\"assets/img/demo/mona_lisa.jpg\"%>"
+						}
+					}
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Which of these video games is from the 1990s?"
+				}
+			],
+			"answers": [
+				{
+					"text": "Super Mario 64",
+					"value": 100,
+					"options": {
+						"asset": {
+							"materiaType": "asset",
+							"id": "<%MEDIA=\"assets/img/demo/mario.jpg\"%>"
+						}
+					}
+				},
+				{
+					"text": "Five Nights at Freddy's 2",
+					"value": 0,
+					"options": {
+						"asset": {
+							"materiaType": "asset",
+							"id": "<%MEDIA=\"assets/img/demo/fnaf2.jpg\"%>"
+						}
+					}
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "MC",
+			"questions": [
+				{
+					"text": "Which one of these dogs is a Labrador Retriever?"
+				}
+			],
+			"answers": [
+				{
+					"text": "A large yellow dog named Chance",
+					"value": 100,
+					"options": {
+						"asset": {
+							"materiaType": "asset",
+							"id": "<%MEDIA=\"assets/img/demo/chance.jpg\"%>"
+						}
+					}
+				},
+				{
+					"text": "A small black and white dog named Bogart",
+					"value": 0,
+					"options": {
+						"asset": {
+							"materiaType": "asset",
+							"id": "<%MEDIA=\"assets/img/demo/bogart.jpg\"%>"
+						}
+					}
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "A Swiss psychiatrist and author of \"Psychological Types.\"  Practiced analytical psychology."
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Carl Jung"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Austrian physician who developed psychoanalysis.  Proposed the concepts of the id, Ego and Super-ego."
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Sigmund Freud"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "An impulsive portion of the human psyche proposed by Freud that operates on the \"pleasure principle.\"\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "id"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "The conscious portion of the human psyche proposed by Freud.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Ego"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "The unconscious portion of the human psyche proposed by Freud.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Super-Ego"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Russian physiologist who demonstrated the concept of classical conditioning with a famous experiment that measured the saliva of dogs.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Ivan Pavlov"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "The semipermeable, film-like structure that encloses the contents of a cell.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "cell membrane"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "A membrane enclosed organelle that holds and maintains the integrity of most of the cell's genetic material.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "nucleus"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "The \"cellular power plants\", which generate the cell's supply of chemical energy.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "mitochondria"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "In plant cells and some single cell organisms, this conducts photosynthesis to provide necessary energy for metabolism.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "chloroplast"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "All of the contents of the cell, except those in the nucleus, are contained in this.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "cytoplasm"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "The cell's scaffolding, which is composed of a network of tubules and is important for cellular division.\n"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "cytoskeleton"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "North America"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "North America"
+				}
+			],
+			"options": {
+				"labelBoxY": 61,
+				"labelBoxX": 36.75,
+				"endPointY": 215,
+				"endPointX": 138
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "South America"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "South America"
+				}
+			],
+			"options": {
+				"labelBoxY": 457,
+				"labelBoxX": 29.75,
+				"endPointY": 315,
+				"endPointX": 194.75
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Asia"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Asia"
+				}
+			],
+			"options": {
+				"labelBoxY": 55,
+				"labelBoxX": 427.75,
+				"endPointY": 198,
+				"endPointX": 423.75
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Europe"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Europe"
+				}
+			],
+			"options": {
+				"labelBoxY": 26,
+				"labelBoxX": 234.75,
+				"endPointY": 190,
+				"endPointX": 340.75
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Australia"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Australia"
+				}
+			],
+			"options": {
+				"labelBoxY": 456,
+				"labelBoxX": 445.75,
+				"endPointY": 334,
+				"endPointX": 503.75
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Antarctica"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Antarctica"
+				}
+			],
+			"options": {
+				"labelBoxY": 484,
+				"labelBoxX": 227.75,
+				"endPointY": 422,
+				"endPointX": 330.75
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Africa"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "Africa"
+				}
+			],
+			"options": {
+				"labelBoxY": 355,
+				"labelBoxX": 301.75,
+				"endPointY": 266,
+				"endPointX": 317.75
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "cambiar"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to change"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "preferir"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to prefer"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "poner"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to put, place, set"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "necesitar"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to need, require"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "escribir"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to write"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "enviar"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to send"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "decir"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to say, tell"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "venir"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to come"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"assets": null,
+					"text": "vender"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": "to sell"
+				}
+			]
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "American Revolutionary War"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 1
+				}
+			],
+			"options": {
+				"description": "American colonists rejected the legitimacy of the Parliament of Great Britain to govern them without representation.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "War of 1812"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 2
+				}
+			],
+			"options": {
+				"description": "Americans declared war in 1812 for a number of reasons, including a desire for expansion into the Northwest Territory, trade restrictions  because of Britain's ongoing war with France,  impressment of American merchant sailors  into the Royal Navy, British support of  American Indian tribes against American  expansion, and the humiliation of American honour.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Mexican-American War"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 3
+				}
+			],
+			"options": {
+				"description": "An armed conflict between the United States and Mexico in the wake of the U.S. annexation of Texas.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "American Civil War"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 4
+				}
+			],
+			"options": {
+				"description": "11 Southern slave states declared their secession from the United States and formed the Confederate States of America.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Spanish-American War"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 5
+				}
+			],
+			"options": {
+				"description": "Includes the Charge of the Rough Riders, at San Juan Hill.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "World War I"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 6
+				}
+			],
+			"options": {
+				"description": "More than 9 million combatants were killed in this conflict.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "World War II"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 7
+				}
+			],
+			"options": {
+				"description": "Included two opposing military alliances, the Allies and the Axis.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Korean War"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 8
+				}
+			],
+			"options": {
+				"description": "This war was the result of the physical division of Korea.\n"
+			}
+		},
+		{
+			"materiaType": "question",
+			"id": null,
+			"type": "QA",
+			"questions": [
+				{
+					"text": "Vietnam War"
+				}
+			],
+			"answers": [
+				{
+					"value": 100,
+					"text": 9
+				}
+			],
+			"options": {
+				"description": "This war followed the First Indochina War and was fought between North Vietnam, supported by its communist allies, and the government of South Vietnam, supported by the U.S. and other anti-communist nations.\n"
+			}
+		}
+	]
+}
