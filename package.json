@@ -2,6 +2,9 @@
   "name": "materia-widget-dev",
   "version": "0.0.1",
   "author": "New Media",
+  "bin": {
+    "materia-widget-dev": "./app.js"
+  },
   "dependencies": {
     "body-parser": "^1.17.1",
     "coffee-script": "^1.12.3",
