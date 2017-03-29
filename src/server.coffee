@@ -1,15 +1,16 @@
 bodyParser           = require 'body-parser'
-config               = require '../../webpack.dev.config.js'
-# config               = require 'webpack.dev.config'
 express              = require 'express'
 fs                   = require 'fs'
 path                 = require 'path'
-# productionConfig     = require '../../webpack.package.config.js'
-productionConfig     = require '/webpack.package.config'
 webpack              = require 'webpack'
 webpackHotMiddleware = require 'webpack-hot-middleware'
 webpackMiddleware    = require 'webpack-dev-middleware'
 yaml                 = require 'yamljs'
+
+# config               = require '../../webpack.dev.config.js'
+config           = require path.resolve('webpack.dev.config.js')
+# productionConfig     = require '../../webpack.package.config.js'
+productionConfig = require path.resolve('webpack.package.config.js')
 
 app  = express()
 port = 3000
