@@ -7,9 +7,7 @@ webpackHotMiddleware = require 'webpack-hot-middleware'
 webpackMiddleware    = require 'webpack-dev-middleware'
 yaml                 = require 'yamljs'
 
-# config               = require '../../webpack.dev.config.js'
 config           = require path.resolve('webpack.dev.config.js')
-# productionConfig     = require '../../webpack.package.config.js'
 productionConfig = require path.resolve('webpack.package.config.js')
 
 app  = express()
