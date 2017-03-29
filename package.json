@@ -13,6 +13,6 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": ""
+    "postinstall": "git submodule update"
   }
 }
