@@ -6,13 +6,10 @@
     "body-parser": "^1.17.1",
     "coffee-script": "^1.12.3",
     "express": "^4.13.3",
+    "materia-core": "git+ssh://git@clu.cdl.ucf.edu:materia/materia-core.git",
     "webpack": "^2.2.1",
     "webpack-dev-middleware": "^1.2.0",
     "webpack-hot-middleware": "^2.2.0",
     "yamljs": "^0.2.8"
-  },
-  "devDependencies": {},
-  "scripts": {
-    "postinstall": "git submodule update"
   }
 }
