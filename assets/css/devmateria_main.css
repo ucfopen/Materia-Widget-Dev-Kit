@@ -88,8 +88,18 @@ body {
 
 #embed_dialog {
   position: absolute;
-  left: 20%;
-  margin-top: -20%;
+  left: 50%;
+}
+
+#modalbg {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #000000;
+  background: rgba(0,0,0,.5);
 }
 
 iframe {

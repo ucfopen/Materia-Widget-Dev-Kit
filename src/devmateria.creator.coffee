@@ -189,6 +189,9 @@ Namespace('Materia').Creator = do ->
 	enableQuestionImport = ->
 		$('#importLink').on 'click', showQuestionImporter
 
+	enableDownload = ->
+		$('#downloadLink').on 'click', showPackageDownload
+
 	getQset = ->
 		dfd = $.Deferred()
 		Materia.Coms.Json.send 'question_set_get', [inst_id], (data) ->
@@ -217,6 +220,7 @@ Namespace('Materia').Creator = do ->
 
 		enableReturnLink()
 		enableQuestionImport()
+		enableDownload()
 		$('#action-bar').css 'visibility', 'visible'
 		dfd.promise()
 
@@ -245,7 +249,11 @@ Namespace('Materia').Creator = do ->
 
 	showQuestionImporter = ->
 		types = widget_info.meta_data.supported_data
-		showEmbedDialog '/questions/import/?type=' + encodeURIComponent(types.join())
+		showEmbedDialog '/questions/import/?type=' + encodeURIComponent(types.join()), 675, 500
+		null
+
+	showPackageDownload = ->
+		showEmbedDialog '/package', 500, 280
 		null
 
 	requestSave = (mode) ->
@@ -270,12 +278,12 @@ Namespace('Materia').Creator = do ->
 	getMyWidgetsUrl = (inst_id) ->
 		'' + BASE_URL + 'my-widgets#' + inst_id;
 
-	showEmbedDialog = (url) ->
-		$('#embed_dialog').remove();
-		embed = $('<iframe src="' + url + '" id="embed_dialog" frameborder=0 width=675 height=500></iframe>')
+	showEmbedDialog = (url, w, h) ->
+		embed = $('<iframe src="' + url + '" id="embed_dialog" frameborder=0 width='+w+' height='+h+'></iframe>')
 		embed.load ->
-			return embed.css('top', '50%',).css('opacity', 1)
+			return embed.css('top', '30%').css('opacity', 1).css('margin-left', -1*(w/2)+'px')
 		$('body').append embed
+		$('#modalbg').show();
 
 	onQuestionImportComplete = (questions) ->
 		hideEmbedDialog()
@@ -288,9 +296,14 @@ Namespace('Materia').Creator = do ->
 		arr.push element for element in media
 		sendToCreator 'onMediaImportComplete', [arr]
 
+	onPackageDownloadComplete = ->
+		hideEmbedDialog()
+
 	hideEmbedDialog = ->
-		$('#embed_dialog').css('top', '-50%').css('opacity', 0)
+		$('#embed_dialog').remove();
+		$('#modalbg').hide()
 
 	init: init
 	onQuestionImportComplete: onQuestionImportComplete
 	onMediaImportComplete: onMediaImportComplete
+	onPackageDownloadComplete: onPackageDownloadComplete

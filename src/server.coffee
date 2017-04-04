@@ -7,8 +7,7 @@ webpackHotMiddleware = require 'webpack-hot-middleware'
 webpackMiddleware    = require 'webpack-dev-middleware'
 yaml                 = require 'yamljs'
 
-config           = require path.resolve('webpack.dev.config.js')
-productionConfig = require path.resolve('webpack.package.config.js')
+config = require path.resolve('webpack.dev.config.js')
 
 app  = express()
 port = 3000
@@ -44,6 +43,8 @@ app.get '/', (req, res) ->
 	res.end()
 
 app.get '/download', (req, res) ->
+	productionConfig = require(path.resolve('webpack.package.config.js'))(req.query)
+
 	productionCompiler = webpack productionConfig
 	productionMiddleware = webpackMiddleware productionCompiler,
 		publicPath: productionConfig.output.publicPath,
@@ -103,6 +104,10 @@ app.post '/question_set_get', (req, res) ->
 		res.send fs.readFileSync(path.join(qsets, id+'.json')).toString()
 	catch e
 		res.send getWidgetDemo()
+
+app.get '/package', (req, res) ->
+	res.write getFile 'download_package.html'
+	res.end()
 
 app.get '/questions/import/', (req, res) ->
 	res.write getFile 'question_importer.html'

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="/"/>
+		<title>DevMateria - Question Importer</title>
+		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
+		<link rel='stylesheet' href='build/devmateria_download.css' type='text/css' />
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	</head>
+	<body class='white'>
+		<h1 class='centered'>CUSTOMIZE YOUR BUILD:</h1>
+		<p class='disclaimer'>(Supported widgets only)</p>
+		<table>
+			<tbody>
+				<tr>
+					<td><label name='minify'>Minify?</label></td>
+					<td><input id='minify' type='checkbox' name='minify' checked='checked'/></td>
+				</tr>
+				<tr>
+					<td><label name='mangle'>Mangle?</label></td>
+					<td><input id='mangle' type='checkbox' name='mangle' checked='checked'/></td>
+				</tr>
+				<!-- <tr>
+					<td><label name='embed'>Embed?</label></td>
+					<td><input id='embed' type='checkbox' name='embed' checked='checked'/></td>
+				</tr> -->
+			</tbody>
+		</table>
+		<hr/>
+		<div id='build-commands' class='centered'>
+			<p>BUILD BY:</p>
+			<a id="cancel-button" href="#">Cancel</a>
+			<button class='edit_button orange' id='download_button'>Downloading Package</button>
+			<button class='edit_button orange' id='install_button'>Installing to Materia</button>
+		</div>
+
+		<script type="text/javascript">
+			$('#download_button').click(function(e){
+				var minify = document.getElementById('minify').checked;
+				var mangle = document.getElementById('mangle').checked;
+				var url = '/download?mangle='+mangle+'&minify='+minify;
+				location.href = url;
+				closeDialog();
+			});
+
+			$('#install_button').click(function(e){
+				var minify = document.getElementById('minify').checked;
+				var mangle = document.getElementById('mangle').checked;
+				// <a href='/install/' target='_blank'>Installing to Materia</a><br/>
+			});
+
+			$('#cancel-button').click(function(e){
+				e.preventDefault();
+				e.stopPropagation();
+				closeDialog();
+			});
+
+			function closeDialog() {
+				if(window.parent.Materia.Creator)
+				{
+					window.parent.Materia.Creator.onPackageDownloadComplete();
+				}
+				else if(window.parent.Materia.Player)
+				{
+					window.parent.Materia.Player.onPackageDownloadComplete();
+				}
+			}
+		</script>
+	</body>
+</html>

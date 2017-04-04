@@ -1,0 +1,25 @@
+body.white {
+	background: #ffffff;
+}
+
+.centered {
+	text-align: center;
+}
+
+.edit_button {
+	display: inline-block;
+}
+
+table, .disclaimer {
+	padding-left: 20px;
+}
+
+hr {
+	margin: 15px 50px 0;
+}
+
+#cancel-button{
+	color: #555;
+	text-decoration: underline;
+	margin-right: 15px;
+}

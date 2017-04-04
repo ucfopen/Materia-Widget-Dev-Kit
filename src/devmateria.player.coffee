@@ -28,6 +28,9 @@ Namespace('Materia').Player = do ->
 		embed_target = _embed_target
 		inst_id = _inst_id
 		base_url = _base_url
+
+		$('#downloadLink').on 'click', showPackageDownload
+
 		for word in String(window.location).split('/')
 			if word == 'preview'
 				is_preview = true
@@ -252,6 +255,17 @@ Namespace('Materia').Player = do ->
 		log['game_time'] = ((new Date()).getTime() - start_time) / 1000 # log time in seconds
 		pending_logs.play.push log
 
+	showPackageDownload = ->
+		embed = $('<iframe src="/package" id="embed_dialog" frameborder=0 width=500 height=280></iframe>')
+		embed.load ->
+			return embed.css('top', '30%').css('opacity', 1).css('margin-left', '-250px')
+		$('body').append embed
+		$('#modalbg').show();
+
+	onPackageDownloadComplete = ->
+		$('#embed_dialog').remove();
+		$('#modalbg').hide()
+
 	end = (show_score_screen_after = yes) ->
 		switch end_state
 			when 'sent'
@@ -282,3 +296,4 @@ Namespace('Materia').Player = do ->
 		window.location = score_screen_url
 
 	init: init
+	onPackageDownloadComplete: onPackageDownloadComplete
