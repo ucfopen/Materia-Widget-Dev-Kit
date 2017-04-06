@@ -1,5 +1,4 @@
 Namespace('Materia').Package = do ->
-
 	init = ->
 		$('#downloadLink').on 'click', showPackageDownload
 

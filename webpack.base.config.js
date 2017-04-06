@@ -22,8 +22,13 @@ module.exports = function(args){
 	config = {
 		target: 'node',
 		entry: {
+			'splash_req': [
+				path.join(coredir, 'materia', 'materia.namespace.coffee'),
+				path.join(coredir, 'materia', 'materia.coms.json.coffee'),
+				path.join(devdir, 'src', 'devmateria.splash.coffee')
+			],
 			'creator_req': [
-				path.join(coredir, 'materia', 'materia-namespace.coffee'),
+				path.join(coredir, 'materia', 'materia.namespace.coffee'),
 				path.join(coredir, 'materia', 'materia.creatorcore.coffee'),
 				path.join(coredir, 'materia', 'materia.enginecore.coffee'),
 				path.join(coredir, 'materia', 'materia.coms.json.coffee'),
@@ -31,7 +36,7 @@ module.exports = function(args){
 				path.join(devdir, 'src', 'devmateria.package.coffee')
 			],
 			'player_req': [
-				path.join(coredir, 'materia', 'materia-namespace.coffee'),
+				path.join(coredir, 'materia', 'materia.namespace.coffee'),
 				path.join(coredir, 'materia', 'materia.enginecore.coffee'),
 				path.join(coredir, 'materia', 'materia.coms.json.coffee'),
 				path.join(devdir, 'src', 'devmateria.player.coffee'),
@@ -40,6 +45,7 @@ module.exports = function(args){
 				path.join(devdir, 'devmateria_main.js')
 			],
 			'question_import_req': [
+				path.join(coredir, 'materia', 'materia.namespace.coffee'),
 				path.join(coredir, 'materia', 'materia.enginecore.coffee'),
 				path.join(coredir, 'materia', 'materia.coms.json.coffee')
 			],

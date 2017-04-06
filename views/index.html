@@ -5,6 +5,7 @@
 		<title>DevMateria - {{title}}</title>
 		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
 		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
+		<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
 	</head>
 	<body>
 		<div id="topbar">
@@ -14,8 +15,25 @@
 		<center class='widget'>
 			<img src='build/img/icon-275.png' />
 			<div class='title'>{{title}}</div>
-			<a href='player' class='orange edit_button'>Player</a>
-			<a href='creator' class='orange edit_button'>Creator</a>
+			<button id='player_button' class='orange edit_button'>Player</button>
+			<button id='creator_button' class='orange edit_button'>Creator</button>
 		</center>
+		<center class='qsets'>
+			<label for='qsets'>Select Widget:</label>
+			<select id='qsets'>
+				<option value=''>None</option>
+			</select>
+		</center>
+
+		<script src='build/splash_req.js'></script>
+
+		<script type='text/javascript'>
+			var BASE_URL = '/';
+			var API_LINK = '/';
+			var WIDGET_URL = '/';
+			var STATIC_CROSSDOMAIN = '/';
+
+			Materia.Splash.init();
+		</script>
 	</body>
 </html>

@@ -48,13 +48,17 @@ app.get '/', (req, res) ->
 	res.write templateSwap(file, 'title', getWidgetTitle())
 	res.end()
 
-app.get '/saved_qsets', (req, res) ->
-	saved_qsets = []
+app.post '/saved_qsets', (req, res) ->
+	saved_qsets = {}
 
-	middleware.fileSystem.readdir qsets, (err, files) ->
-		console.log files
+	files = fs.readdirSync qsets
+	for i, file of files
+		continue unless file.includes('instance')
+		actual_path = path.join qsets, file
+		qset_data = JSON.parse(fs.readFileSync(actual_path).toString())[0]
+		saved_qsets[qset_data.id] = qset_data.name
 
-	res.write saved_qsets
+	res.write JSON.stringify(saved_qsets)
 	res.end()
 
 app.get '/download', (req, res) ->
