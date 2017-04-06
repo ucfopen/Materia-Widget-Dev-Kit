@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<base href="/"/>
+		<title>DevMateria - Preview Blocked</title>
+		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
+		<link rel='stylesheet' href='build/devmateria_download.css' type='text/css' />
+		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	</head>
+	<body class='white'>
+		<h1 class='centered'>Preview Blocked</h1>
+		<div class='centered'>
+			<p>
+				<a href='/player/{{instance}}' target='_blank'>Try Again</a>
+			</p>
+			<p>
+				<a id='close-button' href='#'>Close</a>
+			</p>
+		</div>
+
+		<script type="text/javascript">
+			$('#close-button').click(function(e){
+				e.preventDefault();
+				e.stopPropagation();
+				window.parent.Materia.Creator.onQuestionImportComplete();
+			});
+		</script>
+	</body>
+</html>

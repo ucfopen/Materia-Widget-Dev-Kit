@@ -1,8 +1,6 @@
 Namespace('Materia').Package = do ->
 
 	init = ->
-		console.log '***REMOVED*** ye'
-		console.log($'#downloadLink');
 		$('#downloadLink').on 'click', showPackageDownload
 
 	showPackageDownload = ->
@@ -19,7 +17,7 @@ Namespace('Materia').Package = do ->
 		$('#embed_dialog').remove()
 		$('#modalbg').hide()
 
-	download = (url) ->
+	build = (url) ->
 		window.location.href = url
 		closeDialog()
 
@@ -27,5 +25,5 @@ Namespace('Materia').Package = do ->
 		closeDialog()
 
 	init:     init
-	download: download
+	build:    build
 	cancel:   cancel

@@ -36,20 +36,12 @@
 		</div>
 
 		<script type="text/javascript">
-			$('#download_button').click(function(e){
-				e.preventDefault();
-				e.stopPropagation();
-				var minify = document.getElementById('minify').checked;
-				var mangle = document.getElementById('mangle').checked;
-
-				var url = '/download?mangle='+mangle+'&minify='+minify;
-				window.parent.Materia.Package.download(url);
+			$('#download_button').click(function(){
+				window.parent.Materia.Package.build(getUrl('download'));
 			});
 
-			$('#install_button').click(function(e){
-				var minify = document.getElementById('minify').checked;
-				var mangle = document.getElementById('mangle').checked;
-				// <a href='/install/' target='_blank'>Installing to Materia</a><br/>
+			$('#install_button').click(function(){
+				window.parent.Materia.Package.build(getUrl('install'));
 			});
 
 			$('#cancel-button').click(function(e){
@@ -57,6 +49,14 @@
 				e.stopPropagation();
 				window.parent.Materia.Package.cancel();
 			});
+
+			getUrl = function(base) {
+				var minify = document.getElementById('minify').checked;
+				var mangle = document.getElementById('mangle').checked;
+
+				return '/'+base+'?mangle='+mangle+'&minify='+minify;
+			}
+
 		</script>
 	</body>
 </html>

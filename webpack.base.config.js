@@ -143,6 +143,10 @@ module.exports = function(args){
 				template: path.join(devdir, 'views', 'creator_container.html')
 			}),
 			new html({
+				filename: 'preview_blocked.html',
+				template: path.join(devdir, 'views', 'preview_blocked.html')
+			}),
+			new html({
 				filename: 'player_container.html',
 				template: path.join(devdir, 'views', 'player_container.html')
 			}),

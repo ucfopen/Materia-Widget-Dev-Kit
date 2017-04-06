@@ -123,16 +123,16 @@ Namespace('Materia').Creator = do ->
 			if inst isnt null
 				switch save_mode
 					when 'preview'
-						url = '' + BASE_URL + 'preview/' + inst.id
+						url = '' + BASE_URL + 'player/' + inst.id
 						popup = window.open url
 						if popup isnt null
 							setTimeout ->
 								unless popup.innerHeight > 0
-									onPreviewPopupBlocked url
+									onPreviewPopupBlocked inst
 							, 200
 						else
-							onPreviewPopupBlocked url
-					when 'publish' then window.location = getMyWidgetsUrl inst.id
+							onPreviewPopupBlocked inst
+						fadeSaveButton $('#previewBtnTxt'), 'Saved!', 'Player (Preview)'
 					when 'save'
 						fadeSaveButton $('#saveBtnTxt'), 'Saved!', 'Save Draft'
 						sendToCreator 'onSaveComplete', [inst.name, inst.widget, inst.qset.data, inst.qset.version]
@@ -252,12 +252,15 @@ Namespace('Materia').Creator = do ->
 		showEmbedDialog '/questions/import/?type=' + encodeURIComponent(types.join()), 675, 500
 		null
 
+	onPreviewPopupBlocked = (inst) ->
+		showEmbedDialog '/preview_blocked/'+inst.id, 300, 200
+
 	requestSave = (mode) ->
 		save_mode = mode
 		cancelPublish null, true
 		cancelPreview null, true
 		switch mode
-			when 'publish' then $('#previewBtnTxt').html 'Saving...'
+			when 'preview' then $('#previewBtnTxt').html 'Saving...'
 			when 'save' then $('#saveBtnTxt').html 'Saving...'
 		sendToCreator 'onRequestSave', [mode]
 

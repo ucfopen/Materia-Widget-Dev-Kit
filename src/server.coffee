@@ -1,7 +1,9 @@
 bodyParser           = require 'body-parser'
 express              = require 'express'
 fs                   = require 'fs'
+http                 = require 'http'
 path                 = require 'path'
+querystring          = require 'querystring'
 webpack              = require 'webpack'
 webpackHotMiddleware = require 'webpack-hot-middleware'
 webpackMiddleware    = require 'webpack-dev-middleware'
@@ -46,6 +48,15 @@ app.get '/', (req, res) ->
 	res.write templateSwap(file, 'title', getWidgetTitle())
 	res.end()
 
+app.get '/saved_qsets', (req, res) ->
+	saved_qsets = []
+
+	middleware.fileSystem.readdir qsets, (err, files) ->
+		console.log files
+
+	res.write saved_qsets
+	res.end()
+
 app.get '/download', (req, res) ->
 	productionConfig = require(path.resolve('webpack.package.config.js'))(req.query)
 
@@ -59,9 +70,31 @@ app.get '/download', (req, res) ->
 		widget = makeWidget()
 
 		res.set 'Content-Disposition', 'attachment; filename=' + widget.clean_name + '.wigt'
-		res.write productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
-		res.end()
-		# res.send productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
+		res.send productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
+
+app.get '/install', (req, res) ->
+	data = querystring.stringify
+		test1: 'test1'
+		test2: 'test2'
+
+	options =
+		host: 'materia'
+		port: 80
+		path: 'login'
+		method: 'POST'
+		headers:
+			'Content-Type': 'application/x-www-form-urlencoded'
+			'Content-Length': Buffer.byteLength data
+
+	httpreq = http.request options, (response) ->
+		response.setEncoding 'utf8'
+		response.on 'data', (chunk) ->
+			console.log 'body: ', chunk
+		response.on 'end', ->
+			res.send 'ok'
+
+	httpreq.write data
+	httpreq.end()
 
 app.get '/player/:instance?', (req, res) ->
 	instance = req.params.instance or 'demo'
@@ -114,6 +147,14 @@ app.post '/question_set_get', (req, res) ->
 
 app.get '/package', (req, res) ->
 	res.write getFile 'download_package.html'
+	res.end()
+
+app.get '/preview_blocked/:instance?', (req, res) ->
+	instance = req.params.instance or 'demo'
+
+	file = getFile 'preview_blocked.html'
+
+	res.write templateSwap(file, 'instance', instance)
 	res.end()
 
 app.get '/questions/import/', (req, res) ->
