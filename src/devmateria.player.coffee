@@ -29,7 +29,7 @@ Namespace('Materia').Player = do ->
 		inst_id = _inst_id
 		base_url = _base_url
 
-		$('#downloadLink').on 'click', showPackageDownload
+		Materia.Package.init()
 
 		for word in String(window.location).split('/')
 			if word == 'preview'

@@ -12,18 +12,22 @@ config = require path.resolve('webpack.dev.config.js')
 app  = express()
 port = 3000
 
+# format the output of webpack builds in the terminal
+buildOutput =
+	colors: true,
+	hash: false,
+	timings: true,
+	chunks: false,
+	chunkModules: false,
+	modules: false
+
 compiler   = webpack config
 middleware = webpackMiddleware compiler,
 	publicPath: config.output.publicPath,
 	contentBase: 'build',
-	stats:
-		colors: true,
-		hash: false,
-		timings: true,
-		chunks: false,
-		chunkModules: false,
-		modules: false
+	stats: buildOutput
 
+# allow iframes to talk to their parent containers
 app.use (req, res, next) ->
 	res.header 'Access-Control-Allow-Origin', '*'
 	res.header 'Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept'
@@ -49,12 +53,15 @@ app.get '/download', (req, res) ->
 	productionMiddleware = webpackMiddleware productionCompiler,
 		publicPath: productionConfig.output.publicPath,
 		contentBase: '.build'
+		stats: buildOutput
 
 	productionMiddleware.waitUntilValid ->
 		widget = makeWidget()
 
 		res.set 'Content-Disposition', 'attachment; filename=' + widget.clean_name + '.wigt'
-		res.send productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
+		res.write productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
+		res.end()
+		# res.send productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
 
 app.get '/player/:instance?', (req, res) ->
 	instance = req.params.instance or 'demo'

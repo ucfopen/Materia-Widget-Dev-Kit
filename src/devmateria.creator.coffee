@@ -189,8 +189,8 @@ Namespace('Materia').Creator = do ->
 	enableQuestionImport = ->
 		$('#importLink').on 'click', showQuestionImporter
 
-	enableDownload = ->
-		$('#downloadLink').on 'click', showPackageDownload
+	enablePackageDownload = ->
+		Materia.Package.init()
 
 	getQset = ->
 		dfd = $.Deferred()
@@ -220,7 +220,7 @@ Namespace('Materia').Creator = do ->
 
 		enableReturnLink()
 		enableQuestionImport()
-		enableDownload()
+		enablePackageDownload()
 		$('#action-bar').css 'visibility', 'visible'
 		dfd.promise()
 
@@ -252,10 +252,6 @@ Namespace('Materia').Creator = do ->
 		showEmbedDialog '/questions/import/?type=' + encodeURIComponent(types.join()), 675, 500
 		null
 
-	showPackageDownload = ->
-		showEmbedDialog '/package', 500, 280
-		null
-
 	requestSave = (mode) ->
 		save_mode = mode
 		cancelPublish null, true
@@ -281,7 +277,7 @@ Namespace('Materia').Creator = do ->
 	showEmbedDialog = (url, w, h) ->
 		embed = $('<iframe src="' + url + '" id="embed_dialog" frameborder=0 width='+w+' height='+h+'></iframe>')
 		embed.load ->
-			return embed.css('top', '30%').css('opacity', 1).css('margin-left', -1*(w/2)+'px')
+			return embed.css('top', '20%').css('opacity', 1).css('margin-left', -1*(w/2)+'px')
 		$('body').append embed
 		$('#modalbg').show();
 
@@ -296,9 +292,6 @@ Namespace('Materia').Creator = do ->
 		arr.push element for element in media
 		sendToCreator 'onMediaImportComplete', [arr]
 
-	onPackageDownloadComplete = ->
-		hideEmbedDialog()
-
 	hideEmbedDialog = ->
 		$('#embed_dialog').remove();
 		$('#modalbg').hide()
@@ -306,4 +299,3 @@ Namespace('Materia').Creator = do ->
 	init: init
 	onQuestionImportComplete: onQuestionImportComplete
 	onMediaImportComplete: onMediaImportComplete
-	onPackageDownloadComplete: onPackageDownloadComplete

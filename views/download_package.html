@@ -37,11 +37,13 @@
 
 		<script type="text/javascript">
 			$('#download_button').click(function(e){
+				e.preventDefault();
+				e.stopPropagation();
 				var minify = document.getElementById('minify').checked;
 				var mangle = document.getElementById('mangle').checked;
+
 				var url = '/download?mangle='+mangle+'&minify='+minify;
-				location.href = url;
-				closeDialog();
+				window.parent.Materia.Package.download(url);
 			});
 
 			$('#install_button').click(function(e){
@@ -53,19 +55,8 @@
 			$('#cancel-button').click(function(e){
 				e.preventDefault();
 				e.stopPropagation();
-				closeDialog();
+				window.parent.Materia.Package.cancel();
 			});
-
-			function closeDialog() {
-				if(window.parent.Materia.Creator)
-				{
-					window.parent.Materia.Creator.onPackageDownloadComplete();
-				}
-				else if(window.parent.Materia.Player)
-				{
-					window.parent.Materia.Player.onPackageDownloadComplete();
-				}
-			}
 		</script>
 	</body>
 </html>
