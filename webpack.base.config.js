@@ -7,7 +7,7 @@ var autoprefixer = require('autoprefixer'),
     webpack      = require('webpack');
 
 var devdir = path.join(__dirname);
-var coredir = path.resolve('materia-core', 'coffee');
+var coredir = path.join(__dirname, '..', 'materia-core', 'coffee');
 
 var builddir = path.resolve('build/'),
     srcdir   = path.resolve('src/');
