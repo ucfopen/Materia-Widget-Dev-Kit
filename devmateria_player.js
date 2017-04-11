@@ -3,12 +3,6 @@ var currentSelectedTable = "";
 
 function init()
 {
-	var sock = new WebSocket("ws://localhost:8119/");
-	sock.onmessage = function (event)
-	{
-		if (event.data == "RELOAD") { window.location = location.href; }
-		if (event.data == "STORAGE") { updateStorage(); }
-	}
 	$(".tabtitle.qset").click(function() { setActiveTab("qset"); });
 	$(".tabtitle.storage").click(function() { setActiveTab("storage"); });
 	$('#tableselect').change(function() { currentSelectedTable = $('#tableselect').val(); });
@@ -74,10 +68,4 @@ function updateStorage()
 		html += "</table>";
 		document.getElementById("storagetable").innerHTML = html;
 	});
-}
-// User chose to rebuild widget in devmateria.
-// The checkbox values determine how the widget will be rebuilt.
-function rebuild()
-{
-	ajax("/rebuild/" + window.__PLAY_ID + "/" + $("#minify").is(':checked') + "/" + $("#mangle").is(':checked') + "/" + $("#embed").is(':checked'), function (e) { Materia.Player.init(API_LINK, __PLAY_ID , "container", BASE_URL); });
 }

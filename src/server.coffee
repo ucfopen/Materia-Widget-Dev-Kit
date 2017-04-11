@@ -1,4 +1,6 @@
 bodyParser           = require 'body-parser'
+exec                 = require('child_process').exec
+execSync             = require('child_process').execSync
 express              = require 'express'
 fs                   = require 'fs'
 http                 = require 'http'
@@ -77,28 +79,62 @@ app.get '/download', (req, res) ->
 		res.send productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
 
 app.get '/install', (req, res) ->
-	data = querystring.stringify
-		test1: 'test1'
-		test2: 'test2'
+	dockerMachine = execSync 'docker-machine active'
+	dockerMachine = dockerMachine.toString()
 
-	options =
-		host: 'materia'
-		port: 80
-		path: 'login'
-		method: 'POST'
-		headers:
-			'Content-Type': 'application/x-www-form-urlencoded'
-			'Content-Length': Buffer.byteLength data
+	runningCheck = execSync 'docker-machine status ' + dockerMachine
+	runningCheck = runningCheck.toString()
+	unless runningCheck.trim() is 'Running'
+		return res.end()
 
-	httpreq = http.request options, (response) ->
-		response.setEncoding 'utf8'
-		response.on 'data', (chunk) ->
-			console.log 'body: ', chunk
-		response.on 'end', ->
-			res.send 'ok'
+	execSync 'eval $(docker-machine env ' + dockerMachine + ')'
 
-	httpreq.write data
-	httpreq.end()
+	dockerInfo = execSync 'docker inspect materia_phpfpm_1'
+	dockerInfo = JSON.parse dockerInfo.toString()
+
+	materiaPath = false
+
+	for k, mount of dockerInfo[0].Mounts
+		if mount.Destination is '/var/www/html'
+			materiaPath = mount.Source
+
+	materiaUrl = execSync 'docker-machine ip default'
+	materiaUrl = materiaUrl.toString()
+
+	productionConfig = require(path.resolve('webpack.package.config.js'))(req.query)
+
+	productionCompiler = webpack productionConfig
+	productionMiddleware = webpackMiddleware productionCompiler,
+		publicPath: productionConfig.output.publicPath,
+		contentBase: '.build'
+		stats: buildOutput
+
+	productionMiddleware.waitUntilValid ->
+		widget = makeWidget()
+
+		execSync "find " + materiaPath + "/fuel/app/tmp/widget_packages -name '" + widget.clean_name + "*.wigt' -delete"
+
+		file = productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
+		time = new Date().getTime()
+		filename = widget.clean_name+'-'+time+'.wigt'
+
+		fs.writeFileSync path.join(materiaPath, '/fuel/app/tmp/widget_packages', filename), file
+
+		installCommand = "cd " + materiaPath +
+			" && cd .. " +
+			" && eval $(docker-machine env " + dockerMachine + ")" +
+			" && ./install_widget.sh " + filename
+
+		installResult = execSync installCommand
+		installResult = installResult.toString()
+
+		console.log installResult
+
+		match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/)
+
+		if match? and match[1]
+			redirectUrl = 'http://'+materiaUrl.trim()+'/widgets/'+match[1]
+			res.redirect redirectUrl
 
 app.get '/player/:instance?', (req, res) ->
 	instance = req.params.instance or 'demo'
