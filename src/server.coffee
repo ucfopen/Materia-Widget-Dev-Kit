@@ -79,13 +79,8 @@ app.get '/download', (req, res) ->
 		res.send productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
 
 app.get '/install', (req, res) ->
-	dockerMachine = execSync 'docker-machine active'
-	dockerMachine = dockerMachine.toString()
-
-	runningCheck = execSync 'docker-machine status ' + dockerMachine
-	runningCheck = runningCheck.toString()
-	unless runningCheck.trim() is 'Running'
-		return res.end()
+	runningMachines = execSync 'docker-machine ls | grep Running'
+	dockerMachine = runningMachines.toString().split(' ', 1)[0]
 
 	execSync 'eval $(docker-machine env ' + dockerMachine + ')'
 
@@ -122,7 +117,6 @@ app.get '/install', (req, res) ->
 
 		installCommand = "cd " + materiaPath +
 			" && cd .. " +
-			" && eval $(docker-machine env " + dockerMachine + ")" +
 			" && ./install_widget.sh " + filename
 
 		installResult = execSync installCommand
