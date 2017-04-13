@@ -79,14 +79,7 @@ app.get '/download', (req, res) ->
 		res.send productionMiddleware.fileSystem.readFileSync path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt')
 
 app.get '/install', (req, res) ->
-	dockerMachine = 'default'
-
-	try
-		runningMachines = execSync 'docker-machine ls | grep Running'
-		dockerMachine = runningMachines.toString().split(' ', 1)[0]
-
-	execSync 'eval $(docker-machine env ' + dockerMachine + ')'
-
+	# determine the directory that Materia's files are running from
 	dockerInfo = execSync 'docker inspect materia_phpfpm_1'
 	dockerInfo = JSON.parse dockerInfo.toString()
 
@@ -95,9 +88,7 @@ app.get '/install', (req, res) ->
 	for k, mount of dockerInfo[0].Mounts
 		if mount.Destination is '/var/www/html'
 			materiaPath = mount.Source
-
-	materiaUrl = execSync 'docker-machine ip ' + dockerMachine
-	materiaUrl = materiaUrl.toString()
+			break
 
 	productionConfig = require(path.resolve('webpack.package.config.js'))(req.query)
 
@@ -130,7 +121,7 @@ app.get '/install', (req, res) ->
 		match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/)
 
 		if match? and match[1]
-			redirectUrl = 'http://'+materiaUrl.trim()+'/widgets/'+match[1]
+			redirectUrl = 'http://localhost/widgets/'+match[1]
 			res.redirect redirectUrl
 
 app.get '/player/:instance?', (req, res) ->
