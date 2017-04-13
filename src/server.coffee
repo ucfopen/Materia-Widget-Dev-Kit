@@ -69,7 +69,7 @@ app.get '/download', (req, res) ->
 	productionCompiler = webpack productionConfig
 	productionMiddleware = webpackMiddleware productionCompiler,
 		publicPath: productionConfig.output.publicPath,
-		contentBase: '.build'
+		contentBase: 'build'
 		stats: buildOutput
 
 	productionMiddleware.waitUntilValid ->
@@ -95,7 +95,7 @@ app.get '/install', (req, res) ->
 	productionCompiler = webpack productionConfig
 	productionMiddleware = webpackMiddleware productionCompiler,
 		publicPath: productionConfig.output.publicPath,
-		contentBase: '.build'
+		contentBase: 'build'
 		stats: buildOutput
 
 	productionMiddleware.waitUntilValid ->
