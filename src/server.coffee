@@ -80,7 +80,9 @@ app.get '/download', (req, res) ->
 
 app.get '/install', (req, res) ->
 	# determine the directory that Materia's files are running from
-	dockerInfo = execSync 'docker inspect materia_phpfpm_1'
+	targetImage = execSync 'docker ps --filter "name=phpfpm" --format "{{.Names}}"'
+
+	dockerInfo = execSync 'docker inspect ' + targetImage.toString()
 	dockerInfo = JSON.parse dockerInfo.toString()
 
 	materiaPath = false
