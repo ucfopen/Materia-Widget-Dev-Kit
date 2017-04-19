@@ -50,6 +50,9 @@ app.get '/', (req, res) ->
 	res.write templateSwap(file, 'title', getWidgetTitle())
 	res.end()
 
+app.get '/media/:id', (req, res) ->
+	res.redirect 'http://lorempixel.com/800/600/?c=' + req.params.id
+
 app.post '/saved_qsets', (req, res) ->
 	saved_qsets = {}
 
