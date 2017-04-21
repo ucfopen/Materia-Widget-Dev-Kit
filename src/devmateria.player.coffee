@@ -153,6 +153,15 @@ Namespace('Materia').Player = do ->
 
 	onWidgetReady = ->
 		widget = $('#container').get 0
+
+		# override engine core's getImageAssetUrl method to handle hardcoded demo assets properly
+		widget.contentWindow.Materia.Engine.getImageAssetUrl = (id) ->
+			if id.indexOf 'MEDIA=' isnt -1
+				id = id.split "'"
+				id[1]
+			else
+				"#{base_url}media/#{id}"
+
 		switch
 			when qset is null then embed_done_dfd.reject 'Unable to load widget data.'
 			when widget is null then embed_done_dfd.reject 'Unable to load widget.'
