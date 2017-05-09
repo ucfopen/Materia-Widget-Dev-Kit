@@ -3,6 +3,7 @@ var currentSelectedTable = "";
 
 function init()
 {
+	$('#sidebarbtn').click(hideSidebar);
 	$(".tabtitle.qset").click(function() { setActiveTab("qset"); });
 	$(".tabtitle.storage").click(function() { setActiveTab("storage"); });
 	$('#tableselect').change(function() { currentSelectedTable = $('#tableselect').val(); });
@@ -18,6 +19,23 @@ function init()
 	}
 }
 
+function hideSidebar(e) {
+	e.preventDefault();
+	var leftbar = document.getElementById("leftbar");
+	var btn = document.getElementById("sidebarbtn");
+	var center = document.querySelector(".center");
+
+	if (leftbar.className) {
+		leftbar.className = "";
+		btn.innerHTML = "&larr;";
+		center.className = "center";
+	} else {
+		leftbar.className = "shrink";
+		btn.innerHTML = "&rarr;";
+		center.className = "center full";
+	}
+}
+
 function setActiveTab(tab) {
 	$('.tabtitle').addClass('deactivated');
 	$('.tab').removeClass('visible');
@@ -29,7 +47,7 @@ function setActiveTab(tab) {
 function ajax(url, callback)
 {
 	var xhr = new XMLHttpRequest();
-	xhr.onload = function() { callback(xhr.responseText); }
+	xhr.onload = function() { callback(xhr.responseText); };
 	xhr.open("GET", url);
 	xhr.send();
 }
@@ -69,3 +87,5 @@ function updateStorage()
 		document.getElementById("storagetable").innerHTML = html;
 	});
 }
+
+init();
