@@ -126,7 +126,7 @@ app.get '/install', (req, res) ->
 		match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/)
 
 		if match? and match[1]
-			redirectUrl = 'http://localhost/widgets/'+match[1]
+			redirectUrl = 'http://127.0.0.1/widgets/'+match[1]
 			res.redirect redirectUrl
 
 app.get '/player/:instance?', (req, res) ->
