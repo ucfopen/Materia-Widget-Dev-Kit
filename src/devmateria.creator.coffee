@@ -85,7 +85,7 @@ Namespace('Materia').Creator = do ->
 					when 'cancelSave' then onSaveCanceled msg.data[0]
 					when 'showMediaImporter' then showMediaImporter()
 					when 'setHeight' then setHeight msg.data[0]
-					when 'alert' then alert msg.data
+					when 'alert' then alert msg.data.msg
 					else alert 'Unknown message from creator: ' + msg.type
 			else
 				alert 'Error, cross domain restricted for ' + origin
@@ -135,6 +135,9 @@ Namespace('Materia').Creator = do ->
 						fadeSaveButton $('#previewBtnTxt'), 'Saved!', 'Player (Preview)'
 					when 'save'
 						fadeSaveButton $('#saveBtnTxt'), 'Saved!', 'Save Draft'
+						if inst.warning
+							alert inst.warning
+							delete inst.warning
 						sendToCreator 'onSaveComplete', [inst.name, inst.widget, inst.qset.data, inst.qset.version]
 						inst_id = inst.id
 						instance = inst

@@ -14,7 +14,7 @@ yaml                 = require 'yamljs'
 config = require path.resolve('webpack.dev.config.js')
 
 app  = express()
-port = 3000
+port = 8118
 
 # format the output of webpack builds in the terminal
 buildOutput =
@@ -141,8 +141,9 @@ app.get '/creator/:instance?', (req, res) ->
 	instance = req.params.instance or null
 
 	file = getFile 'creator_container.html'
+	file = templateSwap(file, 'instance', instance)
 
-	res.write templateSwap(file, 'instance', instance)
+	res.write templateSwap(file, 'port', port)
 	res.end()
 
 app.post '/widget_instances_get', (req, res) ->
@@ -154,6 +155,26 @@ app.post '/widget_instances_get', (req, res) ->
 app.post '/widget_instance_save', (req, res) ->
 	data = JSON.parse(req.body.data)
 
+	# sweep through the qset items and make sure there aren't any nonstandard question properties
+	standard_props = [
+		'materiaType',
+		'id',
+		'type',
+		'created_at',
+		'questions',
+		'answers',
+		'options',
+		'assets',
+	]
+	nonstandard_props = []
+	for index, item of data[2].data.items
+		for prop of item
+			console.log prop
+			unless prop in standard_props
+				nonstandard_props.push '"'+prop+'"'
+				delete data[2].data.items[index][prop]
+				console.log 'Nonstandard property found in qset: ' + prop
+
 	id = data[0] || new Date().getTime()
 	fs.writeFileSync path.join(qsets, id + '.json'), JSON.stringify(data[2])
 
@@ -161,6 +182,14 @@ app.post '/widget_instance_save', (req, res) ->
 	instance.id = id
 	instance.name = data[1]
 	fs.writeFileSync path.join(qsets, id + '.instance.json'), JSON.stringify([instance])
+
+	# send a warning back to the creator if any nonstandard question properties were detected
+	if nonstandard_props.length > 0
+		plurals = if nonstandard_props.length > 1 then ['properties', 'were'] else ['property', 'was']
+		instance.warning = 'Warning: Nonstandard qset item ' +
+			plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
+			plurals[1] + ' not saved. Use options instead.'
+
 	res.end JSON.stringify(instance)
 
 app.post '/widgets_get', (req, res) ->
@@ -191,7 +220,9 @@ app.get '/preview_blocked/:instance?', (req, res) ->
 	res.end()
 
 app.get '/questions/import/', (req, res) ->
-	res.write getFile 'question_importer.html'
+	file = getFile 'question_importer.html'
+
+	res.write templateSwap(file, 'port', port)
 	res.end()
 
 app.post '/questions_get/', (req, res) ->
@@ -218,11 +249,11 @@ app.get '/assets/*', (req, res) ->
 	res.end()
 
 app.get '/build/*', (req, res) ->
+	if path.extname(req.params[0]) is '.css'
+		res.setHeader 'content-type', 'text/css'
 	res.write getFile(req.params[0])
 	res.end()
 
-# DO NOT KEEP THIS
-# SEE WHAT FILES WE CAN GRAB FROM HERE
 app.get '/showfiles', (req, res) ->
 	middleware.fileSystem.readdir config.output.publicPath, (err, files) ->
 		console.log files
