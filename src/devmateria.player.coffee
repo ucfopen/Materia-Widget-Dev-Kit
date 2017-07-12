@@ -95,6 +95,11 @@ Namespace('Materia').Player = do ->
 				dfd.resolve()
 			qset = result
 			document.getElementById('qset').innerHTML = JSON.stringify result, null, 2
+
+			# make sure every question is given an explicit id if it doesn't have one already
+			for index, question of qset.data.items
+				question.id = +index if question.id is null
+
 			dfd.resolve()
 		dfd.promise()
 
@@ -203,8 +208,6 @@ Namespace('Materia').Player = do ->
 					previewUrl: inst.preview_url
 					userID: inst.user_id
 					scoreModule: inst.widget.score_module
-			when 2
-				output = inst
 			else
 				output = inst
 		output
