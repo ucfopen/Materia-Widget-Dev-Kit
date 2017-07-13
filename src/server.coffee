@@ -14,7 +14,12 @@ yaml                 = require 'yamljs'
 config = require path.resolve('webpack.dev.config.js')
 
 app  = express()
+# default port number - possibly overridden by command line arguments
 port = 8118
+
+# if a valid port number was passed as a command line argument, use it instead of the default
+if Number.isInteger +process.argv[2]
+	port = +process.argv[2]
 
 # format the output of webpack builds in the terminal
 buildOutput =
@@ -44,6 +49,16 @@ app.use middleware
 app.use webpackHotMiddleware(compiler)
 
 qsets = path.join __dirname, '..', 'qsets'
+
+# start the server
+app.listen port, 'localhost', (err) ->
+	if err
+		console.log err
+
+	install = fs.readFileSync path.join(config.output.publicPath, 'install.yaml')
+	title = yaml.parse(install.toString()).general.name
+
+	console.info('==> %s is now running on port %s. Open up http://localhost:%s/ in your browser.', title, port, port);
 
 app.get '/', (req, res) ->
 	file = getFile 'index.html'
@@ -259,26 +274,32 @@ app.get '/showfiles', (req, res) ->
 		console.log files
 	res.end()
 
-app.listen port, 'localhost', (err) ->
-	if err
-		console.log err
-	console.info('==> Listening on port %s. Open up http://localhost:%s/ in your browser.', port, port);
+
+###
+File loading/manipulation support functions
+###
 
 getFile = (file) ->
 	try
+		# pull the specified filename out of memory
 		middleware.fileSystem.readFileSync path.join(config.output.publicPath, file)
 	catch e
 		console.log 'error trying to load '+file
 
 templateSwap = (file, target, replace) ->
+	# stringify the given file buffer and replace all instances of 'target' with 'replace'
 	str = file.toString()
 	re = new RegExp '{{' + target + '}}', 'g'
+	# if replacing 'target' with null, take extra steps to ensure it is actually 'null' and not the string '"null"'
 	if replace is null
 		re = new RegExp '(\'|"){{' + target + '}}(\'|")', 'g'
 
 	Buffer.from str.replace(re, replace)
 
-# WIDGET METHODS
+###
+Widget creation/management support functions
+###
+
 getWidgetTitle = ->
 	install = getFile 'install.yaml'
 	yaml.parse(install.toString()).general.name
@@ -288,12 +309,12 @@ makeWidgetInstance = (id) ->
 	widget = null
 	widgetPath = null
 
-	# attempt to load a previously saved instance
+	# attempt to load a previously saved instance with the given ID
 	try
 		return JSON.parse fs.readFileSync(path.join(qsets, id+'.instance.json')).toString()
 	catch e
 
-	# generate a new one
+	# generate a new instance with the given ID
 	try
 		qset = JSON.parse getFile('demo.json').toString()
 		widget = makeWidget id
@@ -337,6 +358,35 @@ makeWidget = (id) ->
 getWidgetDemo = ->
 	JSON.stringify JSON.parse(getFile('demo.json').toString()).qset
 
+###
+Question importer support functions
+###
+
+# goes through the master list of default questions and filters according to a given type/types
+getAllQuestions = (type) ->
+	type = type.replace('Multiple%20Choice', 'MC')
+	type = type.replace('Question%2FAnswer', 'QA')
+	types = type.split(',')
+
+	qlist = []
+
+	obj = JSON.parse fs.readFileSync(path.join(__dirname, 'devmateria_questions.json')).toString()
+	i = 1
+
+	qarr = obj.set
+	for q in qarr
+		q.id = i++
+		continue unless q.type in types
+		qlist.push
+			id: q.id
+			type: q.type
+			text: q.questions[0].text
+			uses: Math.round(Math.random() * 1000)
+			created_at: Date.now()
+
+	return qlist
+
+# pulls a question/questions out of the master list of default questions according to specified ID/IDs
 getQuestion = (ids) ->
 	# convert the given ids to numbers
 	ids = ids.map (id) ->
@@ -359,28 +409,5 @@ getQuestion = (ids) ->
 			answers: q.answers
 			options: q.options
 			assets: q.assets
-
-	return qlist
-
-getAllQuestions = (type) ->
-	type = type.replace('Multiple%20Choice', 'MC')
-	type = type.replace('Question%2FAnswer', 'QA')
-	types = type.split(',')
-
-	qlist = []
-
-	obj = JSON.parse fs.readFileSync(path.join(__dirname, 'devmateria_questions.json')).toString()
-	i = 1
-
-	qarr = obj.set
-	for q in qarr
-		q.id = i++
-		continue unless q.type in types
-		qlist.push
-			id: q.id
-			type: q.type
-			text: q.questions[0].text
-			uses: Math.round(Math.random() * 1000)
-			created_at: Date.now()
 
 	return qlist
