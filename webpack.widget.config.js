@@ -116,8 +116,18 @@ let buildDefaultConfig = function(config = {}){
 					test: /\.s[ac]ss$/,
 					exclude: /node_modules/,
 					loader: extract.extract({
-						fallback: 'style-loader',
-						use: ['raw-loader', 'postcss-loader', 'sass-loader']
+						use: [
+							'raw-loader',
+							{
+								loader: 'postcss-loader',
+								options: {
+									config: {
+										path: '/Users/ianturgeon/git/materia-widget-dev/postcss.config.js'
+									}
+								}
+							},
+							'sass-loader'
+						]
 					})
 				}
 			]
@@ -163,11 +173,6 @@ let buildDefaultConfig = function(config = {}){
 
 			// extract css from the webpack output
 			new extract({filename: '[name]'}),
-
-			// set plugin options for post-css to use autoprefixer
-			new webpack.LoaderOptionsPlugin({
-				options: {postcss: [ autoprefixer ]}
-			}),
 
 			// zip everything in the build path to zip dir
 			new zip({
