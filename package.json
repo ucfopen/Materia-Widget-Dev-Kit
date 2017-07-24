@@ -2,14 +2,22 @@
   "name": "materia-widget-dev",
   "version": "0.0.1",
   "author": "New Media",
+  "engines": {
+    "node": ">=6.9.0 <7.0.0",
+    "yarn": "^0.27.5"
+  },
   "dependencies": {
+    "autoprefixer": "^7.1.2",
     "body-parser": "^1.17.1",
+    "clean-webpack-plugin": "^0.1.16",
     "coffee-script": "^1.12.3",
+    "copy-webpack-plugin": "^4.0.1",
     "express": "^4.13.3",
     "materia-core": "git+ssh://git@clu.cdl.ucf.edu:materia/materia-core.git",
-    "webpack": "^2.2.1",
+    "webpack": "^3.3.0",
     "webpack-dev-middleware": "^1.2.0",
     "webpack-hot-middleware": "^2.2.0",
-    "yamljs": "^0.2.8"
+    "yamljs": "^0.2.8",
+    "zip-webpack-plugin": "^2.0.0"
   }
 }
