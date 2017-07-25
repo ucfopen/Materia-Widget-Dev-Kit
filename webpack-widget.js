@@ -153,11 +153,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 										'last 3 iOS versions',
 										'last 3 Safari versions',
 										'last 3 Edge versions'
-									]})],
-									// if you don't tell postcss where to get it's config, it'll search and die
-									// adding this keeps us from having to add a postcss.config.js to each widget
-									// override if you need to
-									config: { path: `${__dirname}/postcss.config.js` }
+									]})]
 								}
 							},
 							'sass-loader'
