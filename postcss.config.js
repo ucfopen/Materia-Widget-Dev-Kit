@@ -1,5 +1,1 @@
-module.exports = {
-  plugins: [
-    require('autoprefixer')
-  ]
-}
+// just here so theres something for it to load

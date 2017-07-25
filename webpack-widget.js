@@ -23,11 +23,11 @@ const defaultCfg = {
 // To do so rather than hard-coding the actual location of those files
 //the build process will replace those references with the current relative paths to those files
 const materiaJSReplacements = [
-	{ search: /src=(\\?("|')?)materia.enginecore.js(\\?("|')?)/g,      replace: 'src=\\"../../../js/materia.enginecore.js\\"' },
-	{ search: /src=(\\?("|')?)materia.score.js(\\?("|')?)/g,           replace: 'src=\\"../../../js/materia.score.js\\"' },
-	{ search: /src=(\\?("|')?)materia.creatorcore.js(\\?("|')?)/g,     replace: 'src=\\"../../../js/materia.creatorcore.js\\"' },
-	{ search: /src=(\\?("|')?)materia.storage.manager.js(\\?("|')?)/g, replace: 'src=\\"../../../js/materia.storage.manager.js\\"' },
-	{ search: /src=(\\?("|')?)materia.storage.table.js(\\?("|')?)/g,   replace: 'src=\\"../../../js/materia.storage.table.js\\"' }
+	{ search: /src=(\\?("|')?)materia.enginecore.js(\\?("|')?)/g,      replace: 'src=\\"/js/materia.enginecore.js\\"' },
+	{ search: /src=(\\?("|')?)materia.score.js(\\?("|')?)/g,           replace: 'src=\\"/js/materia.score.js\\"' },
+	{ search: /src=(\\?("|')?)materia.creatorcore.js(\\?("|')?)/g,     replace: 'src=\\"/js/materia.creatorcore.js\\"' },
+	{ search: /src=(\\?("|')?)materia.storage.manager.js(\\?("|')?)/g, replace: 'src=\\"/js/materia.storage.manager.js\\"' },
+	{ search: /src=(\\?("|')?)materia.storage.table.js(\\?("|')?)/g,   replace: 'src=\\"/js/materia.storage.table.js\\"' }
 ];
 
 // Load the materia configuration settings from the package.json file
@@ -45,6 +45,8 @@ const configFromPackage = () => {
 // It will skip webpack's javascript functionality
 // to avoid having to make changes to the source code of those widgets
 // the config argument allows you to override some settings
+// you can update the return from this method to modify or alter
+// the base configuration
 const getLegacyWidgetBuildConfig = (config = {}) => {
 	// load and combine the config
 	let materiaConfig = configFromPackage()
@@ -53,9 +55,8 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	let srcPath = cfg.srcPath + path.sep
 	let outputPath = cfg.outputPath + path.sep
 
-	// return a webpack config you can update
 	return {
-		target: 'node',
+		// These are the default js and css files
 		entry: {
 			'creator.js': [
 				path.join(srcPath, 'creator.coffee')
@@ -73,6 +74,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			]
 		},
 
+		// write files to the outputPath (default = ./build) using the object keys from 'entry' above
 		output: {
 			path: outputPath,
 			filename: '[name]',
@@ -81,24 +83,35 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 
 		module: {
 			rules: [
+				// process coffee files by translating them to js
+				// SKIPS the default webpack Javascript functionality
+				// that evaluates js code and processes module imports
 				{
-					test: /\.coffee$/,
+					test: /\.coffee$/i,
 					exclude: /node_modules/,
 					loader: ExtractTextPlugin.extract({
 						use: ['raw-loader', 'coffee-loader']
 					})
 				},
+
+				// webpack is going to look at all the images, fonts, etc
+				// in the src of the html files, this will tell webpack
+				// how to deal with those files
 				{
 					test: /\.(jpe?g|png|gif|svg)$/i,
 					loader: 'file-loader',
 					query: {
-						emitFile: false,
-						publicPath: 'assets/img/',
+						emitFile: false, // keeps this plugin from renaming the file to an md5 hash
+						useRelativePath: true, // keeps path of img/src/imag.png intact
 						name: '[name].[ext]'
 					}
 				},
+
+				// Loads the html files and minifies their contents
+				// Rewrites the paths to our materia core libs provided by materia server
+				//
 				{
-					test: /\.html$/,
+					test: /\.html$/i,
 					exclude: /node_modules/,
 					use: [
 						{
@@ -116,9 +129,11 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 						'html-loader'
 					]
 				},
+
+				// Process SASS/SCSS Files
+				// Adds autoprefixer
 				{
-					// Process SASS/SCSS Files
-					test: /\.s[ac]ss$/,
+					test: /\.s[ac]ss$/i,
 					exclude: /node_modules/,
 					loader: ExtractTextPlugin.extract({
 						use: [
@@ -127,11 +142,22 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 								// postcss-loader is needed to run autoprefixer
 								loader: 'postcss-loader',
 								options: {
-									plugins: [require('autoprefixer')],
+									// add autoprefixer, tell it what to prefix
+									plugins: [require('autoprefixer')({browsers: [
+										'Explorer >= 11',
+										'last 3 Chrome versions',
+										'last 3 ChromeAndroid versions',
+										'last 3 Android versions',
+										'last 3 Firefox versions',
+										'last 3 FirefoxAndroid versions',
+										'last 3 iOS versions',
+										'last 3 Safari versions',
+										'last 3 Edge versions'
+									]})],
 									// if you don't tell postcss where to get it's config, it'll search and die
 									// adding this keeps us from having to add a postcss.config.js to each widget
 									// override if you need to
-									config: { path: `${__dirname}/postcss.config.js`}
+									config: { path: `${__dirname}/postcss.config.js` }
 								}
 							},
 							'sass-loader'
