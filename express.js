@@ -61,7 +61,7 @@ var getWidgetTitle = () => {
 };
 
 // create a widget instance data structure
-var makeWidgetInstance = (id) => {
+var createApiWidgetInstanceData = (id) => {
 	let e;
 	let qset = null;
 	let widget = null;
@@ -75,7 +75,7 @@ var makeWidgetInstance = (id) => {
 	// generate a new instance with the given ID
 	try {
 		qset = JSON.parse(getFileFromWebpack('demo.json').toString());
-		widget = makeWidget(id);
+		widget = createApiWidgetData(id);
 	} catch (e) {
 		console.log('Error in makeInstance from the widget.coffee file:');
 		console.log(e);
@@ -104,9 +104,28 @@ var makeWidgetInstance = (id) => {
 	}];
 };
 
+var buildWidget = () => {
+	try{
+		console.log('Building production ready widget')
+		let output = execSync('yarn run build -- -p')
+	} catch(e) {
+		console.error(e)
+		console.log(output.toString())
+		return res.send("There was an error building the widget")
+	}
+
+	let widgetData = createApiWidgetData();
+	let widgetPath = path.resolve(__dirname, '..', '..', 'build', '_output', `${widgetData.clean_name}.wigt`)
+
+	return {
+		widgetPath: widgetPath,
+		widgetData: widgetData
+	}
+}
+
 // Build a mock widget data structure
-var makeWidget = function(id) {
-	const widget = yaml.parse(getFileFromWebpack('install.yaml').toString());
+var createApiWidgetData = (id) => {
+	let widget = yaml.parse(getFileFromWebpack('install.yaml').toString());
 
 	widget.player = widget.files.player;
 	widget.creator = widget.files.creator;
@@ -123,7 +142,7 @@ var getWidgetDemo = () => {
 }
 
 // goes through the master list of default questions and filters according to a given type/types
-var getAllQuestions = function(type) {
+var getAllQuestions = (type) => {
 	type = type.replace('Multiple%20Choice', 'MC');
 	type = type.replace('Question%2FAnswer', 'QA');
 	const types = type.split(',');
@@ -150,7 +169,7 @@ var getAllQuestions = function(type) {
 };
 
 // pulls a question/questions out of the master list of default questions according to specified ID/IDs
-var getQuestion = function(ids) {
+var getQuestion = (ids) => {
 	// convert the given ids to numbers
 	ids = ids.map(id => +id);
 
@@ -244,7 +263,7 @@ module.exports = (app) => {
 	});
 
 	// The create page frame that loads the widget creator
-	app.get('/creator/:instance?', function(req, res) {
+	app.get('/creator/:instance?', (req, res) => {
 		const instance = req.params.instance || null;
 
 		let file = getFile('creator_container.html');
@@ -259,19 +278,19 @@ module.exports = (app) => {
 	// API endpoint for getting the widget instance data
 	app.use('/widget_instances_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0][0];
-		const instance = makeWidgetInstance(id);
+		const instance = createApiWidgetInstanceData(id);
 
 		return res.send(JSON.stringify(instance));
 	});
 
-	app.post('/widgets_get', function(req, res) {
+	app.post('/widgets_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0][0];
-		const widget = makeWidget(id);
+		const widget = createApiWidgetData(id);
 
 		return res.send(JSON.stringify([widget]));
 	});
 
-	app.post('/question_set_get', function(req, res) {
+	app.post('/question_set_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0];
 
 		// load instance, fallback to demo
@@ -284,7 +303,7 @@ module.exports = (app) => {
 
 	app.post('/session_valid', (req, res) => res.end());
 
-	app.post('/play_logs_save', function(req, res) {
+	app.post('/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
 		console.log(logs);
 
@@ -292,31 +311,23 @@ module.exports = (app) => {
 	});
 
 	// Show the package options
-	app.get('/package', function(req, res) {
+	app.get('/package', (req, res) => {
 		res.write(getFile('download_package.html'));
 		return res.end();
 	});
 
 	// Build and download the widget file
-	app.get('/download', function(req, res) {
-		try{
-			let output = execSync('yarn run build -- -p')
-			console.log(output.toString())
-		} catch(e) {
-			console.error(e)
-			return res.send("There was an error building the widget")
-		}
+	app.get('/download', (req, res) => {
+		let { widgetPath, widgetData } = buildWidget()
 
-		let widget = makeWidget();
-		let pathToFile = path.resolve(__dirname, '..', '..', 'build', '_output', `${widget.clean_name}.wigt`)
-		res.set('Content-Disposition', `attachment; filename=${widget.clean_name}.wigt`);
-		return res.send(fs.readFileSync(pathToFile));
+		res.set('Content-Disposition', `attachment; filename=${widgetData.clean_name}.wigt`);
+		return res.send(fs.readFileSync(widgetPath));
 	});
 
 
 	// api mock for saving widget instances
 	// creates files in our qset directory (probably should use a better thing)
-	app.post('/widget_instance_save', function(req, res) {
+	app.post('/widget_instance_save', (req, res) => {
 		const data = JSON.parse(req.body.data);
 
 		// sweep through the qset items and make sure there aren't any nonstandard question properties
@@ -348,7 +359,7 @@ module.exports = (app) => {
 		const id = data[0] || new Date().getTime();
 		fs.writeFileSync(path.join(qsets, id + '.json'), JSON.stringify(data[2]));
 
-		const instance = makeWidgetInstance(data[0])[0];
+		const instance = createApiWidgetInstanceData(data[0])[0];
 		instance.id = id;
 		instance.name = data[1];
 		fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
@@ -365,7 +376,7 @@ module.exports = (app) => {
 	});
 
 	// Question importer for creator
-	app.get('/questions/import/', function(req, res) {
+	app.get('/questions/import/', (req, res) => {
 		const file = getFile('question_importer.html');
 
 		// @TODO port 8080 is hard-coded here, see if we
@@ -375,7 +386,7 @@ module.exports = (app) => {
 	});
 
 	// API mock for getting questions for the question importer
-	app.post('/questions_get/', function(req, res) {
+	app.post('/questions_get/', (req, res) => {
 		const given = JSON.parse(req.body.data);
 
 		// we selected specific questions
@@ -389,7 +400,7 @@ module.exports = (app) => {
 
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
-	app.get('/preview_blocked/:instance?', function(req, res) {
+	app.get('/preview_blocked/:instance?', (req, res) => {
 		const instance = req.params.instance || 'demo';
 
 		const file = getFile('preview_blocked.html');
@@ -399,58 +410,59 @@ module.exports = (app) => {
 	});
 
 	app.get('/install', (req, res) => {
-		// determine the directory that Materia's files are running from
-		const targetImage = execSync('docker ps --filter "name=phpfpm" --format "{{.Names}}"');
 
-		let dockerInfo = execSync(`docker inspect ${targetImage.toString()}`);
-		dockerInfo = JSON.parse(dockerInfo.toString());
+		// Find the docker-compose container for materia-web
+		// 1. lists all containers
+		// 2. filter for materia-web image and named xxxx_phpfpm_1 name
+		// 3. pick the first line
+		// 4. pick the container name
+		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-web:.* .*phpfpm_\\d" | head -n 1 | cut -d" " -f2');
+		if(!targetImage){
+			throw "MDK Couldn't find a docker container using a 'materia-web' image named 'phpfpm'."
+		}
+		targetImage = targetImage.toString().trim();
+		console.log(`Using Docker image '${targetImage}' to install widgets`)
 
-		let materiaPath = false;
+		// get the image information
+		let containerInfo = execSync(`docker inspect ${targetImage}`);
+		containerInfo = JSON.parse(containerInfo.toString());
 
-		for (let k in dockerInfo[0].Mounts) {
-			const mount = dockerInfo[0].Mounts[k];
-			if (mount.Destination === '/var/www/html') {
-				materiaPath = mount.Source;
-				break;
-			}
+		// Find mounted volume that will tell us where materia is on the host system
+		let found = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
+		if(!found){
+			throw `MDK Couldn't find the Materia mount on the host system'`
+		}
+		let materiaPath = found[0].Source;
+		let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
+
+		// Build!
+		let { widgetPath, widgetData } = buildWidget()
+
+		// Clear any existing wigt
+		execSync(`find ${serverWidgetPath} -name '${widgetData.clean_name}*.wigt' -delete`);
+
+		// create a file name with a timestamp in it
+		const filename = `${widgetData.clean_name}-${new Date().getTime()}.wigt`;
+
+		// get the widget I just built
+		let widgetPackate = fs.readFileSync(widgetPath)
+
+		// write the built widget to that path
+		fs.writeFileSync(path.join(serverWidgetPath, filename), widgetPackate);
+
+		// run the install command
+		let installResult = execSync(`cd ${materiaPath}/../ && ./run_widgets_install.sh ${filename}`);
+		installResult = installResult.toString();
+
+		console.log(installResult);
+
+		// search for success in the output
+		const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/);
+
+		if(match && match[1]) {
+			return res.redirect(`http://127.0.0.1/widgets/${match[1]}`);
 		}
 
-		const productionConfig = require(path.resolve('webpack.package.config.js'))(req.query);
-
-		const productionCompiler = webpack(productionConfig);
-		const productionMiddleware = webpackMiddleware(productionCompiler, {
-			publicPath: productionConfig.output.publicPath,
-			contentBase: 'build',
-			stats: buildOutput
-		});
-
-		return productionMiddleware.waitUntilValid(() => {
-			const widget = makeWidget();
-
-			execSync(`find ${materiaPath}/fuel/app/tmp/widget_packages -name '${widget.clean_name}*.wigt' -delete`);
-
-			const file = productionMiddleware.fileSystem.readFileSync(path.join(productionConfig.output.path, '_output', widget.clean_name + '.wigt'));
-			const time = new Date().getTime();
-			const filename = widget.clean_name+'-'+time+'.wigt';
-
-			fs.writeFileSync(path.join(materiaPath, '/fuel/app/tmp/widget_packages', filename), file);
-
-			const installCommand = `cd ${materiaPath}` +
-				" && cd .. " +
-				" && ./install_widget.sh " + filename;
-
-			let installResult = execSync(installCommand);
-			installResult = installResult.toString();
-
-			console.log(installResult);
-
-			const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/);
-
-			if ((match != null) && match[1]) {
-				const redirectUrl = `http://127.0.0.1/widgets/${match[1]}`;
-				return res.redirect(redirectUrl);
-			}
-		});
+		throw `It looks like install failed?`
 	});
-
 }
