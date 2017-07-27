@@ -1,13 +1,19 @@
 Namespace('Materia').Splash = do ->
 	init = ->
-		Materia.Coms.Json.send 'saved_qsets', [], (data) ->
+		qsets = document.getElementById('qsets')
+		playerButton = document.getElementById('player_button')
+		creatorButton = document.getElementById('creator_button')
+
+		# load the saved qsets and update the player/creator buttons
+		Materia.Coms.Json.send 'mdk/saved_qsets', [], (data) ->
 			for id, name of data
-				$('#qsets').append '<option value="'+id+'">'+name+'</option>'
+				newOption = document.createElement("option")
+				newOption.text = name
+				newOption.value = id
+				qsets.add(newOption)
 
-		$('#player_button').click ->
-			window.location.href = 'player/' + $('#qsets').val()
-
-		$('#creator_button').click ->
-			window.location.href = 'creator/' + $('#qsets').val()
+			qsets.onchange = (e) ->
+				playerButton.setAttribute('href', "/mdk/player/#{e.target.value}")
+				creatorButton.setAttribute('href', "/mdk/creator/#{e.target.value}")
 
 	init: init

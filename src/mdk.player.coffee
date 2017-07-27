@@ -51,7 +51,7 @@ Namespace('Materia').Player = do ->
 		if no_flash
 			dfd.reject 'Flash Player required.'
 
-		Materia.Coms.Json.send 'widget_instances_get', [[inst_id]], (instances) ->
+		Materia.Coms.Json.send 'api/json/widget_instances_get', [[inst_id]], (instances) ->
 			if instances.length < 1
 				dfd.reject 'Unable to get widget info.'
 
@@ -89,7 +89,7 @@ Namespace('Materia').Player = do ->
 
 	getQuestionSet = ->
 		dfd = $.Deferred()
-		Materia.Coms.Json.send 'question_set_get', [inst_id, play_id], (result) ->
+		Materia.Coms.Json.send 'api/json/question_set_get', [inst_id, play_id], (result) ->
 			if window.qset
 				qset = window.qset
 				dfd.resolve()
@@ -146,7 +146,7 @@ Namespace('Materia').Player = do ->
 	startHeartBeat = ->
 		dfd = $.Deferred().resolve()
 		heartbeat = setInterval ->
-			Materia.Coms.Json.send 'session_valid', [null, false], (data) ->
+			Materia.Coms.Json.send 'api/json/session_valid', [null, false], (data) ->
 				if data != true
 					alert 'You have been logged out due to inactivity.\n\nPlease log in again.'
 					stopHeartBeat()
@@ -165,7 +165,7 @@ Namespace('Materia').Player = do ->
 				id = id.split "'"
 				id[1]
 			else
-				"#{base_url}media/#{id}"
+				"#{base_url}mdk/media/#{id}"
 
 		switch
 			when qset is null then embed_done_dfd.reject 'Unable to load widget data.'
@@ -229,7 +229,7 @@ Namespace('Materia').Player = do ->
 	sendPendingStorageLogs = ->
 		dfd = $.Deferred()
 		if not is_preview and pending_logs.storage.length > 0
-			Materia.Coms.Json.send 'play_storage_data_save', [play_id, pending_logs.storage], ->
+			Materia.Coms.Json.send 'api/json/play_storage_data_save', [play_id, pending_logs.storage], ->
 				dfd.resolve()
 			pending_logs.storage = []
 		else
@@ -242,7 +242,7 @@ Namespace('Materia').Player = do ->
 			args = [play_id, pending_logs.play]
 			if is_preview
 				args.push inst_id
-			Materia.Coms.Json.send 'play_logs_save', args, (result) ->
+			Materia.Coms.Json.send 'api/json/play_logs_save', args, (result) ->
 				if result isnt null and result.score_url?
 					score_screen_url = result.score_url
 				dfd.resolve()
@@ -300,11 +300,11 @@ Namespace('Materia').Player = do ->
 	showScoreScreen = ->
 		if score_screen_url is null
 			if is_preview
-				score_screen_url = '' + BASE_URL + 'scores/preview/' + inst_id
+				score_screen_url = '' + BASE_URL + 'mdk/scores/preview/' + inst_id
 			else if is_embedded
-				score_screen_url = '' + BASE_URL + 'scores/embed/' + inst_id
+				score_screen_url = '' + BASE_URL + 'mdk/scores/embed/' + inst_id
 			else
-				score_screen_url = '' + BASE_URL + 'scores/' + inst_id
+				score_screen_url = '' + BASE_URL + 'mdk/scores/' + inst_id
 		window.location = score_screen_url
 
 	init: init

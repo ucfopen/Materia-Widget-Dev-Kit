@@ -41,14 +41,14 @@ Namespace('Materia').Creator = do ->
 
 	getWidgetInfo = ->
 		dfd = $.Deferred()
-		Materia.Coms.Json.send 'widgets_get', [[widget_id]], (widgets) ->
+		Materia.Coms.Json.send 'api/json/widgets_get', [[widget_id]], (widgets) ->
 			widget_info = widgets[0]
 			dfd.resolve()
 		dfd.promise()
 
 	getWidgetInstance = ->
 		dfd = $.Deferred()
-		Materia.Coms.Json.send 'widget_instances_get', [[inst_id]], (widgetInstances) ->
+		Materia.Coms.Json.send 'api/json/widget_instances_get', [[inst_id]], (widgetInstances) ->
 			instance = widgetInstances[0];
 			widget_info = instance.widget;
 			dfd.resolve();
@@ -58,7 +58,7 @@ Namespace('Materia').Creator = do ->
 		dfd = $.Deferred()
 		widget_type = widget_info.creator.slice widget_info.creator.lastIndexOf('.')
 		# creatorPath = widget_info.creator.substring(0, 4) == 'http' ? widget_info.creator : WIDGET_URL + widget_info.dir + widget_info.creator
-		creatorPath = '/creator.html'
+		creatorPath = '/mdk/creator.html'
 		embedHTML creatorPath, dfd
 
 		$(window).bind 'beforeunload', ->
@@ -102,6 +102,11 @@ Namespace('Materia').Creator = do ->
 			requestSave 'save'
 		embed_done_dfd.resolve()
 
+		# override engine core's getImageAssetUrl method to handle hardcoded demo assets properly
+		creator.contentWindow.Materia.CreatorCore.getMediaUrl = (mediaId) ->
+			"#{BASE_URL}mdk/media/#{mediaId}"
+
+
 	save = (instanceName, qset, version) ->
 		version = 1 if version is null
 		saveData = [
@@ -116,11 +121,11 @@ Namespace('Materia').Creator = do ->
 			null,
 			null
 		]
-		Materia.Coms.Json.send 'widget_instance_save', saveData, (inst) ->
+		Materia.Coms.Json.send 'api/json/widget_instance_save', saveData, (inst) ->
 			if inst isnt null
 				switch save_mode
 					when 'preview'
-						url = '' + BASE_URL + 'player/' + inst.id
+						url = '' + BASE_URL + 'mdk/player/' + inst.id
 						popup = window.open url
 						if popup isnt null
 							setTimeout ->
@@ -194,7 +199,7 @@ Namespace('Materia').Creator = do ->
 
 	getQset = ->
 		dfd = $.Deferred()
-		Materia.Coms.Json.send 'question_set_get', [inst_id], (data) ->
+		Materia.Coms.Json.send 'api/json/question_set_get', [inst_id], (data) ->
 			keep_qset = data
 			dfd.resolve()
 		dfd.promise()
@@ -227,7 +232,7 @@ Namespace('Materia').Creator = do ->
 	startHeartBeat = ->
 		dfd = $.Deferred().resolve()
 		heartbeat = setInterval ->
-			Materia.Coms.Json.send 'session_valid', [null, false], (data) ->
+			Materia.Coms.Json.send 'api/json/session_valid', [null, false], (data) ->
 				if data != true
 					alert 'You have been logged out due to inactivity.\n\nPlease log in again.'
 					stopHeartBeat()
@@ -249,11 +254,11 @@ Namespace('Materia').Creator = do ->
 
 	showQuestionImporter = ->
 		types = widget_info.meta_data.supported_data
-		showEmbedDialog '/questions/import/?type=' + encodeURIComponent(types.join()), 675, 500
+		showEmbedDialog '/mdk/questions/import/?type=' + encodeURIComponent(types.join()), 675, 500
 		null
 
 	onPreviewPopupBlocked = (inst) ->
-		showEmbedDialog '/preview_blocked/'+inst.id, 300, 200
+		showEmbedDialog '/mdk/preview_blocked/'+inst.id, 300, 200
 
 	requestSave = (mode) ->
 		save_mode = mode

@@ -2,56 +2,25 @@
 <html>
 	<head>
 		<base href="/"/>
-		<title>DevMateria - Question Importer</title>
+		<title>DevMateria - Download or Install</title>
 		<link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
 		<link rel='stylesheet' href='/mdk/assets/css/mdk-main.css' type='text/css' />
 		<link rel='stylesheet' href='/mdk/assets/css/mdk-download.css' type='text/css' />
-		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	</head>
 	<body class='white'>
-		<h1 class='centered'>CUSTOMIZE YOUR BUILD:</h1>
-		<table>
-			<tbody>
-				<tr>
-					<td><label name='minify'>Minify?</label></td>
-					<td><input id='minify' type='checkbox' name='minify' checked='checked'/></td>
-				</tr>
-				<tr>
-					<td><label name='mangle'>Mangle?</label></td>
-					<td><input id='mangle' type='checkbox' name='mangle' checked='checked'/></td>
-				</tr>
-
-			</tbody>
-		</table>
+		<h1 class='centered'>Download or Install:</h1>
 		<hr/>
 		<div id='build-commands' class='centered'>
 			<a id="cancel-button" href="#">Cancel</a>
-			<button class='edit_button orange' id='download_button'>Downloading Package</button>
-			<button class='edit_button orange' id='install_button'>Installing to Materia</button>
+			<a href="/mdk/download"><button class='edit_button orange' id='download_button'>Downloading Package</button></a>
+			<a href="/mdk/install"></a><button class='edit_button orange' id='install_button'>Installing to Materia</button></a>
 		</div>
 
 		<script type="text/javascript">
-			$('#download_button').click(function(){
-				window.parent.Materia.Package.build(getUrl('download'));
-			});
-
-			$('#install_button').click(function(){
-				window.parent.Materia.Package.build(getUrl('install'));
-			});
-
-			$('#cancel-button').click(function(e){
-				e.preventDefault();
-				e.stopPropagation();
+			document.getElementById('cancel-button').onclick = (e) => {
 				window.parent.Materia.Package.cancel();
-			});
-
-			getUrl = function(base) {
-				var minify = document.getElementById('minify').checked;
-				var mangle = document.getElementById('mangle').checked;
-
-				return '/'+base+'?mangle='+mangle+'&minify='+minify;
+				return false
 			}
-
 		</script>
 	</body>
 </html>

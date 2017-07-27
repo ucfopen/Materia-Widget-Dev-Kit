@@ -142,7 +142,7 @@
 			};
 
 			var _getQuestions = function(questionIds, questionTypes, callback){
-				Materia.Coms.Json.send('questions_get', [questionIds, questionTypes], callback);
+				Materia.Coms.Json.send('api/json/questions_get', [questionIds, questionTypes], callback);
 			};
 
 			var _loadSelectedQuestions = function(questionIds){

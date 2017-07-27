@@ -209,8 +209,9 @@ module.exports = (app) => {
 	// this will pause all requests till we're able to
 	// 1. talk to the middlware
 	// 2. load the widget's install.yaml from webpack's in-memory files
-	app.all('*', (req, res, next) => {
-
+	//
+	// route matches index, mdk and api routes
+	app.use([/^\/$/, '/mdk/*', '/api/*'], (req, res, next) => {
 		// stop checking once it's worked
 		if(hasCompiled){
 			return next();
@@ -257,11 +258,14 @@ module.exports = (app) => {
 		return res.end();
 	});
 
+
+	// ============= MDK ROUTES =======================
+
 	// re-route all image requests to lorempixel
-	app.get('/media/:id', (req, res) => res.redirect(`http://lorempixel.com/800/600/?c=${req.params.id}`));
+	app.get('/mdk/media/:id', (req, res) => res.redirect(`http://lorempixel.com/800/600/?c=${req.params.id}`));
 
 	// route to list the saved qsets
-	app.use('/saved_qsets', (req, res) => {
+	app.use('/mdk/saved_qsets', (req, res) => {
 		const saved_qsets = {};
 
 		const files = fs.readdirSync(qsets);
@@ -282,7 +286,7 @@ module.exports = (app) => {
 	});
 
 	// The play page frame that loads the widget player in an iframe
-	app.get('/player/:instance?', (req, res) => {
+	app.get('/mdk/player/:instance?', (req, res) => {
 		const instance = req.params.instance || 'demo';
 		const file = getView('player_container.html');
 		res.write(replaceStringInTemplate(file, 'instance', instance));
@@ -290,7 +294,7 @@ module.exports = (app) => {
 	});
 
 	// The create page frame that loads the widget creator
-	app.get('/creator/:instance?', (req, res) => {
+	app.get('/mdk/creator/:instance?', (req, res) => {
 		const instance = req.params.instance || null;
 
 		let file = getView('creator_container.html');
@@ -302,108 +306,22 @@ module.exports = (app) => {
 		return res.end();
 	});
 
-	// API endpoint for getting the widget instance data
-	app.use('/widget_instances_get', (req, res) => {
-		const id = JSON.parse(req.body.data)[0][0];
-		const instance = createApiWidgetInstanceData(id);
-
-		return res.send(JSON.stringify(instance));
-	});
-
-	app.post('/widgets_get', (req, res) => {
-		const id = JSON.parse(req.body.data)[0][0];
-		const widget = createApiWidgetData(id);
-
-		return res.send(JSON.stringify([widget]));
-	});
-
-	app.post('/question_set_get', (req, res) => {
-		const id = JSON.parse(req.body.data)[0];
-
-		// load instance, fallback to demo
-		try {
-			return res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
-		} catch (e) {
-			return res.send(getWidgetDemo());
-		}
-	});
-
-	app.post('/session_valid', (req, res) => res.end());
-
-	app.post('/play_logs_save', (req, res) => {
-		const logs = JSON.parse(req.body.data)[1];
-		console.log(logs);
-
-		return res.end("{ \"score\": 0 }");
-	});
-
 	// Show the package options
-	app.get('/package', (req, res) => {
+	app.get('/mdk/package', (req, res) => {
 		res.write(getView('download_package.html'));
 		return res.end();
 	});
 
 	// Build and download the widget file
-	app.get('/download', (req, res) => {
+	app.get('/mdk/download', (req, res) => {
 		let { widgetPath, widgetData } = buildWidget()
 
 		res.set('Content-Disposition', `attachment; filename=${widgetData.clean_name}.wigt`);
 		return res.send(fs.readFileSync(widgetPath));
 	});
 
-
-	// api mock for saving widget instances
-	// creates files in our qset directory (probably should use a better thing)
-	app.post('/widget_instance_save', (req, res) => {
-		const data = JSON.parse(req.body.data);
-
-		// sweep through the qset items and make sure there aren't any nonstandard question properties
-		const standard_props = [
-			'materiaType',
-			'id',
-			'type',
-			'created_at',
-			'questions',
-			'answers',
-			'options',
-			'assets',
-		];
-
-		const nonstandard_props = [];
-
-		for (let index in data[2].data.items) {
-			const item = data[2].data.items[index];
-			for (let prop in item) {
-
-				if (!Array.from(standard_props).includes(prop)) {
-					nonstandard_props.push(`"${prop}"`);
-					delete data[2].data.items[index][prop];
-					console.log(`Nonstandard property found in qset: ${prop}`);
-				}
-			}
-		}
-
-		const id = data[0] || new Date().getTime();
-		fs.writeFileSync(path.join(qsets, id + '.json'), JSON.stringify(data[2]));
-
-		const instance = createApiWidgetInstanceData(data[0])[0];
-		instance.id = id;
-		instance.name = data[1];
-		fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
-
-		// send a warning back to the creator if any nonstandard question properties were detected
-		if (nonstandard_props.length > 0) {
-			const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
-			instance.warning = 'Warning: Nonstandard qset item ' +
-				plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
-				plurals[1] + ' not saved. Use options instead.';
-		}
-
-		return res.end(JSON.stringify(instance));
-	});
-
 	// Question importer for creator
-	app.get('/questions/import/', (req, res) => {
+	app.get('/mdk/questions/import/', (req, res) => {
 		const file = getView('question_importer.html');
 
 		// @TODO port 8080 is hard-coded here, see if we
@@ -412,22 +330,9 @@ module.exports = (app) => {
 		return res.end();
 	});
 
-	// API mock for getting questions for the question importer
-	app.post('/questions_get/', (req, res) => {
-		const given = JSON.parse(req.body.data);
-
-		// we selected specific questions
-		if (given[0]) {
-			return res.end(JSON.stringify(getQuestion(given[0])));
-		// we just want all of them from the given type
-		} else {
-			return res.end(JSON.stringify(getAllQuestions(given[1])));
-		}
-	});
-
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
-	app.get('/preview_blocked/:instance?', (req, res) => {
+	app.get('/mdk/preview_blocked/:instance?', (req, res) => {
 		const instance = req.params.instance || 'demo';
 
 		const file = getView('preview_blocked.html');
@@ -436,7 +341,7 @@ module.exports = (app) => {
 		return res.end();
 	});
 
-	app.get('/install', (req, res) => {
+	app.get('/mdk/install', (req, res) => {
 
 		// Find the docker-compose container for materia-web
 		// 1. lists all containers
@@ -492,4 +397,105 @@ module.exports = (app) => {
 
 		throw `It looks like install failed?`
 	});
+
+	// ============= MOCK API ROUTES =======================
+
+	// API endpoint for getting the widget instance data
+	app.use('/api/json/widget_instances_get', (req, res) => {
+		const id = JSON.parse(req.body.data)[0][0];
+		const instance = createApiWidgetInstanceData(id);
+
+		return res.send(JSON.stringify(instance));
+	});
+
+	app.post('/api/json/widgets_get', (req, res) => {
+		const id = JSON.parse(req.body.data)[0][0];
+		const widget = createApiWidgetData(id);
+
+		return res.send(JSON.stringify([widget]));
+	});
+
+	app.post('/api/json/question_set_get', (req, res) => {
+		const id = JSON.parse(req.body.data)[0];
+
+		// load instance, fallback to demo
+		try {
+			return res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
+		} catch (e) {
+			return res.send(getWidgetDemo());
+		}
+	});
+
+	app.post('/api/json/session_valid', (req, res) => res.end());
+
+	app.post('/api/json/play_logs_save', (req, res) => {
+		const logs = JSON.parse(req.body.data)[1];
+		console.log(logs);
+
+		return res.end("{ \"score\": 0 }");
+	});
+
+	// api mock for saving widget instances
+	// creates files in our qset directory (probably should use a better thing)
+	app.post('/api/json/widget_instance_save', (req, res) => {
+		const data = JSON.parse(req.body.data);
+
+		// sweep through the qset items and make sure there aren't any nonstandard question properties
+		const standard_props = [
+			'materiaType',
+			'id',
+			'type',
+			'created_at',
+			'questions',
+			'answers',
+			'options',
+			'assets',
+		];
+
+		const nonstandard_props = [];
+
+		for (let index in data[2].data.items) {
+			const item = data[2].data.items[index];
+			for (let prop in item) {
+
+				if (!Array.from(standard_props).includes(prop)) {
+					nonstandard_props.push(`"${prop}"`);
+					delete data[2].data.items[index][prop];
+					console.log(`Nonstandard property found in qset: ${prop}`);
+				}
+			}
+		}
+
+		const id = data[0] || new Date().getTime();
+		fs.writeFileSync(path.join(qsets, id + '.json'), JSON.stringify(data[2]));
+
+		const instance = createApiWidgetInstanceData(data[0])[0];
+		instance.id = id;
+		instance.name = data[1];
+		fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
+
+		// send a warning back to the creator if any nonstandard question properties were detected
+		if (nonstandard_props.length > 0) {
+			const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
+			instance.warning = 'Warning: Nonstandard qset item ' +
+				plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
+				plurals[1] + ' not saved. Use options instead.';
+		}
+
+		return res.end(JSON.stringify(instance));
+	});
+
+	// API mock for getting questions for the question importer
+	app.post('/api/json/questions_get/', (req, res) => {
+		const given = JSON.parse(req.body.data);
+
+		// we selected specific questions
+		if (given[0]) {
+			return res.end(JSON.stringify(getQuestion(given[0])));
+		// we just want all of them from the given type
+		} else {
+			return res.end(JSON.stringify(getAllQuestions(given[1])));
+		}
+	});
+
 }

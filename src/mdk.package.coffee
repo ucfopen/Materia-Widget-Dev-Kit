@@ -3,7 +3,7 @@ Namespace('Materia').Package = do ->
 		$('#downloadLink').on 'click', showPackageDownload
 
 	showPackageDownload = ->
-		showEmbedDialog '/package', 500, 280
+		showEmbedDialog '/mdk/package', 500, 280
 
 	showEmbedDialog = (url, w, h) ->
 		embed = $('<iframe src="' + url + '" id="embed_dialog" frameborder=0 width='+w+' height='+h+'></iframe>')
