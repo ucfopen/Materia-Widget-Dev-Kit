@@ -58,7 +58,7 @@ Namespace('Materia').Creator = do ->
 		dfd = $.Deferred()
 		widget_type = widget_info.creator.slice widget_info.creator.lastIndexOf('.')
 		# creatorPath = widget_info.creator.substring(0, 4) == 'http' ? widget_info.creator : WIDGET_URL + widget_info.dir + widget_info.creator
-		creatorPath = 'build/creator.html'
+		creatorPath = '/creator.html'
 		embedHTML creatorPath, dfd
 
 		$(window).bind 'beforeunload', ->
@@ -69,11 +69,8 @@ Namespace('Materia').Creator = do ->
 		embed_done_dfd = dfd
 		if htmlPath.lastIndexOf '_' > -1
 			tempHtmlPath = htmlPath.substr(0, htmlPath.lastIndexOf('_')) + '/'
-		if not TEST
-			tempHtmlPath += 'build/creator.html'
-		else
-			tempHtmlPath += TEST_URL
-		$iframe = $('<iframe src="' + tempHtmlPath + '" id="container" class="html"></iframe>')
+
+		$iframe = $('<iframe src="/creator.html" id="container" class="html"></iframe>')
 		$('#container').replaceWith $iframe
 		onPostMessage = (e) ->
 			origin = '' + e.origin + '/'

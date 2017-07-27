@@ -3,8 +3,8 @@
 	<head>
 		<base href='/' />
 		<title>DevMateria - {{title}}</title>
-		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
+		<link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='/mdk/assets/css/mdk-main.css' type='text/css' />
 		<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
 	</head>
 	<body>
@@ -13,27 +13,31 @@
 		</div>
 
 		<center class='widget'>
-			<img src='build/img/icon-275.png' />
+			<img src='/img/icon-275.png' />
 			<div class='title'>{{title}}</div>
 			<button id='player_button' class='orange edit_button'>Player</button>
 			<button id='creator_button' class='orange edit_button'>Creator</button>
 		</center>
 		<center class='qsets'>
-			<label for='qsets'>Select Widget:</label>
+			<label for='qsets'>Select Saved Widget:</label>
 			<select id='qsets'>
-				<option value=''>None</option>
+				<option value=''>New</option>
 			</select>
 		</center>
 
-		<script src='build/splash_req.js'></script>
+		<center>
+			<a href="/webpack-dev-server"><button>View Compiled Widget Assets</button></a>
+		</center>
+
+		<script src='/mdk/assets/js/mdk-splash.js'></script>
 
 		<script type='text/javascript'>
 			var BASE_URL = '/';
 			var API_LINK = '/';
 			var WIDGET_URL = '/';
 			var STATIC_CROSSDOMAIN = '/';
-
 			Materia.Splash.init();
 		</script>
+
 	</body>
 </html>

@@ -3,14 +3,13 @@
 	<head>
 		<base href="/"/>
 		<title>DevMateria - Question Importer</title>
-		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
-		<link rel='stylesheet' href='build/devmateria_download.css' type='text/css' />
+		<link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='/mdk/assets/css/mdk-main.css' type='text/css' />
+		<link rel='stylesheet' href='/mdk/assets/css/mdk-download.css' type='text/css' />
 		<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 	</head>
 	<body class='white'>
 		<h1 class='centered'>CUSTOMIZE YOUR BUILD:</h1>
-		<p class='disclaimer'>(Supported widgets only)</p>
 		<table>
 			<tbody>
 				<tr>
@@ -21,15 +20,11 @@
 					<td><label name='mangle'>Mangle?</label></td>
 					<td><input id='mangle' type='checkbox' name='mangle' checked='checked'/></td>
 				</tr>
-				<!-- <tr>
-					<td><label name='embed'>Embed?</label></td>
-					<td><input id='embed' type='checkbox' name='embed' checked='checked'/></td>
-				</tr> -->
+
 			</tbody>
 		</table>
 		<hr/>
 		<div id='build-commands' class='centered'>
-			<p>BUILD BY:</p>
 			<a id="cancel-button" href="#">Cancel</a>
 			<button class='edit_button orange' id='download_button'>Downloading Package</button>
 			<button class='edit_button orange' id='install_button'>Installing to Materia</button>

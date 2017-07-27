@@ -3,9 +3,9 @@
 	<head>
 		<base href='/' />
 		<title>Materia</title>
-		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
-		<link rel='stylesheet' href='build/devmateria_creator.css' type='text/css' />
+		<link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='/mdk/assets/css/mdk-main.css' type='text/css' />
+		<link rel='stylesheet' href='/mdk/assets/css/mdk-creator.css' type='text/css' />
 		<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
 		<script src='//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'></script>
 		<script src='//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js'></script>
@@ -27,7 +27,7 @@
 
 		<div id='modalbg'></div>
 
-		<script src='build/creator_req.js'></script>
+		<script src='/mdk/assets/js/mdk-creator.js'></script>
 
 		<script>
 			var __PLAY_ID = 'demo';
@@ -35,12 +35,6 @@
 			var API_LINK = 'http://localhost:{{port}}/';
 			var WIDGET_URL = 'http://localhost:{{port}}/';
 			var STATIC_CROSSDOMAIN = 'http://localhost:{{port}}/';
-			var COMPILE_URL = '/.build/';
-			var TEST_URL = 'tests/creator.html';
-			// Test only variables -- Start
-			var TEST; // Needed in Materia.Creator.js to choose btwn regular html and test html
-			if(window.location['pathname'].indexOf('/test/') > -1) TEST = true;
-			else TEST = false;
 
 			Materia.Creator.init('container', null, '{{instance}}');
 		</script>

@@ -23,6 +23,6 @@ Namespace('Materia').Package = do ->
 	cancel = ->
 		closeDialog()
 
-	init:     init
-	build:    build
-	cancel:   cancel
+	init: init
+	build: build
+	cancel: cancel

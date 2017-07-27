@@ -2,7 +2,7 @@ body {
   padding: 0px;
   margin: 0px;
 
-  background: url(./back.png);
+  background: url(./../img/back.png);
   font-family: 'Lato';
 }
 
@@ -13,7 +13,7 @@ body {
   font-size: 26px;
   font-family: 'Lato';
   font-weight: 300;
-  background: url(./materialogo.png);
+  background: url(./../img/materialogo.png);
   background-repeat: no-repeat;
   color: #000;
   text-decoration: none;
@@ -234,7 +234,7 @@ h2 {
 }
 
 .screenshot {
-  background: url(./defaultscreenshot.png);
+  background: url(./../img/defaultscreenshot.png);
   background-size: cover;
   width: 495px;
   height: 360px;

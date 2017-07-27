@@ -5,6 +5,8 @@ const CopyPlugin        = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ZipPlugin         = require('zip-webpack-plugin')
 
+const MateriaDevServer = require('materia-widget-dev/express');
+
 // Default Materia Widget Config
 const defaultCfg = {
 	cleanName: '',
@@ -22,12 +24,18 @@ const defaultCfg = {
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
 //the build process will replace those references with the current relative paths to those files
+
+const packagedJSPath = 'src=\\"../../../js/$3\\"'
+const devServerJSPath = 'src=\\"/mdk/assets/js/$3\\"'
+const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
+const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
+
 const materiaJSReplacements = [
-	{ search: /src=(\\?("|')?)materia.enginecore.js(\\?("|')?)/g,      replace: 'src=\\"/js/materia.enginecore.js\\"' },
-	{ search: /src=(\\?("|')?)materia.score.js(\\?("|')?)/g,           replace: 'src=\\"/js/materia.score.js\\"' },
-	{ search: /src=(\\?("|')?)materia.creatorcore.js(\\?("|')?)/g,     replace: 'src=\\"/js/materia.creatorcore.js\\"' },
-	{ search: /src=(\\?("|')?)materia.storage.manager.js(\\?("|')?)/g, replace: 'src=\\"/js/materia.storage.manager.js\\"' },
-	{ search: /src=(\\?("|')?)materia.storage.table.js(\\?("|')?)/g,   replace: 'src=\\"/js/materia.storage.table.js\\"' }
+	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,      replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.score.js)(\\?("|')?)/g,           replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g,     replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.storage.manager.js)(\\?("|')?)/g, replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.storage.table.js)(\\?("|')?)/g,   replace: replaceTarget },
 ];
 
 // Load the materia configuration settings from the package.json file
@@ -56,6 +64,16 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	let outputPath = cfg.outputPath + path.sep
 
 	return {
+		devServer: {
+			contentBase: path.join(__dirname, 'node_modules', 'materia-widget-dev', 'build'),
+			headers:{
+				// add headers to every response
+				// allow iframes to talk to their parent containers
+				'Access-Control-Allow-Origin': '*',
+				'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+			},
+			setup: MateriaDevServer
+		},
 		// These are the default js and css files
 		entry: {
 			'creator.js': [
@@ -164,7 +182,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		},
 		plugins: [
 			// clear the build directory
-			new CleanPlugin(['build']),
+			new CleanPlugin([outputPath]),
 
 			// copy all the common resources to the build directory
 			new CopyPlugin([

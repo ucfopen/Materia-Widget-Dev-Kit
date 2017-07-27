@@ -2,10 +2,10 @@
 <html>
 	<head>
 		<base href='/' />
-		<title>DevMateria - Player</title>
-		<link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-		<link rel='stylesheet' href='build/devmateria_main.css' type='text/css' />
-		<link rel='stylesheet' href='build/devmateria_player.css' type='text/css' />
+		<title>Materia Developer Kit - Player</title>
+		<link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+		<link rel='stylesheet' href='/mdk/assets/css/mdk-main.css' type='text/css' />
+		<link rel='stylesheet' href='/mdk/assets/css/mdk-player.css' type='text/css' />
 		<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
 		<script src='//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js'></script>
 	</head>
@@ -53,29 +53,13 @@
 
 		<div id='modalbg'></div>
 
-		<script src='build/player_req.js'></script>
+		<script src='/mdk/assets/js/mdk-player.js'></script>
 		<script type='text/javascript'>
 			var __PLAY_ID = '{{instance}}';
 			var BASE_URL = '/';
 			var API_LINK = '/';
 			var WIDGET_URL = '/';
 			var STATIC_CROSSDOMAIN = '/';
-			// Test only variables -- Start
-			var TEST; // Needed in Materia.Player.js to choose btwn regular html and test html
-			if(window.location["pathname"].indexOf("/test/") > -1)
-			{
-				TEST = true;
-				document.getElementById("test-commands").style.display = "none";
-				document.getElementById("build-commands").style.display = "none";
-				document.getElementById("minify").checked = false;
-				document.getElementById("minify").disabled = "disabled";
-				document.getElementById("mangle").checked = false;
-				document.getElementById("mangle").disabled = "disabled";
-				document.getElementById("embed").checked = false;
-				document.getElementById("embed").disabled = "disabled";
-				document.getElementById("rebuild").style.display = "none";
-			}
-			else TEST = false;
 			Materia.Player.init(API_LINK, __PLAY_ID , 'container', BASE_URL);
 		</script>
 	</body>
