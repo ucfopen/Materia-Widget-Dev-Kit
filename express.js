@@ -5,9 +5,12 @@ const qsets        = path.join(__dirname, 'qsets');
 const bodyParser   = require('body-parser');
 const yaml         = require('yamljs');
 const { execSync } = require('child_process');
+const waitUntil    = require('wait-until-promise').default
 
 var webPackMiddleware = false;
+var hasCompiled = false;
 
+// For whatever reason, the middleware isn't availible when this class
 var getWebPackMiddleWare = (app) => {
 	if(webPackMiddleware) return webPackMiddleware
 
@@ -21,8 +24,8 @@ var getWebPackMiddleWare = (app) => {
 	}
 }
 
-// Loads local dev materia files
-var getFile = (file) => {
+// Loads local MDK view files from the disk
+var getView = (file) => {
 	try {
 		// @TODO load from memory instead of the disk?
 		return fs.readFileSync(path.join(__dirname, 'views', file))
@@ -31,7 +34,7 @@ var getFile = (file) => {
 	}
 };
 
-
+// Loads processed widget files from webpack's memory
 var getFileFromWebpack = (file) => {
 	try {
 		// pull the specified filename out of memory
@@ -42,8 +45,7 @@ var getFileFromWebpack = (file) => {
 	}
 }
 
-// Replaces strings in a template
-var templateSwap = (file, target, replace) => {
+var replaceStringInTemplate = (file, target, replace) => {
 	const str = file.toString();
 	let re = new RegExp(`{{${target}}}`, 'g');
 	// if replacing 'target' with null, take extra steps to ensure it is actually 'null' and not the string '"null"'
@@ -95,8 +97,8 @@ var createApiWidgetInstanceData = (id) => {
 		'play_url': '',
 		'preview_url': '',
 		'qset': {
-		  'version': null,
-		  'data': null
+			'version': null,
+			'data': null
 		},
 		'user_id': '1',
 		'widget': widget,
@@ -104,6 +106,20 @@ var createApiWidgetInstanceData = (id) => {
 	}];
 };
 
+// Build a mock widget data structure
+var createApiWidgetData = (id) => {
+	let widget = yaml.parse(getFileFromWebpack('install.yaml').toString());
+
+	widget.player = widget.files.player;
+	widget.creator = widget.files.creator;
+	widget.clean_name = widget.general.name.replace(new RegExp(' ', 'g'), '-').toLowerCase();
+	widget.dir = widget.clean_name + '/';
+	widget.width = widget.general.width;
+	widget.height = widget.general.height;
+	return widget;
+};
+
+// run yarn build in production mode to build the widget
 var buildWidget = () => {
 	try{
 		console.log('Building production ready widget')
@@ -123,19 +139,7 @@ var buildWidget = () => {
 	}
 }
 
-// Build a mock widget data structure
-var createApiWidgetData = (id) => {
-	let widget = yaml.parse(getFileFromWebpack('install.yaml').toString());
-
-	widget.player = widget.files.player;
-	widget.creator = widget.files.creator;
-	widget.clean_name = widget.general.name.replace(new RegExp(' ', 'g'), '-').toLowerCase();
-	widget.dir = widget.clean_name + '/';
-	widget.width = widget.general.width;
-	widget.height = widget.general.height;
-	return widget;
-};
-
+// Read the widget demo from memory
 var getWidgetDemo = () => {
 	let json = getFileFromWebpack('demo.json').toString()
 	return JSON.stringify(JSON.parse(json).qset);
@@ -196,9 +200,44 @@ var getQuestion = (ids) => {
 	return qlist;
 };
 
+// app is passed a reference to the webpack dev server (Express.js)
 module.exports = (app) => {
 
 	// ============= ASSETS and SETUP =======================
+
+	// the web pack middlewere takes time to show up
+	// this will pause all requests till we're able to
+	// 1. talk to the middlware
+	// 2. load the widget's install.yaml from webpack's in-memory files
+	app.all('*', (req, res, next) => {
+
+		// stop checking once it's worked
+		if(hasCompiled){
+			return next();
+		}
+
+		waitUntil(() => {
+			// check for the middleware first
+			if(!getWebPackMiddleWare(req.app)) return false;
+
+			// then check to see if we can find install.yaml
+			try {
+				getFileFromWebpack('install.yaml')
+				return true
+			} catch(e) {
+				console.log("waiting for install.yaml to be handled by webpack")
+				return false
+			}
+		}, 8000)
+		.then(() => {
+			hasCompiled = true
+			return next();
+		})
+		.catch((error) => {
+			throw "MDK couldn't locate the widget's install.yaml.  Make sure you have one and webpack is processing it."
+		})
+
+	})
 
 	// allow express to parse a JSON post body that ends up in req.body.data
 	app.use(bodyParser.json());
@@ -209,24 +248,12 @@ module.exports = (app) => {
 	app.use('/mdk/assets/js', express.static(path.join(__dirname, 'build')))
 
 
-	// the web pack middlewere takes time to show up
-	app.use((req, res, next) => {
-		if(getWebPackMiddleWare(req.app)){
-			return next();
-		}
-		else
-		{
-			res.write(getFile('wait.html'));
-			return res.end();
-		}
-	})
-
 	// ============= ROUTES =======================
 
 	// Display index page
 	app.get('/', (req, res) => {
-		const file = getFile('index.html');
-		res.write(templateSwap(file, 'title', getWidgetTitle()));
+		const file = getView('index.html');
+		res.write(replaceStringInTemplate(file, 'title', getWidgetTitle()));
 		return res.end();
 	});
 
@@ -257,8 +284,8 @@ module.exports = (app) => {
 	// The play page frame that loads the widget player in an iframe
 	app.get('/player/:instance?', (req, res) => {
 		const instance = req.params.instance || 'demo';
-		const file = getFile('player_container.html');
-		res.write(templateSwap(file, 'instance', instance));
+		const file = getView('player_container.html');
+		res.write(replaceStringInTemplate(file, 'instance', instance));
 		return res.end();
 	});
 
@@ -266,12 +293,12 @@ module.exports = (app) => {
 	app.get('/creator/:instance?', (req, res) => {
 		const instance = req.params.instance || null;
 
-		let file = getFile('creator_container.html');
-		file = templateSwap(file, 'instance', instance);
+		let file = getView('creator_container.html');
+		file = replaceStringInTemplate(file, 'instance', instance);
 
 		// @TODO port 8080 is hard-coded here, see if we
 		// can get it from webpack or something?
-		res.write(templateSwap(file, 'port', '8080'));
+		res.write(replaceStringInTemplate(file, 'port', '8080'));
 		return res.end();
 	});
 
@@ -312,7 +339,7 @@ module.exports = (app) => {
 
 	// Show the package options
 	app.get('/package', (req, res) => {
-		res.write(getFile('download_package.html'));
+		res.write(getView('download_package.html'));
 		return res.end();
 	});
 
@@ -377,11 +404,11 @@ module.exports = (app) => {
 
 	// Question importer for creator
 	app.get('/questions/import/', (req, res) => {
-		const file = getFile('question_importer.html');
+		const file = getView('question_importer.html');
 
 		// @TODO port 8080 is hard-coded here, see if we
 		// can get it from webpack or something?
-		res.write(templateSwap(file, 'port', '8080'));
+		res.write(replaceStringInTemplate(file, 'port', '8080'));
 		return res.end();
 	});
 
@@ -403,9 +430,9 @@ module.exports = (app) => {
 	app.get('/preview_blocked/:instance?', (req, res) => {
 		const instance = req.params.instance || 'demo';
 
-		const file = getFile('preview_blocked.html');
+		const file = getView('preview_blocked.html');
 
-		res.write(templateSwap(file, 'instance', instance));
+		res.write(replaceStringInTemplate(file, 'instance', instance));
 		return res.end();
 	});
 
