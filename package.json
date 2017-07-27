@@ -1,6 +1,6 @@
 {
   "name": "materia-widget-dev",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "author": "New Media",
   "engines": {
     "node": ">=6.9.0 <7.0.0",
@@ -13,7 +13,6 @@
     "autoprefixer": "^7.1.2",
     "body-parser": "^1.17.1",
     "clean-webpack-plugin": "^0.1.16",
-    "coffee-loader": "^0.7.3",
     "coffee-script": "^1.12.3",
     "copy-webpack-plugin": "^4.0.1",
     "extract-loader": "^0.1.0",
@@ -30,9 +29,7 @@
     "webpack": "3.2.0",
     "yamljs": "^0.2.8",
     "zip-webpack-plugin": "^2.0.0",
-    "webpack-dev-server": "^2.6.1"
-  },
-  "devDependencies": {
+    "webpack-dev-server": "^2.6.1",
     "express": "^4.13.3",
     "html-webpack-plugin": "^2.29.0"
   }
