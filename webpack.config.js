@@ -3,7 +3,7 @@ const CleanPlugin       = require('clean-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 const mdkSrcPath  = path.resolve(__dirname, 'src');
-const corePath    = path.resolve(__dirname, 'node_modules', 'materia-core', 'coffee', 'materia');
+const corePath    = path.join('materia-core', 'coffee', 'materia');
 const buildPath   = path.resolve('build') + path.sep
 
 module.exports = {
