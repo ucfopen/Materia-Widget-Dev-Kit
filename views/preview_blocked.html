@@ -1,0 +1,16 @@
+<h1 class='centered'>Preview Blocked</h1>
+<div class='centered'>
+	<p>
+		<a href='/player/{{instance}}' target='_blank'>Try Again</a>
+	</p>
+	<p>
+		<a id='close-button' href='#'>Close</a>
+	</p>
+</div>
+
+<script type="text/javascript">
+	document.getElementById('close-button').onclick = (e) => {
+		window.parent.Materia.Creator.onQuestionImportComplete();
+		return false
+	}
+</script>

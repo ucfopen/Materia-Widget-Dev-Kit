@@ -1,0 +1,17 @@
+<h1 class='centered'>Download or Install:</h1>
+<hr/>
+<div id='build-commands' class='centered'>
+	<a href="/mdk/download"><button class='edit_button orange' id='download_button'>Download .wigt</button></a>
+	<a href="/mdk/install"></a><button class='edit_button orange' id='install_button'>Install to Docker Materia</button></a>
+</div>
+
+<div class='centered'>
+	<a id="cancel-button" href="#">Cancel</a>
+</div>
+
+<script type="text/javascript">
+	document.getElementById('cancel-button').onclick = (e) => {
+		window.parent.Materia.Package.cancel();
+		return false
+	}
+</script>

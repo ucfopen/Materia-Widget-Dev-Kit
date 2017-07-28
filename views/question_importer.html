@@ -1,0 +1,31 @@
+<div style="width:100%">
+	<form id="import-form">
+		<h1>Question Catalog</h1>
+		<table id="question-table" width="100%">
+			<thead width="100%">
+				<tr>
+					<th>Question Text</th>
+					<th>Type</th>
+					<th>Date</th>
+					<th>Used</th>
+				</tr>
+			</thead>
+		</table>
+		<div class="actions">
+			<a id="cancel-button" href="#" onClick="self.close();">Cancel</a>
+			<button id="submit-button" class="edit_button orange">Import Selected</button>
+		</div>
+	</form>
+</div>
+
+<script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+
+<script src='/mdk/assets/js/materia.namespace.js'></script>
+<script src='/mdk/assets/js/materia.enginecore.js'></script>
+<script src='/mdk/assets/js/materia.coms.json.js'></script>
+<script src='/mdk/assets/js/mdk-question-import.js'></script>
+
+<script type="text/javascript">
+	var API_LINK = 'http://localhost:{{port}}/';
+	Materia.Questions.init(API_LINK);
+</script>

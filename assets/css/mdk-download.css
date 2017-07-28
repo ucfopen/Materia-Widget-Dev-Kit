@@ -1,25 +1,33 @@
-body.white {
+body#download {
 	background: #ffffff;
 }
 
-.centered {
+body#download .centered {
 	text-align: center;
 }
 
-.edit_button {
+body#download .edit_button {
 	display: inline-block;
 }
 
-table, .disclaimer {
+body#download table,
+body#download .disclaimer {
 	padding-left: 20px;
 }
 
-hr {
+body#download hr {
 	margin: 15px 50px 0;
 }
 
-#cancel-button{
+body#download #cancel-button{
 	color: #555;
 	text-decoration: underline;
-	margin-right: 15px;
+}
+
+body#download #build-commands{
+	margin: 47px;
+}
+
+body#download #download_button{
+	margin-right:20px;
 }
