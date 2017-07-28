@@ -4,7 +4,7 @@
   "author": "University of Central Florida, Center for Distributed Learning",
   "engines": {
     "node": ">=6.9.0 <7.0.0",
-    "yarn": "^0.27.5"
+    "yarn": ">=0.27.5"
   },
   "scripts": {
     "build": "webpack",
