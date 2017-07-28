@@ -11,6 +11,38 @@ const mustacheExpress = require('mustache-express');
 var webPackMiddleware = false;
 var hasCompiled = false;
 
+// this will call next() once webpack is ready by trying to:
+// 1. talk to the middlware
+// 2. load the widget's install.yaml from webpack's in-memory files
+var waitForWebpack = (app, next) => {
+	if(hasCompiled) return next(); // short circuit if ready
+
+	waitUntil(() => {
+		// check for the middleware first
+		if(!webPackMiddleware){
+			// search express for the webpack middleware
+			var found = app._router.stack.filter(mw => mw && mw.handle && mw.handle.name === 'webpackDevMiddleware')
+			if(found.length == 0) return false // not ready
+			webPackMiddleware = found[0].handle // found!
+		}
+
+		// then check to see if we can find install.yaml
+		try {
+			getFileFromWebpack('install.yaml', true)
+			return true
+		} catch(e) {
+			console.log("waiting for 'install.yaml' to be served by webpack")
+			return false
+		}
+	}, 10000, 250)
+	.then(() => {
+		hasCompiled = true // so we don't check again
+		return next();
+	})
+	.catch((error) => {
+		throw "MDK couldn't locate the widget's install.yaml.  Make sure you have one and webpack is processing it."
+	})
+}
 // For whatever reason, the middleware isn't availible when this class
 var getWebPackMiddleWare = (app) => {
 	if(webPackMiddleware) return webPackMiddleware
@@ -26,12 +58,12 @@ var getWebPackMiddleWare = (app) => {
 }
 
 // Loads processed widget files from webpack's memory
-var getFileFromWebpack = (file) => {
+var getFileFromWebpack = (file, quiet = false) => {
 	try {
 		// pull the specified filename out of memory
 		return webPackMiddleware.fileSystem.readFileSync(path.resolve(__dirname, '..', '..', 'build', file));
 	} catch (e) {
-		console.error(e)
+		if(!quiet) console.error(e)
 		throw `error trying to load ${file} from widget src, reload if you just started the server`
 	}
 }
@@ -191,39 +223,7 @@ module.exports = (app) => {
 	app.set('views', __dirname + '/views');
 
 	// the web pack middlewere takes time to show up
-	// this will pause all requests till we're able to
-	// 1. talk to the middlware
-	// 2. load the widget's install.yaml from webpack's in-memory files
-	//
-	// route matches index, mdk and api routes
-	app.use([/^\/$/, '/mdk/*', '/api/*'], (req, res, next) => {
-		// stop checking once it's worked
-		if(hasCompiled){
-			return next();
-		}
-
-		waitUntil(() => {
-			// check for the middleware first
-			if(!getWebPackMiddleWare(req.app)) return false;
-
-			// then check to see if we can find install.yaml
-			try {
-				getFileFromWebpack('install.yaml')
-				return true
-			} catch(e) {
-				console.log("waiting for install.yaml to be handled by webpack")
-				return false
-			}
-		}, 8000)
-		.then(() => {
-			hasCompiled = true
-			return next();
-		})
-		.catch((error) => {
-			throw "MDK couldn't locate the widget's install.yaml.  Make sure you have one and webpack is processing it."
-		})
-
-	})
+	app.use([/^\/$/, '/mdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
 
 	// allow express to parse a JSON post body that ends up in req.body.data
 	app.use(bodyParser.json()); // for parsing application/json
