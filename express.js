@@ -397,7 +397,7 @@ module.exports = (app) => {
 
 	app.use('/api/json/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
-		console.log(logs);
+		console.log("===== Play Logs Received =====\r\n", logs, "\r\n============END PLAY LOGS================");
 		res.json({score: 0});
 	});
 
