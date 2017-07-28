@@ -1,0 +1,56 @@
+<div id='leftbar'>
+	<a href='#' id="sidebarbtn">&larr;</a>
+	<a class='logo' href="/">MDK</a>
+
+	<div class='tabcontainer'>
+		<div class="tabtitle qset">Qset</div>
+		<div class="tabtitle storage deactivated">Storage</div>
+
+		<div id='qsettab' class='tab qset visible'>
+			<div class='scroll'>
+				<textarea id='qset'></textarea>
+
+				<input type='button' id='btnReload' value='Load Qset'>
+			</div>
+		</div>
+		<div id='storagetab' class='tab storage'>
+			<div class='scroll'>
+				<select id='tableselect'></select>
+				<div id='storagetable'>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id='build-options'>
+		<button id='downloadLink'>Download Package</button>
+		<hr/>
+		<div id='switch'>
+			<p>SWITCH TO:</p>
+			<a href='/mdk/creator/'>Creator</a><br/>
+			<hr/>
+		</div>
+	</div>
+
+</div>
+
+<div class='center'>
+	<div id='container'>
+	</div>
+</div>
+
+<div id='modalbg'></div>
+
+<script src='/mdk/assets/js/materia.namespace.js'></script>
+<script src='/mdk/assets/js/materia.enginecore.js'></script>
+<script src='/mdk/assets/js/materia.coms.json.js'></script>
+
+<script src='/mdk/assets/js/mdk-player.js'></script>
+<script type='text/javascript'>
+	var __PLAY_ID = '{{instance}}';
+	var BASE_URL = '/';
+	var API_LINK = '/';
+	var WIDGET_URL = '/';
+	var STATIC_CROSSDOMAIN = '/';
+	Materia.Player.init(API_LINK, __PLAY_ID , 'container', BASE_URL);
+</script>

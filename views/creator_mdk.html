@@ -1,0 +1,31 @@
+<div id='topbar'>
+	<a class='logo' href='/'>Materia Developer Kit</a>
+	<div class='tools'>
+		<button class='edit_button orange' onclick='location.href="/player";'>Player (Demo)</button>
+		<button class='edit_button orange' id='importLink'>Import Questions</button>
+		<button class='edit_button orange' id='downloadLink'>Download Package</button>
+		<button id='creatorSaveBtn' class='edit_button orange'>Save Draft</button>
+		<button id='creatorPreviewBtn' class='edit_button orange'><span id='previewBtnTxt'>Player (Preview)</span></button>
+	</div>
+</div>
+<div class='center'>
+	<div id='container'></div>
+</div>
+
+<div id='modalbg'></div>
+
+<script src='/mdk/assets/js/materia.namespace.js'></script>
+<script src='/mdk/assets/js/materia.creatorcore.js'></script>
+<script src='/mdk/assets/js/materia.enginecore.js'></script>
+<script src='/mdk/assets/js/materia.coms.json.js'></script>
+<script src='/mdk/assets/js/mdk-creator.js'></script>
+
+<script>
+	var __PLAY_ID = 'demo';
+	var BASE_URL = 'http://localhost:{{port}}/';
+	var API_LINK = 'http://localhost:{{port}}/';
+	var WIDGET_URL = 'http://localhost:{{port}}/';
+	var STATIC_CROSSDOMAIN = 'http://localhost:{{port}}/';
+
+	Materia.Creator.init('container', null, '{{instance}}');
+</script>

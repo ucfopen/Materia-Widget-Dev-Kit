@@ -282,7 +282,8 @@ body, html {
 	padding-right: 10px;
 	outline: none;
 }
-h1{
+
+body#question_importer h1{
 	position:absolute;
 	font-size: 18px;
 	font-weight: 550;

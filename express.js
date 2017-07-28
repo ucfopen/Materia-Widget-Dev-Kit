@@ -6,7 +6,7 @@ const bodyParser      = require('body-parser');
 const yaml            = require('yamljs');
 const { execSync }    = require('child_process');
 const waitUntil       = require('wait-until-promise').default
-const mustacheExpress = require('mustache-express');
+const hoganExpress    = require('hogan-express')
 
 var webPackMiddleware = false;
 var hasCompiled = false;
@@ -217,10 +217,10 @@ module.exports = (app) => {
 
 	// ============= ASSETS and SETUP =======================
 
-	// Register '.mustache' extension with The Mustache Express
-	app.engine('mustache', mustacheExpress());
-	app.set('view engine', 'mustache');
-	app.set('views', __dirname + '/views');
+	app.set('view engine', 'html') // set file extension to html
+	app.set('layout', 'layout') // set layout to layout.html
+	app.engine('html', hoganExpress) // set the layout engine for html
+	app.set('views', path.join(__dirname , 'views')); // set the views directory
 
 	// the web pack middlewere takes time to show up
 	app.use([/^\/$/, '/mdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
@@ -238,7 +238,10 @@ module.exports = (app) => {
 	// ============= ROUTES =======================
 
 	// Display index page
-	app.get('/', (req, res) => res.render('index.html.mustache', {title: getWidgetTitle()}) );
+	app.get('/', (req, res) => {
+		res.locals = {template: 'index', title: getWidgetTitle()}
+		res.render(res.locals.template)
+	});
 
 
 	// ============= MDK ROUTES =======================
@@ -268,20 +271,23 @@ module.exports = (app) => {
 
 	// The play page frame that loads the widget player in an iframe
 	app.get('/mdk/player/:instance?', (req, res) => {
-		const instance = req.params.instance || 'demo';
-		res.render('player_container.html.mustache', {instance: instance})
+		res.locals = { template: 'player_mdk', instance: req.params.instance || 'demo'}
+		res.render(res.locals.template)
 	});
 
 	// The create page frame that loads the widget creator
 	app.get('/mdk/creator/:instance?', (req, res) => {
-		const instance = req.params.instance || null;
 		// @TODO port 8080 is hard-coded here, see if we
 		// can get it from webpack or something?
-		res.render('creator_container.html.mustache', {port: '8080', instance: instance})
+		res.locals = {template: 'creator_mdk', port: '8080', instance: req.params.instance || null}
+		res.render(res.locals.template)
 	});
 
 	// Show the package options
-	app.get('/mdk/package', (req, res) => res.render('download_package.html.mustache'));
+	app.get('/mdk/package', (req, res) => {
+		res.locals = {template: 'download'}
+		res.render(res.locals.template)
+	})
 
 	// Build and download the widget file
 	app.get('/mdk/download', (req, res) => {
@@ -294,14 +300,15 @@ module.exports = (app) => {
 	app.get('/mdk/questions/import/', (req, res) => {
 		// @TODO port 8080 is hard-coded here, see if we
 		// can get it from webpack or something?
-		res.render('question_importer.html.mustache', {port: '8080'})
+		res.locals = {template: 'question_importer', port: '8080'}
+		res.render(res.locals.template)
 	});
 
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
 	app.get('/mdk/preview_blocked/:instance?', (req, res) => {
-		const instance = req.params.instance || 'demo';
-		res.render('preview_blocked.html.mustache', {instance: instance})
+		res.locals = {template: 'preview_blocked', instance: req.params.instance || 'demo'}
+		res.render(res.locals.template)
 	});
 
 	app.get('/mdk/install', (req, res) => {

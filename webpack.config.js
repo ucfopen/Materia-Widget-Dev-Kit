@@ -9,29 +9,24 @@ const buildPath   = path.resolve('build') + path.sep
 module.exports = {
 	entry: {
 		'mdk-splash.js': [
-			path.join(corePath, 'materia.namespace.coffee'),
-			path.join(corePath, 'materia.coms.json.coffee'),
 			path.join(mdkSrcPath, 'mdk.splash.coffee')
 		],
 		'mdk-creator.js': [
-			path.join(corePath, 'materia.namespace.coffee'),
-			path.join(corePath, 'materia.creatorcore.coffee'),
-			path.join(corePath, 'materia.enginecore.coffee'),
-			path.join(corePath, 'materia.coms.json.coffee'),
 			path.join(mdkSrcPath, 'mdk.creator.coffee'),
 			path.join(mdkSrcPath, 'mdk.package.coffee'),
 		],
 		'mdk-player.js': [
-			path.join(corePath, 'materia.namespace.coffee'),
-			path.join(corePath, 'materia.enginecore.coffee'),
-			path.join(corePath, 'materia.coms.json.coffee'),
 			path.join(mdkSrcPath, 'mdk.player.coffee'),
 			path.join(mdkSrcPath, 'mdk.package.coffee'),
 		],
 		'mdk-question-import.js': [
-			path.join(corePath, 'materia.namespace.coffee'),
-			path.join(corePath, 'materia.enginecore.coffee'),
+			path.join(mdkSrcPath, 'mdk.questions.coffee'),
+		],
+		'materia.coms.json.js': [
 			path.join(corePath, 'materia.coms.json.coffee'),
+		],
+		'materia.namespace.js': [
+			path.join(corePath, 'materia.namespace.coffee'),
 		],
 		'materia.creatorcore.js': [
 			path.join(corePath, 'materia.creatorcore.coffee'),
