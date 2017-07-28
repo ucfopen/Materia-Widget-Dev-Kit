@@ -103,8 +103,13 @@ Namespace('Materia').Creator = do ->
 		embed_done_dfd.resolve()
 
 		# override engine core's getImageAssetUrl method to handle hardcoded demo assets properly
-		creator.contentWindow.Materia.CreatorCore.getMediaUrl = (mediaId) ->
-			"#{BASE_URL}mdk/media/#{mediaId}"
+		creator.contentWindow.Materia.CreatorCore.getMediaUrl = (id) ->
+			# demos have special syntax,
+			if id and id.indexOf and id.indexOf('MEDIA=') isnt -1
+				id = id.split "'"
+				id[1]
+			else
+				"#{BASE_URL}mdk/media/#{id}"
 
 
 	save = (instanceName, qset, version) ->

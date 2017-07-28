@@ -447,14 +447,16 @@ module.exports = (app) => {
 	// API mock for getting questions for the question importer
 	app.use('/api/json/questions_get/', (req, res) => {
 		const given = JSON.parse(req.body.data);
-
-		// we selected specific questions
+		let questions
 		if (given[0]) {
-			res.json(getQuestion(given[0]));
-		// we just want all of them from the given type
+			// we selected specific questions
+			questions = getQuestion(given[0])
 		} else {
-			res.json(getAllQuestions(given[1]));
+			// we just want all of them from the given type
+			questions = getAllQuestions(given[1])
 		}
+
+		res.json(questions)
 	});
 
 }
