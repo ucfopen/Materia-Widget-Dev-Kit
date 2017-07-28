@@ -161,7 +161,8 @@ Namespace('Materia').Player = do ->
 
 		# override engine core's getImageAssetUrl method to handle hardcoded demo assets properly
 		widget.contentWindow.Materia.Engine.getImageAssetUrl = (id) ->
-			if id.indexOf 'MEDIA=' isnt -1
+			# demos have special syntax,
+			if id and id.indexOf and id.indexOf('MEDIA=') isnt -1
 				id = id.split "'"
 				id[1]
 			else
