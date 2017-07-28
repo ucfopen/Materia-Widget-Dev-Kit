@@ -1,11 +1,12 @@
-const path         = require('path');
-const fs           = require('fs')
-const express      = require('express')
-const qsets        = path.join(__dirname, 'qsets');
-const bodyParser   = require('body-parser');
-const yaml         = require('yamljs');
-const { execSync } = require('child_process');
-const waitUntil    = require('wait-until-promise').default
+const path            = require('path');
+const fs              = require('fs')
+const express         = require('express')
+const qsets           = path.join(__dirname, 'qsets');
+const bodyParser      = require('body-parser');
+const yaml            = require('yamljs');
+const { execSync }    = require('child_process');
+const waitUntil       = require('wait-until-promise').default
+const mustacheExpress = require('mustache-express');
 
 var webPackMiddleware = false;
 var hasCompiled = false;
@@ -24,16 +25,6 @@ var getWebPackMiddleWare = (app) => {
 	}
 }
 
-// Loads local MDK view files from the disk
-var getView = (file) => {
-	try {
-		// @TODO load from memory instead of the disk?
-		return fs.readFileSync(path.join(__dirname, 'views', file))
-	} catch (e) {
-		return console.log(`error trying to load ${file}`);
-	}
-};
-
 // Loads processed widget files from webpack's memory
 var getFileFromWebpack = (file) => {
 	try {
@@ -44,17 +35,6 @@ var getFileFromWebpack = (file) => {
 		throw `error trying to load ${file} from widget src, reload if you just started the server`
 	}
 }
-
-var replaceStringInTemplate = (file, target, replace) => {
-	const str = file.toString();
-	let re = new RegExp(`{{${target}}}`, 'g');
-	// if replacing 'target' with null, take extra steps to ensure it is actually 'null' and not the string '"null"'
-	if (replace === null) {
-		re = new RegExp(`('|"){{${target}}}('|")`, 'g');
-	}
-
-	return Buffer.from(str.replace(re, replace));
-};
 
 // Widget creation/management support functions
 var getWidgetTitle = () => {
@@ -205,6 +185,11 @@ module.exports = (app) => {
 
 	// ============= ASSETS and SETUP =======================
 
+	// Register '.mustache' extension with The Mustache Express
+	app.engine('mustache', mustacheExpress());
+	app.set('view engine', 'mustache');
+	app.set('views', __dirname + '/views');
+
 	// the web pack middlewere takes time to show up
 	// this will pause all requests till we're able to
 	// 1. talk to the middlware
@@ -241,10 +226,11 @@ module.exports = (app) => {
 	})
 
 	// allow express to parse a JSON post body that ends up in req.body.data
-	app.use(bodyParser.json());
-	app.use(bodyParser.urlencoded({extended: true}));
+	app.use(bodyParser.json()); // for parsing application/json
+	app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
 	// serve the static files from devmateria
+	app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 	app.use('/mdk/assets', express.static(path.join(__dirname, 'assets')))
 	app.use('/mdk/assets/js', express.static(path.join(__dirname, 'build')))
 
@@ -252,11 +238,7 @@ module.exports = (app) => {
 	// ============= ROUTES =======================
 
 	// Display index page
-	app.get('/', (req, res) => {
-		const file = getView('index.html');
-		res.write(replaceStringInTemplate(file, 'title', getWidgetTitle()));
-		return res.end();
-	});
+	app.get('/', (req, res) => res.render('index.html.mustache', {title: getWidgetTitle()}) );
 
 
 	// ============= MDK ROUTES =======================
@@ -281,64 +263,45 @@ module.exports = (app) => {
 			saved_qsets[qset_data.id] = qset_data.name;
 		}
 
-		res.write(JSON.stringify(saved_qsets));
-		return res.end();
+		res.json(saved_qsets);
 	});
 
 	// The play page frame that loads the widget player in an iframe
 	app.get('/mdk/player/:instance?', (req, res) => {
 		const instance = req.params.instance || 'demo';
-		const file = getView('player_container.html');
-		res.write(replaceStringInTemplate(file, 'instance', instance));
-		return res.end();
+		res.render('player_container.html.mustache', {instance: instance})
 	});
 
 	// The create page frame that loads the widget creator
 	app.get('/mdk/creator/:instance?', (req, res) => {
 		const instance = req.params.instance || null;
-
-		let file = getView('creator_container.html');
-		file = replaceStringInTemplate(file, 'instance', instance);
-
 		// @TODO port 8080 is hard-coded here, see if we
 		// can get it from webpack or something?
-		res.write(replaceStringInTemplate(file, 'port', '8080'));
-		return res.end();
+		res.render('creator_container.html.mustache', {port: '8080', instance: instance})
 	});
 
 	// Show the package options
-	app.get('/mdk/package', (req, res) => {
-		res.write(getView('download_package.html'));
-		return res.end();
-	});
+	app.get('/mdk/package', (req, res) => res.render('download_package.html.mustache'));
 
 	// Build and download the widget file
 	app.get('/mdk/download', (req, res) => {
 		let { widgetPath, widgetData } = buildWidget()
-
 		res.set('Content-Disposition', `attachment; filename=${widgetData.clean_name}.wigt`);
-		return res.send(fs.readFileSync(widgetPath));
+		res.send(fs.readFileSync(widgetPath));
 	});
 
 	// Question importer for creator
 	app.get('/mdk/questions/import/', (req, res) => {
-		const file = getView('question_importer.html');
-
 		// @TODO port 8080 is hard-coded here, see if we
 		// can get it from webpack or something?
-		res.write(replaceStringInTemplate(file, 'port', '8080'));
-		return res.end();
+		res.render('question_importer.html.mustache', {port: '8080'})
 	});
 
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
 	app.get('/mdk/preview_blocked/:instance?', (req, res) => {
 		const instance = req.params.instance || 'demo';
-
-		const file = getView('preview_blocked.html');
-
-		res.write(replaceStringInTemplate(file, 'instance', instance));
-		return res.end();
+		res.render('preview_blocked.html.mustache', {instance: instance})
 	});
 
 	app.get('/mdk/install', (req, res) => {
@@ -403,41 +366,37 @@ module.exports = (app) => {
 	// API endpoint for getting the widget instance data
 	app.use('/api/json/widget_instances_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0][0];
-		const instance = createApiWidgetInstanceData(id);
-
-		return res.send(JSON.stringify(instance));
+		res.json(createApiWidgetInstanceData(id));
 	});
 
-	app.post('/api/json/widgets_get', (req, res) => {
+	app.use('/api/json/widgets_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0][0];
-		const widget = createApiWidgetData(id);
-
-		return res.send(JSON.stringify([widget]));
+		res.json([createApiWidgetData(id)]);
 	});
 
-	app.post('/api/json/question_set_get', (req, res) => {
-		const id = JSON.parse(req.body.data)[0];
+	app.use('/api/json/question_set_get', (req, res) => {
 
+		res.set('Content-Type', 'application/json')
 		// load instance, fallback to demo
 		try {
-			return res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
+			const id = JSON.parse(req.body.data)[0];
+			res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
 		} catch (e) {
-			return res.send(getWidgetDemo());
+			res.send(getWidgetDemo());
 		}
 	});
 
-	app.post('/api/json/session_valid', (req, res) => res.end());
+	app.use('/api/json/session_valid', (req, res) => res.end());
 
-	app.post('/api/json/play_logs_save', (req, res) => {
+	app.use('/api/json/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
 		console.log(logs);
-
-		return res.end("{ \"score\": 0 }");
+		res.json({score: 0});
 	});
 
 	// api mock for saving widget instances
 	// creates files in our qset directory (probably should use a better thing)
-	app.post('/api/json/widget_instance_save', (req, res) => {
+	app.use('/api/json/widget_instance_save', (req, res) => {
 		const data = JSON.parse(req.body.data);
 
 		// sweep through the qset items and make sure there aren't any nonstandard question properties
@@ -482,19 +441,19 @@ module.exports = (app) => {
 				plurals[1] + ' not saved. Use options instead.';
 		}
 
-		return res.end(JSON.stringify(instance));
+		res.json(instance);
 	});
 
 	// API mock for getting questions for the question importer
-	app.post('/api/json/questions_get/', (req, res) => {
+	app.use('/api/json/questions_get/', (req, res) => {
 		const given = JSON.parse(req.body.data);
 
 		// we selected specific questions
 		if (given[0]) {
-			return res.end(JSON.stringify(getQuestion(given[0])));
+			res.json(getQuestion(given[0]));
 		// we just want all of them from the given type
 		} else {
-			return res.end(JSON.stringify(getAllQuestions(given[1])));
+			res.json(getAllQuestions(given[1]));
 		}
 	});
 
