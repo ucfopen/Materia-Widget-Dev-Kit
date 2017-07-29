@@ -1,6 +1,6 @@
 {
   "name": "@ucfcdl/this-or-that",
-  "version": "1.0.1-alpha-1",
+  "version": "1.0.1-alpha-2",
   "author": "University of Central Florida, Center for Distributed Learning",
   "engines": {
     "node": ">=6.9.0 <7.0.0",
