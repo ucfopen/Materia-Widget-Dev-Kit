@@ -5,7 +5,7 @@ const CopyPlugin        = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ZipPlugin         = require('zip-webpack-plugin')
 
-const MateriaDevServer = require('materia-widget-dev/express');
+const MateriaDevServer = require('./express');
 
 // Default Materia Widget Config
 const defaultCfg = {
@@ -43,9 +43,16 @@ const configFromPackage = () => {
 	let packagePath  = path.join(process.cwd(), 'package.json')
 	let packageJson  = require(packagePath)
 
-	return {
-		cleanName : packageJson.materia.cleanName.toLowerCase(),
+	if(packageJson && packageJson.materia && packageJson.cleanName){
+		return {
+			cleanName : packageJson.materia.cleanName.toLowerCase(),
+		}
 	}
+
+	return {
+		cleanName : 'no-name',
+	}
+
 }
 
 

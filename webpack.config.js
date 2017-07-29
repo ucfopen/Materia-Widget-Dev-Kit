@@ -21,21 +21,6 @@ module.exports = {
 		],
 		'mdk-question-import.js': [
 			path.join(mdkSrcPath, 'mdk.questions.coffee'),
-		],
-		'materia.coms.json.js': [
-			path.join(corePath, 'materia.coms.json.coffee'),
-		],
-		'materia.namespace.js': [
-			path.join(corePath, 'materia.namespace.coffee'),
-		],
-		'materia.creatorcore.js': [
-			path.join(corePath, 'materia.creatorcore.coffee'),
-		],
-		'materia.enginecore.js': [
-			path.join(corePath, 'materia.enginecore.coffee'),
-		],
-		'materia.score.js': [
-			path.join(corePath, 'materia.score.coffee'),
 		]
 	},
 
