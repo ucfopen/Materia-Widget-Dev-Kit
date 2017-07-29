@@ -15,6 +15,7 @@ var hasCompiled = false;
 // 1. talk to the middlware
 // 2. load the widget's install.yaml from webpack's in-memory files
 var waitForWebpack = (app, next) => {
+	if(process.env.TEST_MDK) return next(); // short circuit for tests
 	if(hasCompiled) return next(); // short circuit if ready
 
 	waitUntil(() => {
@@ -28,7 +29,7 @@ var waitForWebpack = (app, next) => {
 
 		// then check to see if we can find install.yaml
 		try {
-			getFileFromWebpack('install.yaml', true)
+			getInstall()
 			return true
 		} catch(e) {
 			console.log("waiting for 'install.yaml' to be served by webpack")
@@ -70,30 +71,39 @@ var getFileFromWebpack = (file, quiet = false) => {
 
 // Widget creation/management support functions
 var getWidgetTitle = () => {
-	const install = getFileFromWebpack('install.yaml');
+	const install = getInstall()
 	return yaml.parse(install.toString()).general.name;
 };
 
+var getDemoQset = () => {
+	// generate a new instance with the given ID
+	let qset
+	try {
+		if(process.env.TEST_MDK){
+			qset = fs.readFileSync(path.resolve('views', 'sample-demo.json'))
+		}
+		else{
+			qset = getFileFromWebpack('demo.json')
+		}
+	} catch (e) {
+		console.log(e);
+		throw "Couldn't find demo.json file for qset data"
+	}
+
+	return JSON.parse(qset.toString())
+}
+
 // create a widget instance data structure
 var createApiWidgetInstanceData = (id) => {
-	let e;
-	let qset = null;
-	let widget = null;
-	const widgetPath = null;
 
 	// attempt to load a previously saved instance with the given ID
 	try {
 		return JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')).toString());
-	} catch (error) { e = error; }
+	} catch (e) { console.error(e) }
 
 	// generate a new instance with the given ID
-	try {
-		qset = JSON.parse(getFileFromWebpack('demo.json').toString());
-		widget = createApiWidgetData(id);
-	} catch (e) {
-		console.log('Error in makeInstance from the widget.coffee file:');
-		console.log(e);
-	}
+	let qset = getDemoQset()
+	let widget = createApiWidgetData(id);
 
 	return [{
 		'attempts': '-1',
@@ -120,7 +130,7 @@ var createApiWidgetInstanceData = (id) => {
 
 // Build a mock widget data structure
 var createApiWidgetData = (id) => {
-	let widget = yaml.parse(getFileFromWebpack('install.yaml').toString());
+	let widget = yaml.parse(getInstall().toString());
 
 	widget.player = widget.files.player;
 	widget.creator = widget.files.creator;
@@ -151,10 +161,14 @@ var buildWidget = () => {
 	}
 }
 
-// Read the widget demo from memory
-var getWidgetDemo = () => {
-	let json = getFileFromWebpack('demo.json').toString()
-	return JSON.stringify(JSON.parse(json).qset);
+var getInstall = () => {
+	try {
+		if(process.env.TEST_MDK) return fs.readFileSync(path.resolve('views', 'sample-install.yaml')); // short circuit for tests
+		return getFileFromWebpack('install.yaml', true);
+	} catch(e) {
+		console.error(e)
+		throw "Can't find install.yaml"
+	}
 }
 
 // goes through the master list of default questions and filters according to a given type/types
@@ -233,6 +247,7 @@ module.exports = (app) => {
 	app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 	app.use('/mdk/assets', express.static(path.join(__dirname, 'assets')))
 	app.use('/mdk/assets/js', express.static(path.join(__dirname, 'build')))
+	app.use('/mdk/server/assets/', express.static(path.join(__dirname, 'node_modules', 'materia-client-assets', 'dist')))
 
 
 	// ============= ROUTES =======================
@@ -389,7 +404,7 @@ module.exports = (app) => {
 			const id = JSON.parse(req.body.data)[0];
 			res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
 		} catch (e) {
-			res.send(getWidgetDemo());
+			res.json(getDemoQset().qset);
 		}
 	});
 
