@@ -1,4 +1,4 @@
-Namespace('Materia').Package = do ->
+Namespace('MDK').Package = do ->
 	init = ->
 		$('#downloadLink').on 'click', showPackageDownload
 

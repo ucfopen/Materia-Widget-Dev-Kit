@@ -1,4 +1,4 @@
-Namespace('Materia').Questions = do ->
+Namespace('MDK').Questions = do ->
 	$selectedAssets = []
 	$table = null
 
@@ -25,7 +25,7 @@ Namespace('Materia').Questions = do ->
 		$('#cancel-button').click (e) ->
 			e.preventDefault()
 			e.stopPropagation()
-			window.parent.Materia.Creator.onQuestionImportComplete null
+			window.parent.MDK.Creator.onQuestionImportComplete null
 			return
 		# when the url has changes, reload the questions
 		$(window).bind 'hashchange', _loadAllQuestions
@@ -97,7 +97,7 @@ Namespace('Materia').Questions = do ->
 	_loadSelectedQuestions = (questionIds) ->
 		_getQuestions questionIds, null, (result) ->
 			if typeof result != 'undefined' and result != null and !('msg' of result) and result.length > 0
-				window.parent.Materia.Creator.onQuestionImportComplete JSON.stringify(result)
+				window.parent.MDK.Creator.onQuestionImportComplete JSON.stringify(result)
 			return
 		return
 
