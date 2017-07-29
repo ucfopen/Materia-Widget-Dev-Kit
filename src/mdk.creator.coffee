@@ -1,4 +1,4 @@
-Namespace('Materia').Creator = do ->
+Namespace('MDK').Creator = do ->
 	creator = null
 	embed_done_dfd = null
 	embed_target = null
@@ -200,7 +200,7 @@ Namespace('Materia').Creator = do ->
 		$('#importLink').on 'click', showQuestionImporter
 
 	enablePackageDownload = ->
-		Materia.Package.init()
+		MDK.Package.init()
 
 	getQset = ->
 		dfd = $.Deferred()

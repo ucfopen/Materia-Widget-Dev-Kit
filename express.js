@@ -90,7 +90,11 @@ var getDemoQset = () => {
 		throw "Couldn't find demo.json file for qset data"
 	}
 
-	return JSON.parse(qset.toString())
+	// convert media urls into usable ones
+	qset = qset.toString()
+	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
+
+	return JSON.parse(qset)
 }
 
 // create a widget instance data structure
@@ -135,7 +139,8 @@ var createApiWidgetData = (id) => {
 	widget.player = widget.files.player;
 	widget.creator = widget.files.creator;
 	widget.clean_name = widget.general.name.replace(new RegExp(' ', 'g'), '-').toLowerCase();
-	widget.dir = widget.clean_name + '/';
+	// widget.dir = widget.clean_name + '/';
+	widget.dir = ''
 	widget.width = widget.general.width;
 	widget.height = widget.general.height;
 	return widget;
@@ -244,10 +249,11 @@ module.exports = (app) => {
 	app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
 	// serve the static files from devmateria
+	let clientAssetsPath = require('materia-client-assets/path')
 	app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 	app.use('/mdk/assets', express.static(path.join(__dirname, 'assets')))
-	app.use('/mdk/assets/js', express.static(path.join(__dirname, 'build')))
-	app.use('/mdk/server/assets/', express.static(path.join(__dirname, 'node_modules', 'materia-client-assets', 'dist')))
+	app.use('/mdk/mdk-assets/js', express.static(path.join(__dirname, 'build')))
+	app.use('/mdk/assets/', express.static(path.join(clientAssetsPath, 'dist')))
 
 
 	// ============= ROUTES =======================
@@ -261,7 +267,15 @@ module.exports = (app) => {
 
 	// ============= MDK ROUTES =======================
 
-	// re-route all image requests to lorempixel
+	// Match any MEDIA URLS that get build into our demo.jsons
+	// worth noting the <MEDIA=dfdf> is converted to __dfdf__
+	// this redirects the request directly to the file served by webpack
+	app.get(/\/mdk\/media\/__(.+)__/, (req, res) => {
+		console.log(`mocking media asset from demo.json :<MEDIA='${req.params[0]}'>`)
+		res.redirect(`http://localhost:8080/${req.params[0]}`)
+	})
+
+	// If asking for a media item by id, just send them to lorempixel
 	app.get('/mdk/media/:id', (req, res) => res.redirect(`http://lorempixel.com/800/600/?c=${req.params.id}`));
 
 	// route to list the saved qsets
@@ -408,11 +422,11 @@ module.exports = (app) => {
 		}
 	});
 
-	app.use('/api/json/session_valid', (req, res) => res.end());
+	app.use('/api/json/session_play_verify', (req, res) => res.end());
 
 	app.use('/api/json/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
-		console.log("===== Play Logs Received =====\r\n", logs, "\r\n============END PLAY LOGS================");
+		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================");
 		res.json({score: 0});
 	});
 

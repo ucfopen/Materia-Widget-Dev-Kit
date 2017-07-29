@@ -1,13 +1,3 @@
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0/angular.js?"></script>
-<script type="text/javascript" src="//materia.ucf.edu/assets/js/lib/bower/ngModal/dist/ng-modal.min.js?"></script>
-<script type="text/javascript" src="/mdk/server/assets/js/materia.min.js"></script>
-<script type="text/javascript" src="/mdk/server/assets/js/student.min.js"></script>
-
-<!-- <script src='//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'></script> -->
-<script src='//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js'></script>
-
-
-
 <div id='leftbar'>
 	<a href='#' id="sidebarbtn">&larr;</a>
 	<a class='logo' href="/">MDK</a>
@@ -47,101 +37,47 @@
 {{! Change the mustache brackets to ERB style so that angular code won't get messed up }}
 {{=<% %>=}}
 <div class="widget" ng-app="materia">
-		<header ng-controller="currentUserCtrl" class="{loggedIn: currentUser.loggedIn==true}" >
-				<span id="current-user" data-logged-in="false"></span>
-
-	<h1 class="logo"><a href="/">Materia</a></h1>
-
-	<span ng-switch="currentUser.loggedIn">
-		<p ng-switch-when="true" class="user avatar">
-			<img ng-src="{{currentUser.avatar}}" />
-			Welcome <a href="/profile">{{currentUser.name}}</a>
-		</p>
-		<p ng-switch-when="false" class="user">
-			Not logged in. <a href="/users/login">Login with your Materia Username</a>
-		</p>
-	</span>
-	<nav>
-		<ul>
-			<li><a href="/widgets" >Widget Catalog</a></li>
-			<li><a href="/my-widgets">My Widgets</a></li>
-			<li><a href="/help">Help</a></li>
-
-			<li ng-switch="currentUser.loggedIn" class="logout">
-				<a ng-switch-when="true" href="/users/logout">Logout</a>
-				<a ng-switch-when="false" href="/users/login">Login with your Materia Username</a>
-			</li>
-		</ul>
-	</nav>
-
-	<div ng-if="currentUser.loggedIn" ng-controller="notificationCtrl" ng-show="values.notifications.length > 0">
-		<a id="notifications_link" data-notifications="{{values.notifications.length}}" ng-click="clickNotification()"></a>
-		<div id="notices" ng-if="values.notifications.length > 0">
-			<div class="notice" ng-repeat="notification in values.notifications">
-				<p class="icon"><img class="senderAvatar" ng-src="{{notification.avatar}}"></p>
-				<div class="notice_right_side">
-					<p class="subject" ng-bind-html="trust(notification.subject)"></p>
-				</div>
-				<span class="noticeClose" ng-click="removeNotification($index)"></span>
-			</div>
+	<section class="widget" ng-controller="playerCtrl" ng-init="inst_id = 'demo'" ng-class="{ preview: isPreview }">
+		<header ng-if="isPreview" class="preview-bar"></header>
+		<div class="center" ng-show="type == 'flash' || type == 'html'">
+			<iframe ng-attr-src="{{ htmlPath }}" ng-if="type == 'html'" id="container" class="html" scrolling="yes" fullscreen-dir></iframe>
+			<div id="container" ng-if="type =='flash'"></div>
 		</div>
-	</div>
-</header>
-		<section class="widget" ng-controller="playerCtrl" ng-init="inst_id = '9zBg0'" ng-class="{ preview: isPreview }">
-	<header ng-if="isPreview" class="preview-bar"></header>
-	<div class="center" ng-show="type == 'flash' || type == 'html'">
-		<iframe ng-attr-src="{{ htmlPath }}" ng-if="type == 'html'" id="container" class="html" scrolling="yes" fullscreen-dir></iframe>
-		<div id="container" ng-if="type =='flash'"></div>
-	</div>
-	<div id="container" ng-if="type =='noflash'">
-		<div class="container general" id="no_flash">
-	<section class="page no_flash">
-		<h1>Flash Player Required</h1>
-
-		<p id="notice">Materia requires that you have the latest Flash Player plug-in installed.</p>
-
-		<div class="get_flash" id="get_flash">
-			<a href="http://www.adobe.com/go/getflashplayer">
-				<img src="/themes/default/assets/img/get_flashplayer.gif" alt="Download Flash Player" />
-				<span class="caption">Get Adobe Flash<sup>&reg;</sup> Player</span>
-			</a>
+		<div id="container" ng-if="type =='noflash'">
+			No Flash
 		</div>
-
-		<h2>Other Solutions</h2>
-		<p>If your Flash player is up to date, then you may be able to fix this problem by <a href="http://www.google.com/search?q=enable+javascript">turning on Javascript</a> in your browser.</p>
-
-		<p>Should this not fix your problems, please visit the <a href="https://materia.ucf.edu/help/">Help</a> pages for more information.</p>
 	</section>
-</div>
+
+	<div ng-controller="alertCtrl">
+		<modal-dialog show="alert.msg"
+			class="alert"
+			ng-class="{ fatal: alert.fatal }"
+			dialog-title="{{ alert.title }}"
+			width="520px"
+			z-index="1000000">
+			<p>{{ alert.msg }}</p>
+			<button ng-hide="alert.fatal" ng-click="alert.msg = null" class="action_button">Okay</button>
+			<button ng-show="alert.enableLoginButton" ng-click="reloadPage()" class="action_button">Click Here to Login</button>
+		</modal-dialog>
 	</div>
-</section>		<div ng-controller="alertCtrl">
-			<modal-dialog show="alert.msg"
-				class="alert"
-				ng-class="{ fatal: alert.fatal }"
-				dialog-title="{{ alert.title }}"
-				width="520px"
-				z-index="1000000">
-				<p>{{ alert.msg }}</p>
-				<button ng-hide="alert.fatal" ng-click="alert.msg = null" class="action_button">Okay</button>
-				<button ng-show="alert.enableLoginButton" ng-click="reloadPage()" class="action_button">Click Here to Login</button>
-			</modal-dialog>
-		</div>
 </div>
 <%={{ }}=%>
 {{! Return mustache to normal }}
 
 <div id='modalbg'></div>
 
-<!-- <script src='/mdk/assets/js/materia.namespace.js'></script>
-<script src='/mdk/assets/js/materia.enginecore.js'></script>
-<script src='/mdk/assets/js/materia.coms.json.js'></script>
-
-<script src='/mdk/assets/js/mdk-player.js'></script> -->
 <script type='text/javascript'>
 	var PLAY_ID = '{{ instance }}';
-	var BASE_URL = '/';
+	var BASE_URL = '/mdk/';
 	var API_LINK = '/api/json/';
-	var WIDGET_URL = '/';
+	var WIDGET_URL = "http://localhost:8080/";
 	var STATIC_CROSSDOMAIN = '/';
-	// Materia.Player.init(API_LINK, __PLAY_ID , 'container', BASE_URL);
 </script>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0/angular.js?"></script>
+<script type="text/javascript" src="//materia.ucf.edu/assets/js/lib/bower/ngModal/dist/ng-modal.min.js?"></script>
+<script type="text/javascript" src="/mdk/assets/js/materia.js"></script>
+<script type="text/javascript" src="/mdk/assets/js/student.js"></script>
+<script type="text/javascript" src="/mdk/mdk-assets/js/mdk-player.js"></script>
+<!-- <script src='//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'></script> -->
+<!-- <script src='//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js'></script> -->

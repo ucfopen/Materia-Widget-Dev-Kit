@@ -1,4 +1,4 @@
-Namespace('Materia').Splash = do ->
+Namespace('MDK').Splash = do ->
 	init = ->
 		qsets = document.getElementById('qsets')
 		playerButton = document.getElementById('player_button')
