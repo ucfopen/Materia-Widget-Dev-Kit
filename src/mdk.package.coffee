@@ -1,7 +1,4 @@
 Namespace('MDK').Package = do ->
-	init = ->
-		$('#downloadLink').on 'click', showPackageDownload
-
 	showPackageDownload = ->
 		showEmbedDialog '/mdk/package', 500, 280
 
@@ -23,6 +20,6 @@ Namespace('MDK').Package = do ->
 	cancel = ->
 		closeDialog()
 
-	init: init
 	build: build
 	cancel: cancel
+	showPackageDownload:showPackageDownload

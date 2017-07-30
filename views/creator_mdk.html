@@ -1,31 +1,114 @@
-<div id='topbar'>
-	<a class='logo' href='/'>Materia Developer Kit</a>
-	<div class='tools'>
-		<button class='edit_button orange' onclick='location.href="/player";'>Player (Demo)</button>
-		<button class='edit_button orange' id='importLink'>Import Questions</button>
-		<button class='edit_button orange' id='downloadLink'>Download Package</button>
-		<button id='creatorSaveBtn' class='edit_button orange'>Save Draft</button>
-		<button id='creatorPreviewBtn' class='edit_button orange'><span id='previewBtnTxt'>Player (Preview)</span></button>
-	</div>
-</div>
-<div class='center'>
-	<div id='container'></div>
-</div>
+<link rel="stylesheet" href="/mdk/assets/css/mdk-creator.css" type="text/css" />
+<link rel="stylesheet" href="/mdk/assets/css/create.css" type="text/css" />
 
-<div id='modalbg'></div>
-
-<script src='/mdk/assets/js/materia.namespace.js'></script>
-<script src='/mdk/assets/js/materia.creatorcore.js'></script>
-<script src='/mdk/assets/js/materia.enginecore.js'></script>
-<script src='/mdk/assets/js/materia.coms.json.js'></script>
-<script src='/mdk/assets/js/mdk-creator.js'></script>
+<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0/angular.js?"></script>
+<script src="//materia.ucf.edu/assets/js/lib/bower/ngModal/dist/ng-modal.min.js?"></script>
+<script src="/mdk/assets/js/materia.js"></script>
+<script src="/mdk/assets/js/author.js"></script>
+<script src="/mdk/mdk-assets/js/mdk-package.js"></script>
 
 <script>
-	var __PLAY_ID = 'demo';
-	var BASE_URL = 'http://localhost:{{port}}/';
-	var API_LINK = 'http://localhost:{{port}}/';
-	var WIDGET_URL = 'http://localhost:{{port}}/';
-	var STATIC_CROSSDOMAIN = 'http://localhost:{{port}}/';
-
-	MDK.Creator.init('container', null, '{{instance}}');
+	var BASE_URL = 'http://localhost:{{port}}/mdk/'
+	var API_LINK = 'http://localhost:{{port}}/api/json/'
+	var WIDGET_URL = 'http://localhost:{{port}}/'
+	var STATIC_CROSSDOMAIN = 'http://localhost:{{port}}/'
 </script>
+
+<div id="topbar">
+	<a class="logo" href="/">Materia Developer Kit</a>
+	<div class="tools">
+		<button class="edit_button orange" onclick="location.href='/mdk/player';">Player (Demo)</button>
+		<button id="downloadLink" class="edit_button orange" onclick="MDK.Package.showPackageDownload();">Download Package</button>
+	</div>
+</div>
+
+{{! Change the mustache brackets to ERB style so that angular code won't get messed up }}
+{{=<% %>=}}
+<div class="create" ng-app="materia">
+
+	<div ng-controller="createCtrl">
+		<section class="page" ng-show="loaded">
+			<div class="preview animate-show" ng-show="popup == 'blocked'">
+				<p>Your browser blocked the preview popup, click below to preview the widget.</p>
+				<div class="publish_container">
+					<a class="cancel_button" ng-click="cancelPreview()">Close</a>
+					<a href="{{ previewUrl }}" target="_blank" ng-click="cancelPreview()" class="action_button green">Open Preview</a>
+				</div>
+			</div>
+
+			<div class="publish animate-show" ng-show="popup == 'update'">
+				<h1>Update Widget</h1>
+				<p>Updating this published widget will instantly allow your students to see your changes.</p>
+
+				<div class="publish_container">
+					<a class="cancel_button" ng-click="cancelPublish()">Cancel</a>
+					<a class="action_button green" ng-click="requestSave('publish')">Yes, Save Updates</a>
+				</div>
+			</div>
+
+			<div class="publish animate-show" ng-show="popup == 'publish'">
+				<h1>Publish Widget</h1>
+				<p>Publishing removes the "Draft" status of a widget, which grants you the ability to use it in your course and collect student scores &amp; data.</p>
+				<div class="publish_container">
+					<a class="cancel_button" ng-click="cancelPublish()">Cancel</a>
+					<a class="action_button green" ng-click="requestSave('publish')">Yes, Publish</a>
+				</div>
+			</div>
+
+			<section id="action-bar" ng-show="showActionBar">
+				<a id="importLink" ng-click="showQuestionImporter()">Import Questions...</a>
+				<button id="creatorPublishBtn" class="edit_button green" type="button" ng-click="onPublishPressed()">{{ publishText }}</button>
+				<span ng-hide="updateMode || nonEditable">
+					<div class="dot"></div>
+					<button id="creatorPreviewBtn" class="edit_button orange" type="button" ng-click="requestSave('preview')"><span>{{ previewText }}</span></button>
+					<button id="creatorSaveBtn" class="edit_button orange" ng-class="saveStatus" type="button" ng-click="requestSave('save')"><span>{{ saveText }}</span></button>
+				</span>
+			</section>
+
+			<div class="center">
+				<iframe ng-attr-src="{{ htmlPath }}" ng-if="type == 'html'" id="container" class="html"></iframe>
+				<div id="container" ng-if="type == 'swf'"></div>
+			</div>
+			<div id="container" ng-if="type == 'noflash'">
+				<?= Theme::instance()->view('partials/noflash') ?>
+			</div>
+
+			<div id="modal-cover" class="page" ng-show="modal"></div>
+
+			<iframe ng-attr-src="{{ iframeUrl }}" ng-class="{ show: iframeUrl }" id="embed_dialog" frameborder=0 width=675 height=500></iframe>
+		</section>
+
+		<div ng-if="invalid">
+			<div class="container general" id="no_permission">
+				<section class="page no_permission">
+					<h1>You don't have permission to view this page.</h1>
+					<p>You may need to:</p>
+					<ul>
+						<li>Make sure you own this item.</li>
+						<li>Ask the owner to share it with you.</li>
+						<li>Make sure the item you are trying to access exists.</li>
+					</ul>
+
+					<?= Theme::instance()->view('partials/help/support_info') ?>
+				</section>
+			</div>
+		</div>
+	</div>
+
+	<div ng-controller="alertCtrl">
+		<modal-dialog show="alert.msg"
+			class="alert"
+			ng-class="{ fatal: alert.fatal }"
+			dialog-title="{{ alert.title }}"
+			width="520px"
+			z-index="1000000">
+			<p>{{ alert.msg }}</p>
+			<button ng-hide="alert.fatal" ng-click="alert.msg = null" class="action_button">Okay</button>
+			<button ng-show="alert.enableLoginButton" ng-click="reloadPage()" class="action_button">Click Here to Login</button>
+		</modal-dialog>
+	</div>
+
+</div>
+<%={{ }}=%>
+{{! Return mustache to normal }}

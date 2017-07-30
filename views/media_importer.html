@@ -1,0 +1,5 @@
+<script>
+	// This quick script short circuits the media importer - just return a random id!
+	let selectedMedia = [ {id: (Math.random() * 10000).toString(36)} ]
+	window.parent.Materia.Creator.onMediaImportComplete(selectedMedia)
+</script>

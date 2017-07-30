@@ -1,20 +1,13 @@
-# DEFINE GLOBALS
-window.storageData = {};
-window.currentSelectedTable = "";
-
 window.hideSidebar = (e) =>
 	e.preventDefault()
-	leftbar = document.getElementById("leftbar")
-	btn = document.getElementById("sidebarbtn")
-	center = document.querySelector(".center")
 
-	if leftbar.className
-		leftbar.className = ""
-		btn.innerHTML = "&larr;"
+	if leftBar.className
+		leftBar.className = ""
+		sideBarBtn.innerHTML = "&larr;"
 		center.className = "center"
 	else
-		leftbar.className = "shrink"
-		btn.innerHTML = "&rarr;"
+		leftBar.className = "shrink"
+		sideBarBtn.innerHTML = "&rarr;"
 		center.className = "center full"
 
 window.setActiveTab = (tab) =>
@@ -23,17 +16,12 @@ window.setActiveTab = (tab) =>
 	$('.tabtitle.'+tab).removeClass('deactivated')
 	$('.tab.'+tab).addClass('visible')
 
-window.ajax = (url, callback) =>
-	xhr = new XMLHttpRequest()
-	xhr.onload = () => callback(xhr.responseText)
-	xhr.open("GET", url)
-	xhr.send()
 
 window.updateStorage = () =>
-	ajax "/storage/#{window.__PLAY_ID}", (text) =>
-		if not text then return
-
-		json = JSON.parse(text)
+	fetch "/storage/#{window.__PLAY_ID}"
+	.then (res) ->
+		res.json()
+	.then (json) ->
 		bucket = {}
 		options = ""
 
@@ -66,19 +54,22 @@ window.updateStorage = () =>
 		html += "</table>";
 		document.getElementById("storagetable").innerHTML = html;
 
-window.init = () =>
+window.storageData = {};
+window.currentSelectedTable = "";
+leftBar = document.getElementById("leftbar")
+sideBarBtn = document.getElementById("sidebarbtn")
+center = document.querySelector(".center")
+# TODO: remove jquery
+$('#sidebarbtn').click(hideSidebar);
+$(".tabtitle.qset").click () => setActiveTab("qset")
+$(".tabtitle.storage").click () => setActiveTab("storage")
+$('#tableselect').change () => currentSelectedTable = $('#tableselect').val()
 
-	$('#sidebarbtn').click(hideSidebar);
-	$(".tabtitle.qset").click () => setActiveTab("qset")
-	$(".tabtitle.storage").click () => setActiveTab("storage")
-	$('#tableselect').change () => currentSelectedTable = $('#tableselect').val()
+# leftBar = document.getElementById("leftbar")
+$("#btnReload").click () =>
+	window._qset = JSON.parse(document.getElementById("qset").value)
+	# MDK.Player.init(API_LINK, window.__PLAY_ID, "container", BASE_URL)
 
-	$("#btnReload").click () =>
-		window._qset = JSON.parse(document.getElementById("qset").value)
-		# MDK.Player.init(API_LINK, window.__PLAY_ID, "container", BASE_URL)
-
-	if window.location.href.lastIndexOf("/preview/") > -1
-		$("#build-commands").css("display", "none")
-		$("#switch").css("display", "none")
-
-init();
+if window.location.href.lastIndexOf("/preview/") > -1
+	$("#build-commands").css("display", "none")
+	$("#switch").css("display", "none")

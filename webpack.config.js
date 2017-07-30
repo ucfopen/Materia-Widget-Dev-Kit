@@ -11,17 +11,12 @@ module.exports = {
 		'mdk-splash.js': [
 			path.join(mdkSrcPath, 'mdk.splash.coffee')
 		],
-		'mdk-creator.js': [
-			path.join(mdkSrcPath, 'mdk.creator.coffee'),
-			path.join(mdkSrcPath, 'mdk.package.coffee'),
-		],
 		'mdk-player.js': [
-			path.join(mdkSrcPath, 'mdk.player.coffee'),
 			path.join(mdkSrcPath, 'mdk.package.coffee'),
 		],
-		'mdk-question-import.js': [
-			path.join(mdkSrcPath, 'mdk.questions.coffee'),
-		]
+		'mdk-package.js': [
+			path.join(mdkSrcPath, 'mdk.package.coffee'),
+		],
 	},
 
 	// write files to the outputPath (default = ./build) using the object keys from 'entry' above

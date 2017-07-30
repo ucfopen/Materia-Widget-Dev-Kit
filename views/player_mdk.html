@@ -1,4 +1,39 @@
-<div id='leftbar'>
+<link rel="stylesheet" href="/mdk/assets/css/play.css" type="text/css" />
+<link rel='stylesheet' href='/mdk/assets/css/mdk-creator.css' type='text/css' />
+<link rel='stylesheet' href='/mdk/assets/css/mdk-download.css' type='text/css' />
+
+<script src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js'></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0/angular.js?"></script>
+<script src="//materia.ucf.edu/assets/js/lib/bower/ngModal/dist/ng-modal.min.js?"></script>
+<!-- <script src='//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'></script> -->
+<!-- <script src='//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js'></script> -->
+<script src="/mdk/assets/js/materia.js"></script>
+<script src="/mdk/assets/js/student.js"></script>
+<script src="/mdk/mdk-assets/js/mdk-package.js"></script>
+<script src="/mdk/mdk-assets/js/mdk-player.js"></script>
+
+<script >
+	var PLAY_ID = '{{ instance }}';
+	var BASE_URL = '/mdk/';
+	var API_LINK = '/api/json/';
+	var WIDGET_URL = "http://localhost:8080/";
+	var STATIC_CROSSDOMAIN = '/';
+</script>
+
+<div id="topbar">
+	<a class="logo" href="/">Materia Developer Kit</a>
+	<div class="tools">
+		<button class="edit_button orange">Qset Panel</button>
+		<button class="edit_button orange">Storage Panel</button>
+		<button class="edit_button orange" onclick="location.href='/mdk/widgets/1-mdk/';">Creator</button>
+		<button id="downloadLink" class="edit_button orange" onclick="MDK.Package.showPackageDownload();">Download Package</button>
+	</div>
+</div>
+
+
+<div id='modalbg'></div>
+
+<!-- <div id='leftbar'>
 	<a href='#' id="sidebarbtn">&larr;</a>
 	<a class='logo' href="/">MDK</a>
 
@@ -23,16 +58,16 @@
 	</div>
 
 	<div id='build-options'>
-		<button id='downloadLink'>Download Package</button>
+		<button id='downloadLink' onclick="MDK.Package.showPackageDownload();">Download Package</button>
 		<hr/>
 		<div id='switch'>
 			<p>SWITCH TO:</p>
-			<a href='/mdk/creator/'>Creator</a><br/>
+			<a href='/mdk/widgets/1-mdk/'>Creator</a><br/>
 			<hr/>
 		</div>
 	</div>
 
-</div>
+</div> -->
 
 {{! Change the mustache brackets to ERB style so that angular code won't get messed up }}
 {{=<% %>=}}
@@ -63,21 +98,3 @@
 </div>
 <%={{ }}=%>
 {{! Return mustache to normal }}
-
-<div id='modalbg'></div>
-
-<script type='text/javascript'>
-	var PLAY_ID = '{{ instance }}';
-	var BASE_URL = '/mdk/';
-	var API_LINK = '/api/json/';
-	var WIDGET_URL = "http://localhost:8080/";
-	var STATIC_CROSSDOMAIN = '/';
-</script>
-
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.0/angular.js?"></script>
-<script type="text/javascript" src="//materia.ucf.edu/assets/js/lib/bower/ngModal/dist/ng-modal.min.js?"></script>
-<script type="text/javascript" src="/mdk/assets/js/materia.js"></script>
-<script type="text/javascript" src="/mdk/assets/js/student.js"></script>
-<script type="text/javascript" src="/mdk/mdk-assets/js/mdk-player.js"></script>
-<!-- <script src='//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js'></script> -->
-<!-- <script src='//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js'></script> -->
