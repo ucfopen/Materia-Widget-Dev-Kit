@@ -275,6 +275,11 @@ module.exports = (app) => {
 		res.redirect(`http://localhost:8080/${req.params[0]}`)
 	})
 
+	app.get('/mdk/media/import', (req, res) => {
+		res.locals = { template: 'media_importer'}
+		res.render(res.locals.template)
+	});
+
 	// If asking for a media item by id, just send them to lorempixel
 	app.get('/mdk/media/:id', (req, res) => res.redirect(`http://lorempixel.com/800/600/?c=${req.params.id}`));
 
@@ -299,13 +304,13 @@ module.exports = (app) => {
 	});
 
 	// The play page frame that loads the widget player in an iframe
-	app.get('/mdk/player/:instance?', (req, res) => {
+	app.get(['/mdk/player/:instance?', '/mdk/preview/:instance?'], (req, res) => {
 		res.locals = { template: 'player_mdk', instance: req.params.instance || 'demo'}
 		res.render(res.locals.template)
 	});
 
 	// The create page frame that loads the widget creator
-	app.get('/mdk/creator/:instance?', (req, res) => {
+	app.get('/mdk/widgets/1-mdk/:instance?', (req, res) => {
 		// @TODO port 8080 is hard-coded here, see if we
 		// can get it from webpack or something?
 		res.locals = {template: 'creator_mdk', port: '8080', instance: req.params.instance || null}
@@ -422,7 +427,7 @@ module.exports = (app) => {
 		}
 	});
 
-	app.use('/api/json/session_play_verify', (req, res) => res.end());
+	app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (req, res) => res.end());
 
 	app.use('/api/json/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
@@ -431,8 +436,8 @@ module.exports = (app) => {
 	});
 
 	// api mock for saving widget instances
-	// creates files in our qset directory (probably should use a better thing)
-	app.use('/api/json/widget_instance_save', (req, res) => {
+	// creates files in our qset directory (probably should use a better thing)session
+	app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update'], (req, res) => {
 		const data = JSON.parse(req.body.data);
 
 		// sweep through the qset items and make sure there aren't any nonstandard question properties
