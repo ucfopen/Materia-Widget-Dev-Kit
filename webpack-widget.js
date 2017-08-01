@@ -42,17 +42,9 @@ const materiaJSReplacements = [
 const configFromPackage = () => {
 	let packagePath  = path.join(process.cwd(), 'package.json')
 	let packageJson  = require(packagePath)
-
-	if(packageJson && packageJson.materia && packageJson.cleanName){
-		return {
-			cleanName : packageJson.materia.cleanName.toLowerCase(),
-		}
-	}
-
 	return {
-		cleanName : 'no-name',
+		cleanName : packageJson.materia.cleanName.toLowerCase(),
 	}
-
 }
 
 
