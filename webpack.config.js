@@ -12,7 +12,7 @@ module.exports = {
 			path.join(mdkSrcPath, 'mdk.splash.coffee')
 		],
 		'mdk-player.js': [
-			path.join(mdkSrcPath, 'mdk.package.coffee'),
+			path.join(mdkSrcPath, 'mdk.player.coffee'),
 		],
 		'mdk-package.js': [
 			path.join(mdkSrcPath, 'mdk.package.coffee'),
