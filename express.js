@@ -346,7 +346,7 @@ module.exports = (app) => {
 	});
 
 	app.get('/mdk/install', (req, res) => {
-
+		res.write('<html><body><pre>');
 		// Find the docker-compose container for materia-web
 		// 1. lists all containers
 		// 2. filter for materia-web image and named xxxx_phpfpm_1 name
@@ -357,7 +357,7 @@ module.exports = (app) => {
 			throw "MDK Couldn't find a docker container using a 'materia-web' image named 'phpfpm'."
 		}
 		targetImage = targetImage.toString().trim();
-		console.log(`Using Docker image '${targetImage}' to install widgets`)
+		res.write(`> Using Docker image '${targetImage}' to install widgets<br/>`);
 
 		// get the image information
 		let containerInfo = execSync(`docker inspect ${targetImage}`);
@@ -366,40 +366,52 @@ module.exports = (app) => {
 		// Find mounted volume that will tell us where materia is on the host system
 		let found = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
 		if(!found){
+			res.write(`</pre><h1>Cant Find Materia</h1>`);
 			throw `MDK Couldn't find the Materia mount on the host system'`
 		}
 		let materiaPath = found[0].Source;
 		let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
 
-		// Build!
-		let { widgetPath, widgetData } = buildWidget()
+		// make sure the dir exists
+		if(!fs.existsSync(serverWidgetPath)){
+			fs.mkdirSync(serverWidgetPath);
+		}
 
-		// Clear any existing wigt
-		execSync(`find ${serverWidgetPath} -name '${widgetData.clean_name}*.wigt' -delete`);
+		// Build!
+		res.write(`> Building widget<br/>`);
+		let { widgetPath, widgetData } = buildWidget()
 
 		// create a file name with a timestamp in it
 		const filename = `${widgetData.clean_name}-${new Date().getTime()}.wigt`;
 
 		// get the widget I just built
-		let widgetPackate = fs.readFileSync(widgetPath)
+		let widgetPacket = fs.readFileSync(widgetPath)
 
 		// write the built widget to that path
-		fs.writeFileSync(path.join(serverWidgetPath, filename), widgetPackate);
+		let target = path.join(serverWidgetPath, filename)
+		res.write(`> Writing to ${target}<br/>`);
+		fs.writeFileSync(target, widgetPacket);
 
 		// run the install command
+		res.write(`> Running run_widgets_install.sh script<br/>`);
 		let installResult = execSync(`cd ${materiaPath}/../ && ./run_widgets_install.sh ${filename}`);
 		installResult = installResult.toString();
-
+		res.write(installResult.replace("\n", "<br/>"));
 		console.log(installResult);
 
 		// search for success in the output
 		const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/);
 
+		res.write("</pre>");
 		if(match && match[1]) {
-			return res.redirect(`http://127.0.0.1/widgets/${match[1]}`);
+			res.write("<h2>SUCCESS!<h2/>");
+		}
+		else{
+			res.write("<h2>Something failed!<h2/>");
 		}
 
-		throw `It looks like install failed?`
+		res.write('<a onclick="window.parent.MDK.Package.cancel();"><button>Close</button></a></body></html>');
+		res.end()
 	});
 
 	// ============= MOCK API ROUTES =======================

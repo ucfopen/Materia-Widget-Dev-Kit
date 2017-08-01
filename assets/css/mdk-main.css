@@ -86,9 +86,14 @@ body {
 	height: 600px;
 }
 
-#embed_dialog {
+#mdk_dialog {
 	position: absolute;
 	left: 50%;
+	background: #fff;
+}
+
+#mdk_dialog pre {
+	font-size: 10px;
 }
 
 #modalbg {
@@ -203,8 +208,6 @@ h2 {
 
 	color: #333;
 }
-
-
 
 .tab {
 	display: none;
