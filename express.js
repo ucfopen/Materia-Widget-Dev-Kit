@@ -256,14 +256,19 @@ module.exports = (app) => {
 	app.use('/mdk/assets/', express.static(path.join(clientAssetsPath, 'dist')))
 
 
+	// insert the port into the res.locals
+	app.use(function (req, res, next) {
+		res.locals.port = process.env.PORT || 8118
+		next()
+	})
+
 	// ============= ROUTES =======================
 
 	// Display index page
 	app.get('/', (req, res) => {
-		res.locals = {template: 'index', title: getWidgetTitle()}
+		res.locals = Object.assign(res.locals, {template: 'index', title: getWidgetTitle()})
 		res.render(res.locals.template)
 	});
-
 
 	// ============= MDK ROUTES =======================
 
@@ -272,11 +277,11 @@ module.exports = (app) => {
 	// this redirects the request directly to the file served by webpack
 	app.get(/\/mdk\/media\/__(.+)__/, (req, res) => {
 		console.log(`mocking media asset from demo.json :<MEDIA='${req.params[0]}'>`)
-		res.redirect(`http://localhost:8080/${req.params[0]}`)
+		res.redirect(`http://localhost:${res.locals.port}/${req.params[0]}`)
 	})
 
 	app.get('/mdk/media/import', (req, res) => {
-		res.locals = { template: 'media_importer'}
+		res.locals = Object.assign(res.locals, { template: 'media_importer'})
 		res.render(res.locals.template)
 	});
 
@@ -305,21 +310,19 @@ module.exports = (app) => {
 
 	// The play page frame that loads the widget player in an iframe
 	app.get(['/mdk/player/:instance?', '/mdk/preview/:instance?'], (req, res) => {
-		res.locals = { template: 'player_mdk', instance: req.params.instance || 'demo'}
+		res.locals = Object.assign(res.locals, { template: 'player_mdk', instance: req.params.instance || 'demo'})
 		res.render(res.locals.template)
 	});
 
 	// The create page frame that loads the widget creator
 	app.get('/mdk/widgets/1-mdk/:instance?', (req, res) => {
-		// @TODO port 8080 is hard-coded here, see if we
-		// can get it from webpack or something?
-		res.locals = {template: 'creator_mdk', port: '8080', instance: req.params.instance || null}
+		res.locals = Object.assign(res.locals, {template: 'creator_mdk', instance: req.params.instance || null})
 		res.render(res.locals.template)
 	});
 
 	// Show the package options
 	app.get('/mdk/package', (req, res) => {
-		res.locals = {template: 'download'}
+		res.locals = Object.assign(res.locals, {template: 'download'})
 		res.render(res.locals.template)
 	})
 
@@ -332,16 +335,14 @@ module.exports = (app) => {
 
 	// Question importer for creator
 	app.get('/mdk/questions/import/', (req, res) => {
-		// @TODO port 8080 is hard-coded here, see if we
-		// can get it from webpack or something?
-		res.locals = {template: 'question_importer', port: '8080'}
+		res.locals = Object.assign(res.locals, {template: 'question_importer'})
 		res.render(res.locals.template)
 	});
 
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
 	app.get('/mdk/preview_blocked/:instance?', (req, res) => {
-		res.locals = {template: 'preview_blocked', instance: req.params.instance || 'demo'}
+		res.locals = Object.assign(res.locals, {template: 'preview_blocked', instance: req.params.instance || 'demo'})
 		res.render(res.locals.template)
 	});
 
