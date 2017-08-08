@@ -1,6 +1,6 @@
 {
   "name": "@ucfcdl/materia-widget-development-kit",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "University of Central Florida, Center for Distributed Learning",
   "engines": {
     "node": ">=6.9.0 <7.0.0",
@@ -11,7 +11,7 @@
     "start": "env TEST_MDK=true webpack-dev-server --open --config webpack.config.widget.js",
     "postinstall": "npm run build"
   },
-  "materia":{
+  "materia": {
     "cleanName": "MDK"
   },
   "dependencies": {
