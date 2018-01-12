@@ -393,7 +393,7 @@ module.exports = (app) => {
 		let { widgetPath, widgetData } = buildWidget()
 
 		// create a file name with a timestamp in it
-		const filename = `${getWidgetCleanName()}-${new Date().getTime()}.wigt`;
+		const filename = `${widgetData.clean_name}-${new Date().getTime()}.wigt`;
 
 		// get the widget I just built
 		let widgetPacket = fs.readFileSync(widgetPath)
