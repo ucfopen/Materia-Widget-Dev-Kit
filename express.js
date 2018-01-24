@@ -138,7 +138,7 @@ var createApiWidgetData = (id) => {
 
 	widget.player = widget.files.player;
 	widget.creator = widget.files.creator;
-	widget.clean_name = widget.general.name.replace(new RegExp(' ', 'g'), '-').toLowerCase();
+	widget.clean_name = getWidgetCleanName();
 	// widget.dir = widget.clean_name + '/';
 	widget.dir = ''
 	widget.width = widget.general.width;
@@ -173,6 +173,16 @@ var getInstall = () => {
 	} catch(e) {
 		console.error(e)
 		throw "Can't find install.yaml"
+	}
+}
+
+var getWidgetCleanName = () => {
+	try {
+		let packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', 'package.json')));
+		return packageJson.materia.cleanName.toLowerCase();
+	} catch(e) {
+		console.error(e)
+		throw "Can't resolve clean name from package.json!"
 	}
 }
 
