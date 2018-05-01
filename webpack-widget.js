@@ -137,8 +137,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 							options: { name: '[name].html' }
 						},
 						{
-							loader: 'extract-loader',
-							query: 'publicPath=/'
+							loader: 'extract-loader'
 						},
 						{
 							loader: 'string-replace-loader',
