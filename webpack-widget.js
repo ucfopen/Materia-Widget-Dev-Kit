@@ -33,6 +33,7 @@ const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 const materiaJSReplacements = [
 	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,      replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.score.js)(\\?("|')?)/g,           replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,       replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g,     replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.storage.manager.js)(\\?("|')?)/g, replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.storage.table.js)(\\?("|')?)/g,   replace: replaceTarget },
@@ -64,7 +65,8 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 
 	return {
 		devServer: {
-			contentBase: path.join(__dirname, 'node_modules', 'materia-widget-dev', 'build'),
+			// contentBase: path.join(__dirname, 'node_modules', 'materia-widget-dev', 'build'),
+			contentBase: path.join(__dirname, 'build'),
 			headers:{
 				// add headers to every response
 				// allow iframes to talk to their parent containers
@@ -72,8 +74,9 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
 			},
 			port: process.env.PORT || 8118,
-			setup: MateriaDevServer
+			before: MateriaDevServer
 		},
+
 		// These are the default js and css files
 		entry: {
 			'creator.js': [
