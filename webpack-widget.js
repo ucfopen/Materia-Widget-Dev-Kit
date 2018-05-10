@@ -1,3 +1,4 @@
+const fs                = require('fs')
 const path              = require('path')
 const webpack           = require('webpack')
 const CleanPlugin       = require('clean-webpack-plugin')
@@ -48,7 +49,6 @@ const configFromPackage = () => {
 	}
 }
 
-
 // This is a base config for building legacy widgets
 // It will skip webpack's javascript functionality
 // to avoid having to make changes to the source code of those widgets
@@ -62,6 +62,48 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	// set up source and destination paths
 	let srcPath = cfg.srcPath + path.sep
 	let outputPath = cfg.outputPath + path.sep
+
+	//standard list of directories/files we want to copy as-is into build
+	let copyList = [
+		//tack on any additional files to copy that were specified by the widget
+		...cfg.preCopy,
+		{
+			flatten: true,
+			from: `${srcPath}${cfg.demoPath}`,
+			to: outputPath,
+		},
+		{
+			flatten: true,
+			from: `${srcPath}${cfg.installPath}`,
+			to: outputPath,
+		},
+		{
+			from: `${srcPath}${cfg.iconsPath}`,
+			to: `${outputPath}img`,
+			toType: 'dir'
+		},
+		{
+			flatten: true,
+			from: `${srcPath}${cfg.scorePath}`,
+			to: `${outputPath}_score-modules`,
+			toType: 'dir'
+		},
+		{
+			from: `${srcPath}${cfg.screenshotsPath}`,
+			to: `${outputPath}img/screen-shots`,
+			toType: 'dir'
+		}
+	]
+
+	//assets directory is not always used, therefore optional - check for it first
+	let assetsPath = `${srcPath}${cfg.assetsPath}`
+	if (fs.existsSync(assetsPath)) {
+		copyList.push({
+			from: assetsPath,
+			to: `${outputPath}assets`,
+			toType: 'dir'
+		})
+	}
 
 	return {
 		devServer: {
@@ -187,39 +229,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			new CleanPlugin([outputPath]),
 
 			// copy all the common resources to the build directory
-			new CopyPlugin([
-				{
-					flatten: true,
-					from: `${srcPath}${cfg.demoPath}`,
-					to: outputPath,
-				},
-				{
-					flatten: true,
-					from: `${srcPath}${cfg.installPath}`,
-					to: outputPath,
-				},
-				{
-					from: `${srcPath}${cfg.iconsPath}`,
-					to: `${outputPath}img`,
-					toType: 'dir'
-				},
-				{
-					flatten: true,
-					from: `${srcPath}${cfg.scorePath}`,
-					to: `${outputPath}_score-modules`,
-					toType: 'dir'
-				},
-				{
-					from: `${srcPath}${cfg.screenshotsPath}`,
-					to: `${outputPath}img/screen-shots`,
-					toType: 'dir'
-				},
-				{
-					from: `${srcPath}${cfg.assetsPath}`,
-					to: `${outputPath}assets`,
-					toType: 'dir'
-				}
-			]),
+			new CopyPlugin(copyList),
 
 			// extract css from the webpack output
 			new ExtractTextPlugin({filename: '[name]'}),
