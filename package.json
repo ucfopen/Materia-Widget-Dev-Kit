@@ -1,6 +1,6 @@
 {
   "name": "materia-widget-development-kit",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "author": "University of Central Florida, Center for Distributed Learning",
   "engines": {
     "node": ">=6.9.0 <7.0.0",
