@@ -1,3 +1,5 @@
+# TODO: remove jquery, make this all work with the new non-sidebar approach
+
 window.hideSidebar = (e) =>
 	e.preventDefault()
 
@@ -59,7 +61,7 @@ window.currentSelectedTable = "";
 leftBar = document.getElementById("leftbar")
 sideBarBtn = document.getElementById("sidebarbtn")
 center = document.querySelector(".center")
-# TODO: remove jquery
+
 $('#sidebarbtn').click(hideSidebar);
 $(".tabtitle.qset").click () => setActiveTab("qset")
 $(".tabtitle.storage").click () => setActiveTab("storage")

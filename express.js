@@ -2,7 +2,6 @@ const path            = require('path');
 const fs              = require('fs')
 const express         = require('express')
 const qsets           = path.join(__dirname, 'qsets');
-const bodyParser      = require('body-parser');
 const yaml            = require('yamljs');
 const { execSync }    = require('child_process');
 const waitUntil       = require('wait-until-promise').default
@@ -62,7 +61,7 @@ var getWebPackMiddleWare = (app) => {
 var getFileFromWebpack = (file, quiet = false) => {
 	try {
 		// pull the specified filename out of memory
-		return webPackMiddleware.fileSystem.readFileSync(path.resolve(__dirname, '..', '..', 'build', file));
+		return webPackMiddleware.fileSystem.readFileSync(path.resolve('build', file));
 	} catch (e) {
 		if(!quiet) console.error(e)
 		throw `error trying to load ${file} from widget src, reload if you just started the server`
@@ -98,12 +97,15 @@ var getDemoQset = () => {
 }
 
 // create a widget instance data structure
-var createApiWidgetInstanceData = (id) => {
+var createApiWidgetInstanceData = id => {
 
 	// attempt to load a previously saved instance with the given ID
 	try {
 		return JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')).toString());
-	} catch (e) { console.error(e) }
+	} catch (e) {
+		console.log(`creating qset ${id}`)
+		// console.error(e)
+	}
 
 	// generate a new instance with the given ID
 	let qset = getDemoQset()
@@ -113,7 +115,7 @@ var createApiWidgetInstanceData = (id) => {
 		'attempts': '-1',
 		'clean_name': '',
 		'close_at': '-1',
-		'created_at': '1406649418',
+		'created_at': Date.now(),
 		'embed_url': '',
 		'height': 0,
 		'id': '',
@@ -158,7 +160,7 @@ var buildWidget = () => {
 	}
 
 	let widgetData = createApiWidgetData();
-	let widgetPath = path.resolve(__dirname, '..', '..', 'build', '_output', `${widgetData.clean_name}.wigt`)
+	let widgetPath = path.resolve('build', '_output', `${widgetData.clean_name}.wigt`)
 
 	return {
 		widgetPath: widgetPath,
@@ -178,7 +180,7 @@ var getInstall = () => {
 
 var getWidgetCleanName = () => {
 	try {
-		let packageJson = JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', '..', 'package.json')));
+		let packageJson = JSON.parse(fs.readFileSync(path.resolve('package.json')));
 		return packageJson.materia.cleanName.toLowerCase();
 	} catch(e) {
 		console.error(e)
@@ -255,8 +257,8 @@ module.exports = (app) => {
 	app.use([/^\/$/, '/mdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
 
 	// allow express to parse a JSON post body that ends up in req.body.data
-	app.use(bodyParser.json()); // for parsing application/json
-	app.use(bodyParser.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
+	app.use(express.json()); // for parsing application/json
+	app.use(express.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
 	// serve the static files from devmateria
 	let clientAssetsPath = require('materia-client-assets/path')
@@ -268,6 +270,7 @@ module.exports = (app) => {
 
 	// insert the port into the res.locals
 	app.use(function (req, res, next) {
+		// console.log(`request to ${req.url}`)
 		res.locals.port = process.env.PORT || 8118
 		next()
 	})
@@ -281,6 +284,10 @@ module.exports = (app) => {
 	});
 
 	// ============= MDK ROUTES =======================
+
+	app.get('/mdk/my-widgets', (req, res) => {
+		res.redirect('/')
+	});
 
 	// Match any MEDIA URLS that get build into our demo.jsons
 	// worth noting the <MEDIA=dfdf> is converted to __dfdf__
@@ -434,7 +441,7 @@ module.exports = (app) => {
 	});
 
 	app.use('/api/json/widgets_get', (req, res) => {
-		const id = JSON.parse(req.body.data)[0][0];
+		const id = JSON.parse(req.body.data);
 		res.json([createApiWidgetData(id)]);
 	});
 
@@ -473,6 +480,7 @@ module.exports = (app) => {
 			'answers',
 			'options',
 			'assets',
+			'items' //some widgets double-nest 'items'
 		];
 
 		const nonstandard_props = [];

@@ -1,17 +1,17 @@
 Namespace('MDK').Package = do ->
 	showPackageDownload = ->
-		showEmbedDialog '/mdk/package', 500, 280
+		embed = document.createElement 'iframe'
+		embed.id = 'mdk_dialog'
+		embed.setAttribute 'frameborder', 0
+		embed.setAttribute 'src', '/mdk/package'
 
-	showEmbedDialog = (url, w, h) ->
-		embed = $('<iframe src="' + url + '" id="mdk_dialog" frameborder=0 width='+w+' height='+h+'></iframe>')
-		embed.load ->
-			return embed.css('top', '30%').css('opacity', 1).css('margin-left', -1*(w/2)+'px')
-		$('body').append embed
-		$('#modalbg').show();
+		document.getElementById('modalbg').appendChild embed
+		document.getElementById('modalbg').classList.add('visible')
 
 	closeDialog = ->
-		$('#mdk_dialog').remove()
-		$('#modalbg').hide()
+		dialog = document.getElementById 'mdk_dialog'
+		dialog.parentNode.removeChild dialog
+		document.getElementById('modalbg').classList.remove('visible')
 
 	build = (url) ->
 		window.location.href = url
