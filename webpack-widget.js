@@ -116,7 +116,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
 			},
 			port: process.env.PORT || 8118,
-			before: MateriaDevServer
+			setup: MateriaDevServer
 		},
 
 		// These are the default js and css files
