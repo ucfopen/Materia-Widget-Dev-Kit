@@ -1,10 +1,10 @@
 const path              = require('path')
 const CleanPlugin       = require('clean-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const CopyPlugin        = require('copy-webpack-plugin')
 const MateriaClientAssetWebpack = require('materia-client-assets/webpack.config.js')
 
 const mdkSrcPath  = path.resolve(__dirname, 'src');
-const corePath    = path.join('materia-core', 'coffee', 'materia');
 const buildPath   = path.resolve('build') + path.sep
 
 module.exports = [
@@ -13,9 +13,11 @@ module.exports = [
 			'mdk-splash.js': [
 				path.join(mdkSrcPath, 'mdk.splash.coffee')
 			],
-			'mdk-player.js': [
-				path.join(mdkSrcPath, 'mdk.player.coffee'),
-			],
+			// THIS IS NOT READY YET
+			// THE OLD SIDEBAR STUFF (QSET AND STORAGE DATA MANIPULATION) NEEDS TO BE REBUILT
+			// 'mdk-player.js': [
+			// 	path.join(mdkSrcPath, 'mdk.player.coffee'),
+			// ],
 			'mdk-package.js': [
 				path.join(mdkSrcPath, 'mdk.package.coffee'),
 			],
@@ -41,6 +43,13 @@ module.exports = [
 		plugins: [
 			new CleanPlugin([buildPath]),
 			new ExtractTextPlugin({filename: '[name]'}),
+			new CopyPlugin([
+				{
+					from: path.resolve(__dirname, 'assets', 'img'),
+					to: path.resolve(buildPath, 'img'),
+					toType: 'dir'
+				}
+			])
 		]
 	},
 	MateriaClientAssetWebpack
