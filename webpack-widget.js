@@ -1,3 +1,4 @@
+const fs                = require('fs')
 const path              = require('path')
 const webpack           = require('webpack')
 const CleanPlugin       = require('clean-webpack-plugin')
@@ -31,11 +32,9 @@ const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 
 const materiaJSReplacements = [
-	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,      replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.score.js)(\\?("|')?)/g,           replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g,     replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.storage.manager.js)(\\?("|')?)/g, replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.storage.table.js)(\\?("|')?)/g,   replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,  replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,   replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g, replace: replaceTarget },
 ];
 
 // Load the materia configuration settings from the package.json file
@@ -46,7 +45,6 @@ const configFromPackage = () => {
 		cleanName : packageJson.materia.cleanName.toLowerCase(),
 	}
 }
-
 
 // This is a base config for building legacy widgets
 // It will skip webpack's javascript functionality
@@ -62,9 +60,52 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	let srcPath = cfg.srcPath + path.sep
 	let outputPath = cfg.outputPath + path.sep
 
+	//standard list of directories/files we want to copy as-is into build
+	let copyList = [
+		//tack on any additional files to copy that were specified by the widget
+		...cfg.preCopy,
+		{
+			flatten: true,
+			from: `${srcPath}${cfg.demoPath}`,
+			to: outputPath,
+		},
+		{
+			flatten: true,
+			from: `${srcPath}${cfg.installPath}`,
+			to: outputPath,
+		},
+		{
+			from: `${srcPath}${cfg.iconsPath}`,
+			to: `${outputPath}img`,
+			toType: 'dir'
+		},
+		{
+			flatten: true,
+			from: `${srcPath}${cfg.scorePath}`,
+			to: `${outputPath}_score-modules`,
+			toType: 'dir'
+		},
+		{
+			from: `${srcPath}${cfg.screenshotsPath}`,
+			to: `${outputPath}img/screen-shots`,
+			toType: 'dir'
+		}
+	]
+
+	//assets directory is not always used, therefore optional - check for it first
+	let assetsPath = `${srcPath}${cfg.assetsPath}`
+	if (fs.existsSync(assetsPath)) {
+		copyList.push({
+			from: assetsPath,
+			to: `${outputPath}assets`,
+			toType: 'dir'
+		})
+	}
+
 	return {
 		devServer: {
-			contentBase: path.join(__dirname, 'node_modules', 'materia-widget-dev', 'build'),
+			// contentBase: path.join(__dirname, 'node_modules', 'materia-widget-dev', 'build'),
+			contentBase: path.join(__dirname, 'build'),
 			headers:{
 				// add headers to every response
 				// allow iframes to talk to their parent containers
@@ -74,6 +115,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			port: process.env.PORT || 8118,
 			setup: MateriaDevServer
 		},
+
 		// These are the default js and css files
 		entry: {
 			'creator.js': [
@@ -184,39 +226,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			new CleanPlugin([outputPath]),
 
 			// copy all the common resources to the build directory
-			new CopyPlugin([
-				{
-					flatten: true,
-					from: `${srcPath}${cfg.demoPath}`,
-					to: outputPath,
-				},
-				{
-					flatten: true,
-					from: `${srcPath}${cfg.installPath}`,
-					to: outputPath,
-				},
-				{
-					from: `${srcPath}${cfg.iconsPath}`,
-					to: `${outputPath}img`,
-					toType: 'dir'
-				},
-				{
-					flatten: true,
-					from: `${srcPath}${cfg.scorePath}`,
-					to: `${outputPath}_score-modules`,
-					toType: 'dir'
-				},
-				{
-					from: `${srcPath}${cfg.screenshotsPath}`,
-					to: `${outputPath}img/screen-shots`,
-					toType: 'dir'
-				},
-				{
-					from: `${srcPath}${cfg.assetsPath}`,
-					to: `${outputPath}assets`,
-					toType: 'dir'
-				}
-			]),
+			new CopyPlugin(copyList),
 
 			// extract css from the webpack output
 			new ExtractTextPlugin({filename: '[name]'}),

@@ -1,42 +1,35 @@
 {
-  "name": "@ucfcdl/materia-widget-development-kit",
-  "version": "1.0.4",
+  "name": "materia-widget-development-kit",
+  "version": "1.1.0",
   "author": "University of Central Florida, Center for Distributed Learning",
-  "engines": {
-    "node": ">=6.9.0 <7.0.0",
-    "yarn": ">=0.27.5"
-  },
   "scripts": {
     "build": "webpack",
     "start": "env TEST_MDK=true webpack-dev-server --open --config webpack.config.widget.js",
-    "postinstall": "npm run build"
+    "postinstall": "npm run build",
+    "clientAssets:link": "cd ../materia-client-assets && yarn link && cd - && yarn link materia-client-assets"
   },
   "materia": {
     "cleanName": "MDK"
   },
   "dependencies": {
     "autoprefixer": "^7.1.2",
-    "body-parser": "^1.17.1",
     "clean-webpack-plugin": "^0.1.16",
     "coffee-loader": "^0.7.3",
     "coffee-script": "^1.12.7",
     "copy-webpack-plugin": "^4.0.1",
-    "express": "^4.13.3",
+    "express": "^4.16.0",
     "extract-loader": "^0.1.0",
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
     "hogan-express": "^0.5.2",
     "html-loader": "^0.4.5",
     "html-webpack-plugin": "^2.29.0",
-    "materia-client-assets": "https://github.com/ucfcdl/materia-client-assets.git#v0.3.2",
+    "materia-client-assets": "https://github.com/ucfcdl/materia-client-assets.git#v0.3.4",
     "node-sass": "^4.5.3",
     "postcss-loader": "2.0.6",
     "raw-loader": "^0.5.1",
-    "sass-loader": "^6.0.6",
     "string-replace-loader": "^1.3.0",
-    "style-loader": "^0.18.2",
     "wait-until-promise": "^1.0.0",
-    "webpack": "3.2.0",
     "webpack-dev-server": "^2.6.1",
     "yamljs": "^0.2.8",
     "zip-webpack-plugin": "^2.0.0"
