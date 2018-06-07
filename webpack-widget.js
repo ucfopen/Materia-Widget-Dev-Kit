@@ -32,12 +32,9 @@ const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 
 const materiaJSReplacements = [
-	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,      replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.score.js)(\\?("|')?)/g,           replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,       replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g,     replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.storage.manager.js)(\\?("|')?)/g, replace: replaceTarget },
-	{ search: /src=(\\?("|')?)(materia.storage.table.js)(\\?("|')?)/g,   replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,  replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,   replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g, replace: replaceTarget },
 ];
 
 // Load the materia configuration settings from the package.json file

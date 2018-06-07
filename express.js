@@ -115,7 +115,7 @@ var createApiWidgetInstanceData = id => {
 		'attempts': '-1',
 		'clean_name': '',
 		'close_at': '-1',
-		'created_at': Date.now(),
+		'created_at': Math.floor(Date.now() / 1000),
 		'embed_url': '',
 		'height': 0,
 		'id': '',
