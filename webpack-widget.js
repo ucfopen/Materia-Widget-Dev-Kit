@@ -67,7 +67,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		{
 			flatten: true,
 			from: `${srcPath}${cfg.demoPath}`,
-			to: outputPath,
+			to: `${outputPath}/demo.json`,
 		},
 		{
 			flatten: true,
