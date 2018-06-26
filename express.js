@@ -300,10 +300,26 @@ module.exports = (app) => {
 	app.get('/mdk/media/import', (req, res) => {
 		res.locals = Object.assign(res.locals, { template: 'media_importer'})
 		res.render(res.locals.template)
-	});
+	})
 
-	// If asking for a media item by id, just send them to lorempixel
-	app.get('/mdk/media/:id', (req, res) => res.redirect(`http://lorempixel.com/800/600/?c=${req.params.id}`));
+	// If asking for a media item by id, determine action based on requested type
+	app.get('/mdk/media/:id', (req, res) => {
+		const filetype = (req.params.id).match(/\.[0-9a-z]+$/i)
+		// TODO: have a small library of assets for each file type and pull a random one when needed?
+		switch (filetype[0]) {
+			case '.mp3':
+				// audio: serve up a generic .mp3 file
+				res.sendFile(path.join(__dirname, 'assets', 'media', 'birds.mp3'))
+				break;
+			case '.png':
+			case '.jpg':
+			case '.jpeg':
+			default:
+				// images: grab a random image from lorempixel
+				res.redirect(`http://lorempixel.com/800/600/?c=${req.params.id}`);
+				break;
+		}
+	})
 
 	// route to list the saved qsets
 	app.use('/mdk/saved_qsets', (req, res) => {

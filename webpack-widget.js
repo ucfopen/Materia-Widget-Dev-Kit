@@ -143,6 +143,17 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 
 		module: {
 			rules: [
+				// process regular javascript files
+				// SKIPS the default webpack Javascript functionality
+				// that evaluates js code and processes module imports
+				{
+					test: /\.js$/i,
+					exclude: /node_modules/,
+					loader: ExtractTextPlugin.extract({
+						use: ['raw-loader']
+					})
+				},
+
 				// process coffee files by translating them to js
 				// SKIPS the default webpack Javascript functionality
 				// that evaluates js code and processes module imports
