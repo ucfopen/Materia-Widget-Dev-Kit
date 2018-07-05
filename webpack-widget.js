@@ -200,6 +200,36 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 					]
 				},
 
+				// Process CSS Files
+				// Adds autoprefixer
+				{
+				    test: /.css/i,
+				    exclude: /node_modules/,
+				    loader: ExtractTextPlugin.extract({
+				        use: [
+				            'raw-loader',
+				            {
+				                // postcss-loader is needed to run autoprefixer
+				                loader: 'postcss-loader',
+				                options: {
+				                    // add autoprefixer, tell it what to prefix
+				                    plugins: [require('autoprefixer')({browsers: [
+				                        'Explorer >= 11',
+				                        'last 3 Chrome versions',
+				                        'last 3 ChromeAndroid versions',
+				                        'last 3 Android versions',
+				                        'last 3 Firefox versions',
+				                        'last 3 FirefoxAndroid versions',
+				                        'last 3 iOS versions',
+				                        'last 3 Safari versions',
+				                        'last 3 Edge versions'
+				                    ]})]
+				                }
+				            },
+				        ]
+				    }
+				},
+
 				// Process SASS/SCSS Files
 				// Adds autoprefixer
 				{
