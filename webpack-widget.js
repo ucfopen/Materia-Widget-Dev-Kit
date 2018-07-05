@@ -203,7 +203,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				// Process CSS Files
 				// Adds autoprefixer
 				{
-				    test: /.css/i,
+				    test: /\.css/i,
 				    exclude: /node_modules/,
 				    loader: ExtractTextPlugin.extract({
 				        use: [
@@ -227,7 +227,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				                }
 				            },
 				        ]
-				    }
+				    })
 				},
 
 				// Process SASS/SCSS Files
