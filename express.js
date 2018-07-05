@@ -315,8 +315,8 @@ module.exports = (app) => {
 			case '.jpg':
 			case '.jpeg':
 			default:
-				// images: grab a random image from lorempixel
-				res.redirect(`http://lorempixel.com/800/600/?c=${req.params.id}`);
+				// images: grab a random image from Lorem Picsum
+				res.redirect(`https://picsum.photos/800/600/?c=${req.params.id}`);
 				break;
 		}
 	})
