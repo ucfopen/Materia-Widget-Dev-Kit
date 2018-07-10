@@ -314,6 +314,7 @@ module.exports = (app) => {
 			case '.png':
 			case '.jpg':
 			case '.jpeg':
+			case '.gif':
 			default:
 				// images: grab a random image from Lorem Picsum
 				res.redirect(`https://picsum.photos/800/600/?c=${req.params.id}`);
