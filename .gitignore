@@ -1,3 +1,4 @@
+**/.DS_Store
 qsets/*.json
 node_modules
 build
