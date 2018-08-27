@@ -261,7 +261,7 @@ module.exports = (app) => {
 	app.use(express.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
 
 	// serve the static files from devmateria
-	let clientAssetsPath = require('materia-client-assets/path')
+	let clientAssetsPath = require('materia-server-client-assets/path')
 	app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 	app.use('/mdk/assets', express.static(path.join(__dirname, 'assets')))
 	app.use('/mdk/mdk-assets/js', express.static(path.join(__dirname, 'build')))

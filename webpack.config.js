@@ -2,7 +2,7 @@ const path              = require('path')
 const CleanPlugin       = require('clean-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyPlugin        = require('copy-webpack-plugin')
-const MateriaClientAssetWebpack = require('materia-client-assets/webpack.config.js')
+const MateriaClientAssetWebpack = require('materia-server-client-assets/webpack.config.js')
 
 const mdkSrcPath  = path.resolve(__dirname, 'src');
 const buildPath   = path.resolve('build') + path.sep
