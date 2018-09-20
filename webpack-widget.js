@@ -102,6 +102,132 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		})
 	}
 
+	const rules = {
+		// process regular javascript files
+		// SKIPS the default webpack Javascript functionality
+		// that evaluates js code and processes module imports
+		loaderDoNothingToJs: {
+			test: /\.js$/i,
+			exclude: /node_modules/,
+			loader: ExtractTextPlugin.extract({
+				use: ['raw-loader']
+			})
+		},
+		// process coffee files by translating them to js
+		// SKIPS the default webpack Javascript functionality
+		// that evaluates js code and processes module imports
+		loaderCompileCoffee: {
+			test: /\.coffee$/i,
+			exclude: /node_modules/,
+			loader: ExtractTextPlugin.extract({
+				use: ['raw-loader', 'coffee-loader']
+			})
+		},
+		// webpack is going to look at all the images, fonts, etc
+		// in the src of the html files, this will tell webpack
+		// how to deal with those files
+		copyImages: {
+			test: /\.(jpe?g|png|gif|svg)$/i,
+			loader: 'file-loader',
+			query: {
+				emitFile: false, // keeps this plugin from renaming the file to an md5 hash
+				useRelativePath: true, // keeps path of img/src/imag.png intact
+				name: '[name].[ext]'
+			}
+		},
+		// Loads the html files and minifies their contents
+		// Rewrites the paths to our materia core libs provided by materia server
+		//
+		loadHTMLAndReplaceMateriaScripts: {
+			test: /\.html$/i,
+			exclude: /node_modules/,
+			use: [
+				{
+					loader: 'file-loader',
+					options: { name: '[name].html' }
+				},
+				{
+					loader: 'extract-loader'
+				},
+				{
+					loader: 'string-replace-loader',
+					options: { multiple: materiaJSReplacements }
+				},
+				'html-loader'
+			]
+		},
+		// Process CSS Files
+		// Adds autoprefixer
+		loadAndPrefixCSS: {
+			test: /\.css/i,
+			exclude: /node_modules/,
+			loader: ExtractTextPlugin.extract({
+				use: [
+					'raw-loader',
+					{
+						// postcss-loader is needed to run autoprefixer
+						loader: 'postcss-loader',
+						options: {
+							// add autoprefixer, tell it what to prefix
+							plugins: [require('autoprefixer')({browsers: [
+								'Explorer >= 11',
+								'last 3 Chrome versions',
+								'last 3 ChromeAndroid versions',
+								'last 3 Android versions',
+								'last 3 Firefox versions',
+								'last 3 FirefoxAndroid versions',
+								'last 3 iOS versions',
+								'last 3 Safari versions',
+								'last 3 Edge versions'
+							]})]
+						}
+					},
+				]
+			})
+		},
+		// Process SASS/SCSS Files
+		// Adds autoprefixer
+		loadAndPrefixSASS: {
+			test: /\.s[ac]ss$/i,
+			exclude: /node_modules/,
+			loader: ExtractTextPlugin.extract({
+				use: [
+					'raw-loader',
+					{
+						// postcss-loader is needed to run autoprefixer
+						loader: 'postcss-loader',
+						options: {
+							// add autoprefixer, tell it what to prefix
+							plugins: [require('autoprefixer')({browsers: [
+								'Explorer >= 11',
+								'last 3 Chrome versions',
+								'last 3 ChromeAndroid versions',
+								'last 3 Android versions',
+								'last 3 Firefox versions',
+								'last 3 FirefoxAndroid versions',
+								'last 3 iOS versions',
+								'last 3 Safari versions',
+								'last 3 Edge versions'
+							]})]
+						}
+					},
+					'sass-loader'
+				]
+			})
+		}
+	}
+
+	let plugins = {
+		clean: new CleanPlugin([outputPath]),
+		copy: new CopyPlugin(copyList),
+		extract: new ExtractTextPlugin({filename: '[name]'}),
+		zip: new ZipPlugin({
+			path: `${outputPath}_output`,
+			filename: cfg.cleanName,
+			extension: 'wigt'
+		})
+	}
+
 	return {
 		devServer: {
 			// contentBase: path.join(__dirname, 'node_modules', 'materia-widget-dev', 'build'),
@@ -143,141 +269,23 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 
 		module: {
 			rules: [
-				// process regular javascript files
-				// SKIPS the default webpack Javascript functionality
-				// that evaluates js code and processes module imports
-				{
-					test: /\.js$/i,
-					exclude: /node_modules/,
-					loader: ExtractTextPlugin.extract({
-						use: ['raw-loader']
-					})
-				},
-
-				// process coffee files by translating them to js
-				// SKIPS the default webpack Javascript functionality
-				// that evaluates js code and processes module imports
-				{
-					test: /\.coffee$/i,
-					exclude: /node_modules/,
-					loader: ExtractTextPlugin.extract({
-						use: ['raw-loader', 'coffee-loader']
-					})
-				},
-
-				// webpack is going to look at all the images, fonts, etc
-				// in the src of the html files, this will tell webpack
-				// how to deal with those files
-				{
-					test: /\.(jpe?g|png|gif|svg)$/i,
-					loader: 'file-loader',
-					query: {
-						emitFile: false, // keeps this plugin from renaming the file to an md5 hash
-						useRelativePath: true, // keeps path of img/src/imag.png intact
-						name: '[name].[ext]'
-					}
-				},
-
-				// Loads the html files and minifies their contents
-				// Rewrites the paths to our materia core libs provided by materia server
-				//
-				{
-					test: /\.html$/i,
-					exclude: /node_modules/,
-					use: [
-						{
-							loader: 'file-loader',
-							options: { name: '[name].html' }
-						},
-						{
-							loader: 'extract-loader'
-						},
-						{
-							loader: 'string-replace-loader',
-							options: { multiple: materiaJSReplacements }
-						},
-						'html-loader'
-					]
-				},
-
-				// Process CSS Files
-				// Adds autoprefixer
-				{
-				    test: /\.css/i,
-				    exclude: /node_modules/,
-				    loader: ExtractTextPlugin.extract({
-				        use: [
-				            'raw-loader',
-				            {
-				                // postcss-loader is needed to run autoprefixer
-				                loader: 'postcss-loader',
-				                options: {
-				                    // add autoprefixer, tell it what to prefix
-				                    plugins: [require('autoprefixer')({browsers: [
-				                        'Explorer >= 11',
-				                        'last 3 Chrome versions',
-				                        'last 3 ChromeAndroid versions',
-				                        'last 3 Android versions',
-				                        'last 3 Firefox versions',
-				                        'last 3 FirefoxAndroid versions',
-				                        'last 3 iOS versions',
-				                        'last 3 Safari versions',
-				                        'last 3 Edge versions'
-				                    ]})]
-				                }
-				            },
-				        ]
-				    })
-				},
-
-				// Process SASS/SCSS Files
-				// Adds autoprefixer
-				{
-					test: /\.s[ac]ss$/i,
-					exclude: /node_modules/,
-					loader: ExtractTextPlugin.extract({
-						use: [
-							'raw-loader',
-							{
-								// postcss-loader is needed to run autoprefixer
-								loader: 'postcss-loader',
-								options: {
-									// add autoprefixer, tell it what to prefix
-									plugins: [require('autoprefixer')({browsers: [
-										'Explorer >= 11',
-										'last 3 Chrome versions',
-										'last 3 ChromeAndroid versions',
-										'last 3 Android versions',
-										'last 3 Firefox versions',
-										'last 3 FirefoxAndroid versions',
-										'last 3 iOS versions',
-										'last 3 Safari versions',
-										'last 3 Edge versions'
-									]})]
-								}
-							},
-							'sass-loader'
-						]
-					})
-				}
+				rules.loaderDoNothingToJs,
+				rules.loaderCompileCoffee,
+				rules.copyImages,
+				rules.loadHTMLAndReplaceMateriaScripts,
+				rules.loadAndPrefixCSS,
+				rules.loadAndPrefixSASS
 			]
 		},
 		plugins: [
 			// clear the build directory
-			new CleanPlugin([outputPath]),
-
+			plugins.clean,
 			// copy all the common resources to the build directory
-			new CopyPlugin(copyList),
-
+			plugins.copy,
 			// extract css from the webpack output
-			new ExtractTextPlugin({filename: '[name]'}),
-
+			plugins.extract,
 			// zip everything in the build path to zip dir
-			new ZipPlugin({
-				path: `${outputPath}_output`,
-				filename: cfg.cleanName,
-				extension: 'wigt'
-			})
+			plugins.zip
 		]
 	};
 }

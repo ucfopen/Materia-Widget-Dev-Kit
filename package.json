@@ -25,9 +25,13 @@
     "extract-text-webpack-plugin": "^3.0.0",
     "file-loader": "^0.11.2",
     "hogan-express": "^0.5.2",
-    "html-loader": "^0.4.5",
+    "html-loader": "^0.5.5",
     "html-webpack-plugin": "^2.29.0",
+<<<<<<< Updated upstream
     "materia-server-client-assets": "0.3.5",
+=======
+    "materia-client-assets": "https://github.com/ucfopen/materia-server-client-assets.git",
+>>>>>>> Stashed changes
     "node-sass": "^4.5.3",
     "postcss-loader": "2.0.6",
     "raw-loader": "^0.5.1",
