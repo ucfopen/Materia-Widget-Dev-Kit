@@ -46,6 +46,10 @@ const configFromPackage = () => {
 	}
 }
 
+const configDefaults = () => {
+	
+}
+
 // This is a base config for building legacy widgets
 // It will skip webpack's javascript functionality
 // to avoid having to make changes to the source code of those widgets
