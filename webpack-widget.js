@@ -46,28 +46,18 @@ const configFromPackage = () => {
 	}
 }
 
-const configDefaults = () => {
-	
+// Provides a default config option
+const getDefaultCfg = (extras = {}) => {
+	let materiaConfig = configFromPackage()
+	const configs = Object.assign({}, defaultCfg, {cleanName:materiaConfig.cleanName}, extras)
+	return configs
 }
 
-// This is a base config for building legacy widgets
-// It will skip webpack's javascript functionality
-// to avoid having to make changes to the source code of those widgets
-// the config argument allows you to override some settings
-// you can update the return from this method to modify or alter
-// the base configuration
-const getLegacyWidgetBuildConfig = (config = {}) => {
-	// load and combine the config
-	let materiaConfig = configFromPackage()
-	cfg = Object.assign({}, defaultCfg, {cleanName:materiaConfig.cleanName}, config)
-	// set up source and destination paths
+const getDefaultCopyList = () => {
+	cfg = getDefaultCfg()
 	let srcPath = cfg.srcPath + path.sep
 	let outputPath = cfg.outputPath + path.sep
-
-	//standard list of directories/files we want to copy as-is into build
-	let copyList = [
-		//tack on any additional files to copy that were specified by the widget
-		...cfg.preCopy,
+	return [
 		{
 			flatten: true,
 			from: `${srcPath}${cfg.demoPath}`,
@@ -95,18 +85,10 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			toType: 'dir'
 		}
 	]
+}	
 
-	//assets directory is not always used, therefore optional - check for it first
-	let assetsPath = `${srcPath}${cfg.assetsPath}`
-	if (fs.existsSync(assetsPath)) {
-		copyList.push({
-			from: assetsPath,
-			to: `${outputPath}assets`,
-			toType: 'dir'
-		})
-	}
-
-	const rules = {
+const getDefaultJSRules = () => {
+	return {
 		// process regular javascript files
 		// SKIPS the default webpack Javascript functionality
 		// that evaluates js code and processes module imports
@@ -220,6 +202,36 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			})
 		}
 	}
+}
+
+// This is a base config for building legacy widgets
+// It will skip webpack's javascript functionality
+// to avoid having to make changes to the source code of those widgets
+// the config argument allows you to override some settings
+// you can update the return from this method to modify or alter
+// the base configuration
+const getLegacyWidgetBuildConfig = (config = {}) => {
+	// load and combine the config
+	let cfg = getDefaultCfg(config)
+
+	// set up source and destination paths
+	let srcPath = cfg.srcPath + path.sep
+	let outputPath = cfg.outputPath + path.sep
+
+	//standard list of directories/files we want to copy as-is into build
+	let copyList = getDefaultCopyList()
+
+	//assets directory is not always used, therefore optional - check for it first
+	let assetsPath = `${srcPath}${cfg.assetsPath}`
+	if (fs.existsSync(assetsPath)) {
+		copyList.push({
+			from: assetsPath,
+			to: `${outputPath}assets`,
+			toType: 'dir'
+		})
+	}
+
+	let rules = getDefaultJSRules()
 
 	let plugins = {
 		clean: new CleanPlugin([outputPath]),
@@ -298,4 +310,6 @@ module.exports = {
 	materiaJSReplacements: materiaJSReplacements,
 	configFromPackage: configFromPackage,
 	getLegacyWidgetBuildConfig: getLegacyWidgetBuildConfig,
+	getDefaultJSRules: getDefaultJSRules,
+	getDefaultCopyList: getDefaultCopyList
 }
