@@ -27,7 +27,7 @@
     "hogan-express": "^0.5.2",
     "html-loader": "^0.5.5",
     "html-webpack-plugin": "^2.29.0",
-    "materia-server-client-assets": "^0.3.5",
+    "materia-server-client-assets": "0.3.5",
     "node-sass": "^4.5.3",
     "postcss-loader": "2.0.6",
     "raw-loader": "^0.5.1",
