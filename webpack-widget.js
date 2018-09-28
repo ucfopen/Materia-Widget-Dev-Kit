@@ -49,8 +49,7 @@ const configFromPackage = () => {
 // Provides a default config option
 const getDefaultCfg = (extras = {}) => {
 	let materiaConfig = configFromPackage()
-	const configs = Object.assign({}, defaultCfg, {cleanName:materiaConfig.cleanName}, extras)
-	return configs
+	return Object.assign({}, defaultCfg, {cleanName:materiaConfig.cleanName}, extras)
 }
 
 const getDefaultCopyList = () => {
@@ -87,7 +86,7 @@ const getDefaultCopyList = () => {
 	]
 }	
 
-const getDefaultJSRules = () => {
+const getDefaultRules = () => {
 	return {
 		// process regular javascript files
 		// SKIPS the default webpack Javascript functionality
@@ -231,7 +230,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		})
 	}
 
-	let rules = getDefaultJSRules()
+	let rules = getDefaultRules()
 
 	let plugins = {
 		clean: new CleanPlugin([outputPath]),
@@ -310,6 +309,6 @@ module.exports = {
 	materiaJSReplacements: materiaJSReplacements,
 	configFromPackage: configFromPackage,
 	getLegacyWidgetBuildConfig: getLegacyWidgetBuildConfig,
-	getDefaultJSRules: getDefaultJSRules,
+	getDefaultRules: getDefaultRules,
 	getDefaultCopyList: getDefaultCopyList
 }
