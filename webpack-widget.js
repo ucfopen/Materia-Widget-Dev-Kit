@@ -27,6 +27,11 @@ const browserList = [
 	'last 3 Safari versions',
 	'last 3 Edge versions'
 ]
+
+const copyIgnore = [
+	'.gitkeep'
+]
+
 const materiaJSReplacements = [
 	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,  replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,   replace: replaceTarget },
@@ -271,7 +276,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			// clear the build directory
 			new CleanPlugin([outputPath]),
 			// copy all the common resources to the build directory
-			new CopyPlugin(cfg.copyList),
+			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
 			// extract css from the webpack output
 			new ExtractTextPlugin({filename: '[name]'}),
 			// zip everything in the build path to zip dir
