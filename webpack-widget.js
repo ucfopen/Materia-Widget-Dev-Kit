@@ -5,37 +5,50 @@ const CleanPlugin       = require('clean-webpack-plugin')
 const CopyPlugin        = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ZipPlugin         = require('zip-webpack-plugin')
-
-const MateriaDevServer = require('./express');
-
-// Default Materia Widget Config
-const defaultCfg = {
-	cleanName: '',
-	srcPath: path.join(process.cwd(), 'src'),
-	outputPath: path.join(process.cwd(), 'build'),
-	demoPath: 'demo.json',
-	installPath: 'install.yaml',
-	iconsPath: '_icons',
-	scorePath: '_score/',
-	screenshotsPath: '_screen-shots/',
-	assetsPath: 'assets/',
-	preCopy: []
-}
+const MateriaDevServer  = require('./express');
 
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
 //the build process will replace those references with the current relative paths to those files
-
 const packagedJSPath = 'src=\\"../../../js/$3\\"'
 const devServerJSPath = 'src=\\"/mdk/assets/js/$3\\"'
 const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
-
+const srcPath = path.join(process.cwd(), 'src') + path.sep
+const outputPath = path.join(process.cwd(), 'build') + path.sep
+const browserList = [
+	'Explorer >= 11',
+	'last 3 Chrome versions',
+	'last 3 ChromeAndroid versions',
+	'last 3 Android versions',
+	'last 3 Firefox versions',
+	'last 3 FirefoxAndroid versions',
+	'last 3 iOS versions',
+	'last 3 Safari versions',
+	'last 3 Edge versions'
+]
 const materiaJSReplacements = [
 	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,  replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,   replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g, replace: replaceTarget },
 ];
+
+const getDefaultEntries = () => ({
+	'creator.js': [
+		path.join(srcPath, 'creator.coffee')
+	],
+	'player.js': [
+		path.join(srcPath, 'player.coffee')
+	],
+	'creator.css': [
+		path.join(srcPath, 'creator.html'),
+		path.join(srcPath, 'creator.scss')
+	],
+	'player.css': [
+		path.join(srcPath, 'player.html'),
+		path.join(srcPath, 'player.scss')
+	]
+})
 
 // Load the materia configuration settings from the package.json file
 const configFromPackage = () => {
@@ -47,161 +60,177 @@ const configFromPackage = () => {
 }
 
 // Provides a default config option
-const getDefaultCfg = (extras = {}) => {
-	let materiaConfig = configFromPackage()
-	return Object.assign({}, defaultCfg, {cleanName:materiaConfig.cleanName}, extras)
+const combineConfig = (extras = {}) => {
+	const rules = getDefaultRules()
+	const orderedRules = [
+		rules.loaderDoNothingToJs,
+		rules.loaderCompileCoffee,
+		rules.copyImages,
+		rules.loadHTMLAndReplaceMateriaScripts,
+		rules.loadAndPrefixCSS,
+		rules.loadAndPrefixSASS
+	]
+
+	const pkgConfig = configFromPackage()
+	const defaultCfg = {
+		cleanName: pkgConfig.cleanName,
+		copyList: getDefaultCopyList(),
+		entries: getDefaultEntries(),
+		moduleRules: orderedRules
+	}
+
+	return Object.assign({}, defaultCfg, extras)
 }
 
 const getDefaultCopyList = () => {
-	cfg = getDefaultCfg()
-	let srcPath = cfg.srcPath + path.sep
-	let outputPath = cfg.outputPath + path.sep
-	return [
+	const copyList = [
 		{
 			flatten: true,
-			from: `${srcPath}${cfg.demoPath}`,
+			from: `${srcPath}demo.json`,
 			to: `${outputPath}/demo.json`,
 		},
 		{
 			flatten: true,
-			from: `${srcPath}${cfg.installPath}`,
+			from: `${srcPath}install.yaml`,
 			to: outputPath,
 		},
 		{
-			from: `${srcPath}${cfg.iconsPath}`,
+			from: `${srcPath}_icons`,
 			to: `${outputPath}img`,
 			toType: 'dir'
 		},
 		{
 			flatten: true,
-			from: `${srcPath}${cfg.scorePath}`,
+			from: `${srcPath}_score`,
 			to: `${outputPath}_score-modules`,
 			toType: 'dir'
 		},
 		{
-			from: `${srcPath}${cfg.screenshotsPath}`,
+			from: `${srcPath}_screen-shots`,
 			to: `${outputPath}img/screen-shots`,
 			toType: 'dir'
 		}
 	]
-}	
 
-const getDefaultRules = () => {
-	return {
-		// process regular javascript files
-		// SKIPS the default webpack Javascript functionality
-		// that evaluates js code and processes module imports
-		loaderDoNothingToJs: {
-			test: /\.js$/i,
-			exclude: /node_modules/,
-			loader: ExtractTextPlugin.extract({
-				use: ['raw-loader']
-			})
-		},
-		// process coffee files by translating them to js
-		// SKIPS the default webpack Javascript functionality
-		// that evaluates js code and processes module imports
-		loaderCompileCoffee: {
-			test: /\.coffee$/i,
-			exclude: /node_modules/,
-			loader: ExtractTextPlugin.extract({
-				use: ['raw-loader', 'coffee-loader']
-			})
-		},
-		// webpack is going to look at all the images, fonts, etc
-		// in the src of the html files, this will tell webpack
-		// how to deal with those files
-		copyImages: {
-			test: /\.(jpe?g|png|gif|svg)$/i,
-			loader: 'file-loader',
-			query: {
-				emitFile: false, // keeps this plugin from renaming the file to an md5 hash
-				useRelativePath: true, // keeps path of img/src/imag.png intact
-				name: '[name].[ext]'
-			}
-		},
-		// Loads the html files and minifies their contents
-		// Rewrites the paths to our materia core libs provided by materia server
-		//
-		loadHTMLAndReplaceMateriaScripts: {
-			test: /\.html$/i,
-			exclude: /node_modules/,
-			use: [
-				{
-					loader: 'file-loader',
-					options: { name: '[name].html' }
-				},
-				{
-					loader: 'extract-loader'
-				},
-				{
-					loader: 'string-replace-loader',
-					options: { multiple: materiaJSReplacements }
-				},
-				'html-loader'
-			]
-		},
-		// Process CSS Files
-		// Adds autoprefixer
-		loadAndPrefixCSS: {
-			test: /\.css/i,
-			exclude: /node_modules/,
-			loader: ExtractTextPlugin.extract({
-				use: [
-					'raw-loader',
-					{
-						// postcss-loader is needed to run autoprefixer
-						loader: 'postcss-loader',
-						options: {
-							// add autoprefixer, tell it what to prefix
-							plugins: [require('autoprefixer')({browsers: [
-								'Explorer >= 11',
-								'last 3 Chrome versions',
-								'last 3 ChromeAndroid versions',
-								'last 3 Android versions',
-								'last 3 Firefox versions',
-								'last 3 FirefoxAndroid versions',
-								'last 3 iOS versions',
-								'last 3 Safari versions',
-								'last 3 Edge versions'
-							]})]
-						}
-					},
-				]
-			})
-		},
-		// Process SASS/SCSS Files
-		// Adds autoprefixer
-		loadAndPrefixSASS: {
-			test: /\.s[ac]ss$/i,
-			exclude: /node_modules/,
-			loader: ExtractTextPlugin.extract({
-				use: [
-					'raw-loader',
-					{
-						// postcss-loader is needed to run autoprefixer
-						loader: 'postcss-loader',
-						options: {
-							// add autoprefixer, tell it what to prefix
-							plugins: [require('autoprefixer')({browsers: [
-								'Explorer >= 11',
-								'last 3 Chrome versions',
-								'last 3 ChromeAndroid versions',
-								'last 3 Android versions',
-								'last 3 Firefox versions',
-								'last 3 FirefoxAndroid versions',
-								'last 3 iOS versions',
-								'last 3 Safari versions',
-								'last 3 Edge versions'
-							]})]
-						}
-					},
-					'sass-loader'
-				]
-			})
-		}
+	// assets directory is built in , but optional
+	let assetsPath = `${srcPath}assets`
+	if (fs.existsSync(assetsPath)) {
+		copyList.push({
+			from: assetsPath,
+			to: `${outputPath}assets`,
+			toType: 'dir'
+		})
 	}
+
+	const devDemo = 'demo_dev.json'
+	const devDemoPath = `${srcPath}demo.json`
+	if (isRunningDevServer && fs.existsSync(devDemoPath)) {
+		console.log('===== USING demo_dev.json ====')
+		copyList.push({
+			flatten: true,
+			from: devDemoPath,
+			to: `${outputPath}${devDemo}`,
+			force: true
+		})
+	}
+
+	return copyList
 }
+
+const getDefaultRules = () => ({
+	// process regular javascript files
+	// SKIPS the default webpack Javascript functionality
+	// that evaluates js code and processes module imports
+	loaderDoNothingToJs: {
+		test: /\.js$/i,
+		exclude: /node_modules/,
+		loader: ExtractTextPlugin.extract({
+			use: ['raw-loader']
+		})
+	},
+	// process coffee files by translating them to js
+	// SKIPS the default webpack Javascript functionality
+	// that evaluates js code and processes module imports
+	loaderCompileCoffee: {
+		test: /\.coffee$/i,
+		exclude: /node_modules/,
+		loader: ExtractTextPlugin.extract({
+			use: ['raw-loader', 'coffee-loader']
+		})
+	},
+	// webpack is going to look at all the images, fonts, etc
+	// in the src of the html files, this will tell webpack
+	// how to deal with those files
+	copyImages: {
+		test: /\.(jpe?g|png|gif|svg)$/i,
+		loader: 'file-loader',
+		query: {
+			emitFile: false, // keeps this plugin from renaming the file to an md5 hash
+			useRelativePath: true, // keeps path of img/src/imag.png intact
+			name: '[name].[ext]'
+		}
+	},
+	// Loads the html files and minifies their contents
+	// Rewrites the paths to our materia core libs provided by materia server
+	//
+	loadHTMLAndReplaceMateriaScripts: {
+		test: /\.html$/i,
+		exclude: /node_modules/,
+		use: [
+			{
+				loader: 'file-loader',
+				options: { name: '[name].html' }
+			},
+			{
+				loader: 'extract-loader'
+			},
+			{
+				loader: 'string-replace-loader',
+				options: { multiple: materiaJSReplacements }
+			},
+			'html-loader'
+		]
+	},
+	// Process CSS Files
+	// Adds autoprefixer
+	loadAndPrefixCSS: {
+		test: /\.css/i,
+		exclude: /node_modules/,
+		loader: ExtractTextPlugin.extract({
+			use: [
+				'raw-loader',
+				{
+					// postcss-loader is needed to run autoprefixer
+					loader: 'postcss-loader',
+					options: {
+						// add autoprefixer, tell it what to prefix
+						plugins: [require('autoprefixer')({browsers: browserList})]
+					}
+				},
+			]
+		})
+	},
+	// Process SASS/SCSS Files
+	// Adds autoprefixer
+	loadAndPrefixSASS: {
+		test: /\.s[ac]ss$/i,
+		exclude: /node_modules/,
+		loader: ExtractTextPlugin.extract({
+			use: [
+				'raw-loader',
+				{
+					// postcss-loader is needed to run autoprefixer
+					loader: 'postcss-loader',
+					options: {
+						// add autoprefixer, tell it what to prefix
+						plugins: [require('autoprefixer')({browsers: browserList})]
+					}
+				},
+				'sass-loader'
+			]
+		})
+	}
+})
 
 // This is a base config for building legacy widgets
 // It will skip webpack's javascript functionality
@@ -211,69 +240,24 @@ const getDefaultRules = () => {
 // the base configuration
 const getLegacyWidgetBuildConfig = (config = {}) => {
 	// load and combine the config
-	let cfg = getDefaultCfg(config)
-
-	// set up source and destination paths
-	let srcPath = cfg.srcPath + path.sep
-	let outputPath = cfg.outputPath + path.sep
-
-	//standard list of directories/files we want to copy as-is into build
-	let copyList = getDefaultCopyList()
-
-	//assets directory is not always used, therefore optional - check for it first
-	let assetsPath = `${srcPath}${cfg.assetsPath}`
-	if (fs.existsSync(assetsPath)) {
-		copyList.push({
-			from: assetsPath,
-			to: `${outputPath}assets`,
-			toType: 'dir'
-		})
-	}
-
-	let rules = getDefaultRules()
-
-	let plugins = {
-		clean: new CleanPlugin([outputPath]),
-		copy: new CopyPlugin(copyList),
-		extract: new ExtractTextPlugin({filename: '[name]'}),
-		zip: new ZipPlugin({
-			path: `${outputPath}_output`,
-			filename: cfg.cleanName,
-			extension: 'wigt'
-		})
-	}
+	let cfg = combineConfig(config)
 
 	return {
+		stats: {children: false},
 		devServer: {
-			// contentBase: path.join(__dirname, 'node_modules', 'materia-widget-dev', 'build'),
 			contentBase: path.join(__dirname, 'build'),
 			headers:{
-				// add headers to every response
 				// allow iframes to talk to their parent containers
 				'Access-Control-Allow-Origin': '*',
 				'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
 			},
 			port: process.env.PORT || 8118,
-			setup: MateriaDevServer
+			setup: MateriaDevServer,
+			stats: {children: false},
 		},
 
 		// These are the default js and css files
-		entry: {
-			'creator.js': [
-				path.join(srcPath, 'creator.coffee')
-			],
-			'player.js': [
-				path.join(srcPath, 'player.coffee')
-			],
-			'creator.css': [
-				path.join(srcPath, 'creator.html'),
-				path.join(srcPath, 'creator.scss')
-			],
-			'player.css': [
-				path.join(srcPath, 'player.html'),
-				path.join(srcPath, 'player.scss')
-			]
-		},
+		entry: cfg.entries,
 
 		// write files to the outputPath (default = ./build) using the object keys from 'entry' above
 		output: {
@@ -282,25 +266,20 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			publicPath: ''
 		},
 
-		module: {
-			rules: [
-				rules.loaderDoNothingToJs,
-				rules.loaderCompileCoffee,
-				rules.copyImages,
-				rules.loadHTMLAndReplaceMateriaScripts,
-				rules.loadAndPrefixCSS,
-				rules.loadAndPrefixSASS
-			]
-		},
+		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
-			plugins.clean,
+			new CleanPlugin([outputPath]),
 			// copy all the common resources to the build directory
-			plugins.copy,
+			new CopyPlugin(cfg.copyList),
 			// extract css from the webpack output
-			plugins.extract,
+			new ExtractTextPlugin({filename: '[name]'}),
 			// zip everything in the build path to zip dir
-			plugins.zip
+			new ZipPlugin({
+				path: `${outputPath}_output`,
+				filename: cfg.cleanName,
+				extension: 'wigt'
+			})
 		]
 	};
 }
@@ -310,5 +289,6 @@ module.exports = {
 	configFromPackage: configFromPackage,
 	getLegacyWidgetBuildConfig: getLegacyWidgetBuildConfig,
 	getDefaultRules: getDefaultRules,
-	getDefaultCopyList: getDefaultCopyList
+	getDefaultCopyList: getDefaultCopyList,
+	getDefaultEntries: getDefaultEntries
 }
