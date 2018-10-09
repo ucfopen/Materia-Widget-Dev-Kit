@@ -128,9 +128,9 @@ const getDefaultCopyList = () => {
 	}
 
 	const devDemo = 'demo_dev.json'
-	const devDemoPath = `${srcPath}demo.json`
+	const devDemoPath = `${srcPath}${devDemo}`
 	if (isRunningDevServer && fs.existsSync(devDemoPath)) {
-		console.log('===== USING demo_dev.json ====')
+		console.log(`===== USING ${devDemo} ====`)
 		copyList.push({
 			flatten: true,
 			from: devDemoPath,
