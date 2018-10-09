@@ -145,6 +145,10 @@ var createApiWidgetInstanceData = id => {
 var createApiWidgetData = (id) => {
 	let widget = yaml.parse(getInstall().toString());
 
+	//provide default values where necessary
+	if ( ! widget.meta_data.features) widget.meta_data.features = [];
+	if ( ! widget.meta_data.supported_data) widget.meta_data.features = [];
+
 	widget.player = widget.files.player;
 	widget.creator = widget.files.creator;
 	widget.clean_name = getWidgetCleanName();
