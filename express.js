@@ -93,6 +93,13 @@ var getDemoQset = () => {
 	qset = qset.toString()
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
+	// look for "id": null or "id": 0 and build a mock id
+	let id = 0
+	qset = qset.replace(/("id"\s?:\s?)(null|0)/g, function(match, offset, string){
+		id++
+		return `"id": "mwdk-mock-id-${id}"`
+	})
+
 	return JSON.parse(qset)
 }
 
