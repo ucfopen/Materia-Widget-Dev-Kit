@@ -359,6 +359,12 @@ module.exports = (app) => {
 		res.render(res.locals.template)
 	});
 
+	// Play Score page
+	app.get('/mdk/scores/demo', (req, res) => {
+		res.locals = Object.assign(res.locals, { template: 'score_mdk'})
+		res.render(res.locals.template)
+	})
+
 	// The create page frame that loads the widget creator
 	app.get('/mdk/widgets/1-mdk/:instance?', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'creator_mdk', instance: req.params.instance || null})
@@ -485,7 +491,7 @@ module.exports = (app) => {
 		}
 	});
 
-	app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (req, res) => res.end());
+	app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (req, res) => res.send('true'));
 
 	app.use('/api/json/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
