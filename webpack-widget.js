@@ -9,13 +9,17 @@ const MateriaDevServer  = require('./express');
 
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
-//the build process will replace those references with the current relative paths to those files
+// the build process will replace those references with the current relative paths to those files
 const packagedJSPath = 'src=\\"../../../js/$3\\"'
 const devServerJSPath = 'src=\\"/mdk/assets/js/$3\\"'
 const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
+
+// common paths used here
 const srcPath = path.join(process.cwd(), 'src') + path.sep
 const outputPath = path.join(process.cwd(), 'build') + path.sep
+
+// list of supported browsers for use in autoprefixer
 const browserList = [
 	'Explorer >= 11',
 	'last 3 Chrome versions',
@@ -28,30 +32,34 @@ const browserList = [
 	'last 3 Edge versions'
 ]
 
+// when copying files, always ignore these
 const copyIgnore = [
 	'.gitkeep'
 ]
 
+// regex rules needed for replacing scripts loaded from materia
 const materiaJSReplacements = [
 	{ search: /src=(\\?("|')?)(materia.enginecore.js)(\\?("|')?)/g,  replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,   replace: replaceTarget },
 	{ search: /src=(\\?("|')?)(materia.creatorcore.js)(\\?("|')?)/g, replace: replaceTarget },
+	{ search: /src=(\\?("|')?)(materia.scorecore.js)(\\?("|')?)/g,   replace: replaceTarget },
 ];
 
+// webpack entries
 const getDefaultEntries = () => ({
 	'creator.js': [
-		path.join(srcPath, 'creator.coffee')
+		`${srcPath}creator.coffee`
 	],
 	'player.js': [
-		path.join(srcPath, 'player.coffee')
+		`${srcPath}player.coffee`
 	],
 	'creator.css': [
-		path.join(srcPath, 'creator.html'),
-		path.join(srcPath, 'creator.scss')
+		`${srcPath}creator.html`,
+		`${srcPath}creator.scss`
 	],
 	'player.css': [
-		path.join(srcPath, 'player.html'),
-		path.join(srcPath, 'player.scss')
+		`${srcPath}player.html`,
+		`${srcPath}player.scss`
 	]
 })
 
@@ -87,12 +95,13 @@ const combineConfig = (extras = {}) => {
 	return Object.assign({}, defaultCfg, extras)
 }
 
+// list of files and directories to copy into widget
 const getDefaultCopyList = () => {
 	const copyList = [
 		{
 			flatten: true,
 			from: `${srcPath}demo.json`,
-			to: `${outputPath}/demo.json`,
+			to: `${outputPath}demo.json`,
 		},
 		{
 			flatten: true,
@@ -127,6 +136,8 @@ const getDefaultCopyList = () => {
 		})
 	}
 
+	// optionally use demo_dev.json to replace demo.json
+	// when running the dev server
 	const devDemo = 'demo_dev.json'
 	const devDemoPath = `${srcPath}${devDemo}`
 	if (isRunningDevServer && fs.existsSync(devDemoPath)) {
@@ -134,7 +145,7 @@ const getDefaultCopyList = () => {
 		copyList.push({
 			flatten: true,
 			from: devDemoPath,
-			to: `${outputPath}${devDemo}`,
+			to: `${outputPath}demo.json`,
 			force: true
 		})
 	}
@@ -142,6 +153,7 @@ const getDefaultCopyList = () => {
 	return copyList
 }
 
+// Rules needed for common builds
 const getDefaultRules = () => ({
 	// process regular javascript files
 	// SKIPS the default webpack Javascript functionality
@@ -250,7 +262,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	return {
 		stats: {children: false},
 		devServer: {
-			contentBase: path.join(__dirname, 'build'),
+			contentBase: outputPath,
 			headers:{
 				// allow iframes to talk to their parent containers
 				'Access-Control-Allow-Origin': '*',
