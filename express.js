@@ -525,7 +525,7 @@ module.exports = (app) => {
 
 				if (!Array.from(standard_props).includes(prop)) {
 					nonstandard_props.push(`"${prop}"`);
-					delete data[2].data.items[index][prop];
+					// delete data[2].data.items[index][prop];
 					console.log(`Nonstandard property found in qset: ${prop}`);
 				}
 			}
