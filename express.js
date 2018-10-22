@@ -446,13 +446,13 @@ module.exports = (app) => {
 
 		// run the install command
 		res.write(`> Running run_widgets_install.sh script<br/>`);
-		let installResult = execSync(`cd ${materiaPath}/../ && ./run_widgets_install.sh ${filename}`);
+		let installResult = execSync(`cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
 		installResult = installResult.toString();
 		res.write(installResult.replace("\n", "<br/>"));
 		console.log(installResult);
 
 		// search for success in the output
-		const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/);
+		const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-\/]+)/);
 
 		res.write("</pre>");
 		if(match && match[1]) {
