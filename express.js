@@ -254,6 +254,20 @@ var getQuestion = (ids) => {
 	return qlist;
 };
 
+// checks a given object for all of the required properties to qualify as a 'question' in Materia
+var validateQuestion = (question) => {
+	['id', 'type', 'questions', 'answers'].forEach((prop) => {
+		if ( !(prop in question)) {
+			console.log(`question missing required property ${prop}!`);
+		}
+	})
+	if ( !Array.isArray(question.answers)) console.log(`question's 'answers' property must be an array!`);
+	if ( !Array.isArray(question.questions)) console.log(`question's 'questions' property must be an array!`);
+	if ( question.type.length === 0) console.log(`question's type property is empty!`);
+	if ( question.questions.length === 0) console.log(`question's questions array is empty!`);
+	if ( question.answers.length === 0) console.log(`question's answers array is empty!`);
+}
+
 // app is passed a reference to the webpack dev server (Express.js)
 module.exports = (app) => {
 
@@ -521,13 +535,21 @@ module.exports = (app) => {
 
 		for (let index in data[2].data.items) {
 			const item = data[2].data.items[index];
-			for (let prop in item) {
 
+			for (let prop in item) {
 				if (!Array.from(standard_props).includes(prop)) {
 					nonstandard_props.push(`"${prop}"`);
-					// delete data[2].data.items[index][prop];
 					console.log(`Nonstandard property found in qset: ${prop}`);
 				}
+			}
+			//make sure questions have all the necessary props
+			if ('items' in item) {
+				for (let question_index in item.items) {
+					let question = item.items[question_index];
+					validateQuestion(question);
+				}
+			} else {
+				validateQuestion(item);
 			}
 		}
 
@@ -543,8 +565,8 @@ module.exports = (app) => {
 		if (nonstandard_props.length > 0) {
 			const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
 			instance.warning = 'Warning: Nonstandard qset item ' +
-				plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
-				plurals[1] + ' not saved. Use options instead.';
+				plurals[0] + ' ' + nonstandard_props.join(', ') + ' '
+				plurals[1];
 		}
 
 		res.json(instance);
