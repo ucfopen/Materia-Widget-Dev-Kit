@@ -256,16 +256,18 @@ var getQuestion = (ids) => {
 
 // checks a given object for all of the required properties to qualify as a 'question' in Materia
 var validateQuestion = (question) => {
+	let issues = [];
 	['id', 'type', 'questions', 'answers'].forEach((prop) => {
 		if ( !(prop in question)) {
-			console.log(`question missing required property ${prop}!`);
+			issues.push(`question missing required property ${prop}!`);
 		}
 	})
-	if ( !Array.isArray(question.answers)) console.log(`question's 'answers' property must be an array!`);
-	if ( !Array.isArray(question.questions)) console.log(`question's 'questions' property must be an array!`);
-	if ( question.type.length === 0) console.log(`question's type property is empty!`);
-	if ( question.questions.length === 0) console.log(`question's questions array is empty!`);
-	if ( question.answers.length === 0) console.log(`question's answers array is empty!`);
+	if ( !Array.isArray(question.answers)) issues.push(`question's 'answers' property must be an array!`);
+	if ( !Array.isArray(question.questions)) issues.push(`question's 'questions' property must be an array!`);
+	if ( question.type.length === 0) issues.push(`question's type property is empty!`);
+	if ( question.questions.length === 0) issues.push(`question's questions array is empty!`);
+	if ( question.answers.length === 0) issues.push(`question's answers array is empty!`);
+	return issues;
 }
 
 // app is passed a reference to the webpack dev server (Express.js)
@@ -531,7 +533,8 @@ module.exports = (app) => {
 			'items' //some widgets double-nest 'items'
 		];
 
-		const nonstandard_props = [];
+		let nonstandard_props = [];
+		let invalidQuestions = [];
 
 		for (let index in data[2].data.items) {
 			const item = data[2].data.items[index];
@@ -546,10 +549,16 @@ module.exports = (app) => {
 			if ('items' in item) {
 				for (let question_index in item.items) {
 					let question = item.items[question_index];
-					validateQuestion(question);
+					let issues = validateQuestion(question);
+					if (issues.length > 0) {
+						invalidQuestions.push({id: question_index, issues: issues});
+					}
 				}
 			} else {
-				validateQuestion(item);
+				let issues = validateQuestion(item);
+				if (issues.length > 0) {
+					invalidQuestions.push({id: question_index, issues: issues});
+				}
 			}
 		}
 
@@ -559,14 +568,24 @@ module.exports = (app) => {
 		const instance = createApiWidgetInstanceData(data[0])[0];
 		instance.id = id;
 		instance.name = data[1];
+
 		fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
 
 		// send a warning back to the creator if any nonstandard question properties were detected
 		if (nonstandard_props.length > 0) {
 			const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
-			instance.warning = 'Warning: Nonstandard qset item ' +
+			console.log ('Warning: Nonstandard qset item ' +
 				plurals[0] + ' ' + nonstandard_props.join(', ') + ' '
-				plurals[1];
+				plurals[1]);
+		}
+
+		if (invalidQuestions.length > 0) {
+			let combinedMessage = 'Invalid questions!\r\n';
+			invalidQuestions.forEach((invalid) => {
+				combinedMessage += `${invalid.id}: ${invalid.issues.join(', ')}\r\n`;
+			})
+			instance.msg = 'Invalid questions, please check terminal output.';
+			console.log(combinedMessage);
 		}
 
 		res.json(instance);
