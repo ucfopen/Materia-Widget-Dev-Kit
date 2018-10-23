@@ -7,7 +7,7 @@
   "author": "University of Central Florida, Center for Distributed Learning",
   "scripts": {
     "build": "webpack",
-    "test" : "echo 'No tests yet'",
+    "test": "echo 'No tests yet'",
     "start": "env TEST_MDK=true webpack-dev-server --open --config webpack.config.widget.js",
     "postinstall": "npm run build",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
