@@ -575,7 +575,7 @@ module.exports = (app) => {
 		if (nonstandard_props.length > 0) {
 			const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
 			console.log ('Warning: Nonstandard qset item ' +
-				plurals[0] + ' ' + nonstandard_props.join(', ') + ' '
+				plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
 				plurals[1]);
 		}
 
