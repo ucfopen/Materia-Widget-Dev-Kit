@@ -254,22 +254,6 @@ var getQuestion = (ids) => {
 	return qlist;
 };
 
-// checks a given object for all of the required properties to qualify as a 'question' in Materia
-var validateQuestion = (question) => {
-	let issues = [];
-	['id', 'type', 'questions', 'answers'].forEach((prop) => {
-		if ( !(prop in question)) {
-			issues.push(`question missing required property ${prop}!`);
-		}
-	})
-	if ( !Array.isArray(question.answers)) issues.push(`question's 'answers' property must be an array!`);
-	if ( !Array.isArray(question.questions)) issues.push(`question's 'questions' property must be an array!`);
-	if ( question.type.length === 0) issues.push(`question's type property is empty!`);
-	if ( question.questions.length === 0) issues.push(`question's questions array is empty!`);
-	if ( question.answers.length === 0) issues.push(`question's answers array is empty!`);
-	return issues;
-}
-
 // app is passed a reference to the webpack dev server (Express.js)
 module.exports = (app) => {
 
@@ -534,7 +518,6 @@ module.exports = (app) => {
 		];
 
 		let nonstandard_props = [];
-		let invalidQuestions = [];
 
 		for (let index in data[2].data.items) {
 			const item = data[2].data.items[index];
@@ -543,21 +526,6 @@ module.exports = (app) => {
 				if (!Array.from(standard_props).includes(prop)) {
 					nonstandard_props.push(`"${prop}"`);
 					console.log(`Nonstandard property found in qset: ${prop}`);
-				}
-			}
-			//make sure questions have all the necessary props
-			if ('items' in item) {
-				for (let question_index in item.items) {
-					let question = item.items[question_index];
-					let issues = validateQuestion(question);
-					if (issues.length > 0) {
-						invalidQuestions.push({id: question_index, issues: issues});
-					}
-				}
-			} else {
-				let issues = validateQuestion(item);
-				if (issues.length > 0) {
-					invalidQuestions.push({id: question_index, issues: issues});
 				}
 			}
 		}
@@ -577,15 +545,6 @@ module.exports = (app) => {
 			console.log ('Warning: Nonstandard qset item ' +
 				plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
 				plurals[1]);
-		}
-
-		if (invalidQuestions.length > 0) {
-			let combinedMessage = 'Invalid questions!\r\n';
-			invalidQuestions.forEach((invalid) => {
-				combinedMessage += `${invalid.id}: ${invalid.issues.join(', ')}\r\n`;
-			})
-			instance.msg = 'Invalid questions, please check terminal output.';
-			console.log(combinedMessage);
 		}
 
 		res.json(instance);
