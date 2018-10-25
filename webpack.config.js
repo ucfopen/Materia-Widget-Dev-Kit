@@ -11,15 +11,10 @@ module.exports = [
 	{
 		entry: {
 			'mdk-splash.js': [
-				path.join(mdkSrcPath, 'mdk.splash.coffee')
+				path.join(mdkSrcPath, 'mdk.splash.js')
 			],
-			// THIS IS NOT READY YET
-			// THE OLD SIDEBAR STUFF (QSET AND STORAGE DATA MANIPULATION) NEEDS TO BE REBUILT
-			// 'mdk-player.js': [
-			// 	path.join(mdkSrcPath, 'mdk.player.coffee'),
-			// ],
 			'mdk-package.js': [
-				path.join(mdkSrcPath, 'mdk.package.coffee'),
+				path.join(mdkSrcPath, 'mdk.package.js'),
 			],
 		},
 
@@ -33,13 +28,14 @@ module.exports = [
 		module: {
 			rules: [
 				{
-					test: /\.coffee$/i,
+					test: /\.js$/i,
 					loader: ExtractTextPlugin.extract({
-						use: ['raw-loader', 'coffee-loader']
+						use: 'raw-loader'
 					})
 				}
 			]
 		},
+
 		plugins: [
 			new CleanPlugin([buildPath]),
 			new ExtractTextPlugin({filename: '[name]'}),

@@ -93,6 +93,13 @@ var getDemoQset = () => {
 	qset = qset.toString()
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
+	// look for "id": null or "id": 0 and build a mock id
+	let id = 0
+	qset = qset.replace(/("id"\s?:\s?)(null|0)/g, function(match, offset, string){
+		id++
+		return `"id": "mwdk-mock-id-${id}"`
+	})
+
 	return JSON.parse(qset)
 }
 
@@ -137,6 +144,10 @@ var createApiWidgetInstanceData = id => {
 // Build a mock widget data structure
 var createApiWidgetData = (id) => {
 	let widget = yaml.parse(getInstall().toString());
+
+	//provide default values where necessary
+	if ( ! widget.meta_data.features) widget.meta_data.features = [];
+	if ( ! widget.meta_data.supported_data) widget.meta_data.features = [];
 
 	widget.player = widget.files.player;
 	widget.creator = widget.files.creator;
@@ -348,6 +359,12 @@ module.exports = (app) => {
 		res.render(res.locals.template)
 	});
 
+	// Play Score page
+	app.get('/mdk/scores/demo', (req, res) => {
+		res.locals = Object.assign(res.locals, { template: 'score_mdk'})
+		res.render(res.locals.template)
+	})
+
 	// The create page frame that loads the widget creator
 	app.get('/mdk/widgets/1-mdk/:instance?', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'creator_mdk', instance: req.params.instance || null})
@@ -387,7 +404,7 @@ module.exports = (app) => {
 		// 2. filter for materia-web image and named xxxx_phpfpm_1 name
 		// 3. pick the first line
 		// 4. pick the container name
-		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-web:.* .*phpfpm_\\d" | head -n 1 | cut -d" " -f2');
+		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-web-base:.* .*phpfpm_\\d" | head -n 1 | cut -d" " -f2');
 		if(!targetImage){
 			throw "MDK Couldn't find a docker container using a 'materia-web' image named 'phpfpm'."
 		}
@@ -429,13 +446,13 @@ module.exports = (app) => {
 
 		// run the install command
 		res.write(`> Running run_widgets_install.sh script<br/>`);
-		let installResult = execSync(`cd ${materiaPath}/../ && ./run_widgets_install.sh ${filename}`);
+		let installResult = execSync(`cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
 		installResult = installResult.toString();
 		res.write(installResult.replace("\n", "<br/>"));
 		console.log(installResult);
 
 		// search for success in the output
-		const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-]+)/);
+		const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-\/]+)/);
 
 		res.write("</pre>");
 		if(match && match[1]) {
@@ -474,7 +491,7 @@ module.exports = (app) => {
 		}
 	});
 
-	app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (req, res) => res.end());
+	app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (req, res) => res.send('true'));
 
 	app.use('/api/json/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
@@ -504,11 +521,10 @@ module.exports = (app) => {
 
 		for (let index in data[2].data.items) {
 			const item = data[2].data.items[index];
-			for (let prop in item) {
 
+			for (let prop in item) {
 				if (!Array.from(standard_props).includes(prop)) {
 					nonstandard_props.push(`"${prop}"`);
-					delete data[2].data.items[index][prop];
 					console.log(`Nonstandard property found in qset: ${prop}`);
 				}
 			}
@@ -520,14 +536,15 @@ module.exports = (app) => {
 		const instance = createApiWidgetInstanceData(data[0])[0];
 		instance.id = id;
 		instance.name = data[1];
+
 		fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
 
 		// send a warning back to the creator if any nonstandard question properties were detected
 		if (nonstandard_props.length > 0) {
 			const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
-			instance.warning = 'Warning: Nonstandard qset item ' +
+			console.log ('Warning: Nonstandard qset item ' +
 				plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
-				plurals[1] + ' not saved. Use options instead.';
+				plurals[1]);
 		}
 
 		res.json(instance);
