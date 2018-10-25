@@ -521,11 +521,10 @@ module.exports = (app) => {
 
 		for (let index in data[2].data.items) {
 			const item = data[2].data.items[index];
-			for (let prop in item) {
 
+			for (let prop in item) {
 				if (!Array.from(standard_props).includes(prop)) {
 					nonstandard_props.push(`"${prop}"`);
-					delete data[2].data.items[index][prop];
 					console.log(`Nonstandard property found in qset: ${prop}`);
 				}
 			}
@@ -537,14 +536,15 @@ module.exports = (app) => {
 		const instance = createApiWidgetInstanceData(data[0])[0];
 		instance.id = id;
 		instance.name = data[1];
+
 		fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
 
 		// send a warning back to the creator if any nonstandard question properties were detected
 		if (nonstandard_props.length > 0) {
 			const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
-			instance.warning = 'Warning: Nonstandard qset item ' +
+			console.log ('Warning: Nonstandard qset item ' +
 				plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
-				plurals[1] + ' not saved. Use options instead.';
+				plurals[1]);
 		}
 
 		res.json(instance);
