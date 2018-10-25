@@ -517,7 +517,7 @@ module.exports = (app) => {
 			'items' //some widgets double-nest 'items'
 		];
 
-		let nonstandard_props = [];
+		const nonstandard_props = [];
 
 		for (let index in data[2].data.items) {
 			const item = data[2].data.items[index];
