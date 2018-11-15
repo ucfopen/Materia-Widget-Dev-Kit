@@ -1,5 +1,15 @@
 <script>
-	// This quick script short circuits the media importer - just return a random id!
-	let selectedMedia = [ {id: (Math.random() * 10000).toString(36)} ]
+	// This quick script short circuits the media importer - just return a random object!
+	let acceptedTypes = window.location.hash.substr(1).split(',')
+	let chosenType = acceptedTypes[Math.floor(Math.random() * acceptedTypes.length)]
+	let id = (Math.random() * 10000).toString(36)
+	let selectedMedia = [ {
+		id: id+'.'+chosenType,
+		type: chosenType,
+		name: 'Mocked-Media',
+		created: '11/28/79',
+		timestamp: '312621357',
+		thumbnail: window.location.protocol + '//' + window.location.host + 'media/' + id + '/thumbnail'
+	}]
 	window.parent.Materia.Creator.onMediaImportComplete(selectedMedia)
 </script>
