@@ -493,6 +493,11 @@ module.exports = (app) => {
 
 	app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (req, res) => res.send('true'));
 
+	app.use('/api/json/play_state_save', (req, res) => {
+		console.log('SAVING STATE');
+		console.log(req.body.data[1]);
+	})
+
 	app.use('/api/json/play_logs_save', (req, res) => {
 		const logs = JSON.parse(req.body.data)[1];
 		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================");
