@@ -318,6 +318,9 @@ module.exports = (app) => {
 		const filetype = (req.params.id).match(/\.[0-9a-z]+$/i)
 		// TODO: have a small library of assets for each file type and pull a random one when needed?
 		switch (filetype[0]) {
+			case '.mp4':
+				res.redirect('https://commondatastorage.googleapis.com/gtv-videos-bucket/CastVideos/dash/BigBuckBunnyVideo.mp4')
+				break
 			case '.mp3':
 				// audio: serve up a generic .mp3 file
 				res.sendFile(path.join(__dirname, 'assets', 'media', 'birds.mp3'))
