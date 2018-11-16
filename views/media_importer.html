@@ -1,15 +1,48 @@
 <script>
-	// This quick script short circuits the media importer - just return a random object!
-	let acceptedTypes = window.location.hash.substr(1).split(',')
+	// these types always have a remote_url
+	const alwaysRemote = ['youtube', 'vimeo', 'link']
+
+	// map the requested types to actual media types
+	const MIME_MAP = {
+		image: ['jpg', 'gif', 'png'],
+		audio: ['mp3'],
+		video: ['mp4', 'youtube', 'vimeo'],
+		link: ['link'],
+		jpg: ['jpg'],
+		jpeg: ['jpeg'],
+		gif: ['gif'],
+		png: ['png'],
+		mp3: ['mp3']
+	}
+
+	// a function to generate a sample remote_url
+	const makeSampleUrl = (type, id) => {
+		return {
+			'youtube': 'https://www.youtube.com/embed/cFC71rFejvo',
+			'vimeo': 'https://player.vimeo.com/video/61487989?badge=0',
+			'link': 'https://ucf.edu/',
+			'mp3': `/mdk/media/${id}.mp3`,
+			'jpg': `/mdk/media/${id}.jpg`,
+			'jpeg': `/mdk/media/${id}.jpeg`,
+			'gif': `/mdk/media/${id}.gif`,
+			'mp4': `https://commondatastorage.googleapis.com/gtv-videos-bucket/CastVideos/dash/BigBuckBunnyVideo.mp4`
+		}[type]
+	}
+
+	let randomInt = Math.random() * 10000
+	let acceptedTypes = []
+	window.location.hash.substr(1).split(',').map(t => {acceptedTypes.push(...MIME_MAP[t])})
 	let chosenType = acceptedTypes[Math.floor(Math.random() * acceptedTypes.length)]
-	let id = (Math.random() * 10000).toString(36)
-	let selectedMedia = [ {
-		id: id+'.'+chosenType,
+	let id = (randomInt).toString(36)
+	let isRemote = (randomInt > 5000 || alwaysRemote.indexOf(chosenType) != -1)
+	let selectedMedia = [{
+		id: `${id}.${chosenType}`,
 		type: chosenType,
 		name: 'Mocked-Media',
 		created: '11/28/79',
 		timestamp: '312621357',
-		thumbnail: window.location.protocol + '//' + window.location.host + 'media/' + id + '/thumbnail'
+		thumbnail: `${window.location.protocol}//${window.location.host}media/${id}/thumbnail`,
+		remote_url: (isRemote ? makeSampleUrl(chosenType, id) : null)
 	}]
 	window.parent.Materia.Creator.onMediaImportComplete(selectedMedia)
 </script>
