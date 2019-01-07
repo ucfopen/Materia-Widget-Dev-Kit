@@ -6,6 +6,8 @@ const CopyPlugin        = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const ZipPlugin         = require('zip-webpack-plugin')
 const MateriaDevServer  = require('./express');
+const GenerateWidgetHash = require('./webpack-generate-widget-hash')
+
 
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
@@ -296,6 +298,10 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				path: `${outputPath}_output`,
 				filename: cfg.cleanName,
 				extension: 'wigt'
+			}),
+			new GenerateWidgetHash({
+				widget: `_output/${cfg.cleanName}.wigt`,
+				output: `_output/${cfg.cleanName}-build-info.yml`
 			})
 		]
 	};
