@@ -1,51 +1,44 @@
 const fs = require('fs')
+const crypto = require('crypto')
+const execSync = require('child_process').execSync
 
 function GenerateWidgetHash(options) {
 	const apply = function(compiler) {
 		compiler.plugin('emit', function(compilation, callback) {
-			console.log('Hello World!')
-			// adding a new line item for each filename.
-			for (var filename in compilation.assets) {
-				if (filename.match(/\.wigt$/i) != null) {
-					var file = compilation.assets[filename].source()
-					var crypto = require('crypto')
-					var fs = require('fs')
 
-					var shasum = crypto.createHash('sha1')
-					shasum.update(file)
-					var hashSha1 = shasum.digest('hex')
-
-					shasum = crypto.createHash('md5')
-					shasum.update(file)
-					var hashmd5 = shasum.digest('hex')
-
-					shasum = crypto.createHash('sha256')
-					shasum.update(file)
-					var hashsha256 = shasum.digest('hex')
-
-					var gitCommit = 'unkown'
-					var email = 'unkown'
-					var user = 'unkown'
-					var gitRemote = 'unkown'
-
-					try {
-						var execSync = require('child_process').execSync
-						gitCommit = execSync('git rev-parse HEAD').toString()
-						gitRemote = execSync('git remote get-url origin').toString()
-						email = execSync('git config user.email').toString()
-						user = execSync('git config user.name').toString()
-					} catch (error) {
-						console.log('Error getting build data')
-						console.warn(error)
-					}
-				}
+			// if widget isnt in options or it isnt in the output, just warn and exit
+			if (typeof options.widget == 'undefined' || typeof compilation.assets[options.widget] == 'undefined') {
+				console.warn('Widget Hash generator couldnt locate ' + options.widget)
+				callback()
+				return
 			}
 
-			// find the widget's file name
+
+			const wigtData = compilation.assets[options.widget].source()
+
+			// calculate hashes based on the wigt file
+			var hashmd5 = crypto.createHash('md5').update(wigtData).digest('hex')
+			var hashSha1 = crypto.createHash('sha1').update(wigtData).digest('hex')
+			var hashsha256 = crypto.createHash('sha256').update(wigtData).digest('hex')
+
+			// get some build environment information
+			var date = new Date()
+			var gitCommit = 'unkown'
+			var email = 'unkown'
+			var user = 'unkown'
+			var gitRemote = 'unkown'
+
+			try {
+				gitCommit = execSync('git rev-parse HEAD').toString()
+				gitRemote = execSync('git remote get-url origin').toString()
+				email = execSync('git config user.email').toString()
+				user = execSync('git config user.name').toString()
+			} catch (error) {
+				console.log('Error getting build data')
+				console.warn(error)
+			}
 
 			// build checksum content
-			var date = new Date()
-
 			var checksumYAML =
 				`build_date: ${date.toISOString()}` +
 				'\r\n' +
@@ -64,7 +57,7 @@ function GenerateWidgetHash(options) {
 				`md5: ${hashmd5.trim()}` +
 				'\r\n'
 
-			// add checksum to the output
+			// add checksum to the output (this is how webpack gets assets)
 			compilation.assets[options.output] = {
 				source: function() {
 					return checksumYAML

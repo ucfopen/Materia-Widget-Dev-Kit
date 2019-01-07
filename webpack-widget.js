@@ -300,6 +300,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				extension: 'wigt'
 			}),
 			new GenerateWidgetHash({
+				widget: `_output/${cfg.cleanName}.wigt`,
 				output: `_output/${cfg.cleanName}-build-info.yml`
 			})
 		]
