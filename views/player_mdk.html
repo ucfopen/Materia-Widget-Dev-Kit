@@ -32,7 +32,9 @@
 {{! Change the mustache brackets to ERB style so that angular code won't get messed up }}
 {{=<% %>=}}
 <div class="widget" ng-app="materia">
-	<section class="widget" ng-controller="playerCtrl" ng-init="inst_id = 'demo'" ng-class="{ preview: isPreview }">
+	<section class="widget" ng-controller="playerCtrl"
+		ng-init="inst_id = <% instance %>"
+		ng-class="{ preview: isPreview }">
 		<header ng-if="isPreview" class="preview-bar"></header>
 		<div class="center" ng-show="type == 'flash' || type == 'html'">
 			<iframe ng-attr-src="{{ htmlPath }}" ng-if="type == 'html'" id="container" class="html" scrolling="yes" fullscreen-dir></iframe>
