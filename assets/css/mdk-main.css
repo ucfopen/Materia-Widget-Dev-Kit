@@ -68,6 +68,11 @@ body {
 	border-bottom: solid 4px #0093e7;
 }
 
+.tools {
+	margin-top: -12px;
+	float: right;
+}
+
 .creator {
 	margin-left: 0px;
 	margin-top: 200px;
