@@ -76,8 +76,12 @@ body {
 }
 
 .center {
-	width: calc(100% - 330px);
-	height: 600px;
+	/*
+	Default to 100% in creator and player
+	In the player, the js will set the size according
+	*/
+	width: 100%;
+	height: 100%;
 }
 
 .center.full {
@@ -251,4 +255,9 @@ h2 {
 	width: 495px;
 	height: 360px;
 	display: block;
+}
+
+#container {
+	height: 100%;
+	width: 100%;
 }
