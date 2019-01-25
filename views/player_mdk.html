@@ -33,7 +33,7 @@
 {{=<% %>=}}
 <div class="widget" ng-app="materia">
 	<section class="widget" ng-controller="playerCtrl"
-		ng-init="inst_id = <% instance %>"
+		ng-init="inst_id = '<% instance %>'"
 		ng-class="{ preview: isPreview }">
 		<header ng-if="isPreview" class="preview-bar"></header>
 		<div class="center" ng-show="type == 'flash' || type == 'html'">
