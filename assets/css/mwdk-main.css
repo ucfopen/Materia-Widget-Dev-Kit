@@ -102,7 +102,7 @@ body {
 	justify-content: space-around;
 }
 
-#mdk_dialog {
+#mwdk_dialog {
 	position: relative;
 	background: #fff;
 
@@ -112,7 +112,7 @@ body {
 	margin: 0 auto;
 }
 
-#mdk_dialog pre {
+#mwdk_dialog pre {
 	font-size: 10px;
 }
 

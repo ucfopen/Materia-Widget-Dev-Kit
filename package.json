@@ -1,6 +1,6 @@
 {
   "name": "materia-widget-development-kit",
-  "description": "Materia Widget Development Kit (MDK) is a local dev environment for quickly building Materia Widgets.",
+  "description": "Materia Widget Development Kit (MWDK) is a local dev environment for quickly building Materia Widgets.",
   "license": "AGPL-3.0",
   "homepage": "https://ucfopen.github.io/Materia-Docs/",
   "version": "2.3.0",
@@ -8,12 +8,12 @@
   "scripts": {
     "build": "webpack",
     "test": "echo 'No tests yet'",
-    "start": "env TEST_MDK=true webpack-dev-server --open --config webpack.config.widget.js",
+    "start": "env TEST_MWDK=true webpack-dev-server --open --config webpack.config.widget.js",
     "postinstall": "npm run build",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
   },
   "materia": {
-    "cleanName": "MDK"
+    "cleanName": "MWDK"
   },
   "dependencies": {
     "angular-mocks": "1.6.9",
