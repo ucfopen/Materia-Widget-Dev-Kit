@@ -516,8 +516,6 @@ module.exports = (app) => {
 	// creates files in our qset directory (probably should use a better thing)session
 	app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update'], (req, res) => {
 		const data = JSON.parse(req.body.data);
-		console.log('what even is')
-		console.log(data)
 
 		// sweep through the qset items and make sure there aren't any nonstandard question properties
 		const standard_props = [
