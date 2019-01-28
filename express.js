@@ -6,6 +6,7 @@ const yaml            = require('yamljs');
 const { execSync }    = require('child_process');
 const waitUntil       = require('wait-until-promise').default
 const hoganExpress    = require('hogan-express')
+const uuid            = require('uuid')
 
 var webPackMiddleware = false;
 var hasCompiled = false;
@@ -97,10 +98,8 @@ var performQSetSubsitutions = (qset) => {
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
 	// look for "id": null or "id": 0 or "id": "" and build a mock id
-	let id = 0
 	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, function(match, offset, string){
-		id++
-		return `"id": "mwdk-mock-id-${id}"`
+		return `"id": "mwdk-mock-id-${uuid()}"`
 	})
 
 	return JSON.parse(qset)
