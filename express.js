@@ -89,13 +89,16 @@ var getDemoQset = () => {
 		throw "Couldn't find demo.json file for qset data"
 	}
 
+	return performQSetSubsitutions(qset.toString())
+}
+
+var performQSetSubsitutions = (qset) => {
 	// convert media urls into usable ones
-	qset = qset.toString()
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
-	// look for "id": null or "id": 0 and build a mock id
+	// look for "id": null or "id": 0 or "id": "" and build a mock id
 	let id = 0
-	qset = qset.replace(/("id"\s?:\s?)(null|0)/g, function(match, offset, string){
+	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, function(match, offset, string){
 		id++
 		return `"id": "mwdk-mock-id-${id}"`
 	})
@@ -488,7 +491,14 @@ module.exports = (app) => {
 		// load instance, fallback to demo
 		try {
 			const id = JSON.parse(req.body.data)[0];
-			res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
+			let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
+			console.log('before')
+			console.log(qset)
+			qset = performQSetSubsitutions(qset)
+			qset = JSON.stringify(qset)
+			console.log('after')
+			console.log(qset)
+			res.send(qset.toString());
 		} catch (e) {
 			res.json(getDemoQset().qset);
 		}
@@ -506,6 +516,8 @@ module.exports = (app) => {
 	// creates files in our qset directory (probably should use a better thing)session
 	app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update'], (req, res) => {
 		const data = JSON.parse(req.body.data);
+		console.log('what even is')
+		console.log(data)
 
 		// sweep through the qset items and make sure there aren't any nonstandard question properties
 		const standard_props = [
