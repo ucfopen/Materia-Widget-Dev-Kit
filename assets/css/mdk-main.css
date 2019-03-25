@@ -19,6 +19,11 @@ body {
 	text-decoration: none;
 }
 
+.tools {
+	margin-top: -12px;
+	float: right;
+}
+
 #leftbar {
 	width: 250px;
 	background: #333;
@@ -107,7 +112,7 @@ body {
 	background: #fff;
 
 	width: 500px;
-	height: 280px;
+	height: 500px;
 
 	margin: 0 auto;
 }

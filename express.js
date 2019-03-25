@@ -376,7 +376,93 @@ module.exports = (app) => {
 
 	// Show the package options
 	app.get('/mdk/package', (req, res) => {
-		res.locals = Object.assign(res.locals, {template: 'download'})
+		let status = {
+			demo: 'unknown',
+			install: 'unknown',
+			screenshot: 'unknown',
+			icon: 'unknown',
+			scoreModule: 'unknown',
+			creatorCallback: 'unknown',
+			playerCallback: 'unknown',
+			scoreScreenCallback: 'unknown'
+		}
+		let action = {
+			demo: '',
+			install: '',
+			screenshot: '',
+			icon: '',
+			scoreModule: '',
+			creatorCallback: '',
+			playerCallback: '',
+			scoreScreenCallback: ''
+		}
+		//let's see if we can get the demo json file
+		try {
+			let demo = JSON.parse(getFileFromWebpack('demo.json').toString())
+
+			if(!demo.name) {
+				status.demo = 'fail'
+				action.demo = "'name' property missing"
+			} else if(!demo.qset) {
+				status.demo = 'fail'
+				action.demo = "'qset' property missing"
+			} else if(!demo.qset.version) {
+				status.demo = 'fail'
+				action.demo = "'qset' 'version' property missing"
+			} else if(!demo.qset.data) {
+				status.demo = 'fail'
+				action.demo = "'qset' 'data' property missing"
+			}
+			status.demo = 'pass'
+		} catch(error) {
+			status.demo = 'fail'
+			action.demo = 'demo.json missing or can\'t be parsed'
+		}
+
+		const checklist = [
+			{
+				status: status.demo,
+				text: 'demo.json found and valid',
+				action: action.demo,
+			},
+			{
+				status: status.install,
+				text: 'install.yaml found and valid',
+				action: action.install,
+			},
+			{
+				status: status.screenshot,
+				text: 'screenshots found',
+				action: action.screenshot,
+			},
+			{
+				status: status.icon,
+				text: 'icons files found',
+				action: action.icon,
+			},
+			{
+				status: status.scoreModule,
+				text: 'score module found and valid',
+				action: action.scoreModule,
+			},
+			{
+				status: status.creatorCallback,
+				text: 'creator callbacks registered',
+				action: action.creatorCallback,
+			},
+			{
+				status: status.playerCallback,
+				text: 'player callbacks registered',
+				action: action.playerCallback,
+			},
+			{
+				status: status.scoreScreenCallback,
+				text: 'score screen callbacks registered',
+				action: action.scoreScreenCallback,
+			},
+		]
+
+		res.locals = Object.assign(res.locals, {template: 'download', checklist: checklist})
 		res.render(res.locals.template)
 	})
 

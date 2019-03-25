@@ -2,6 +2,24 @@
 
 <h1 class='centered'>Download or Install:</h1>
 <hr/>
+<h2 class='centered'>Preflight Checks:</h2>
+
+<div id='preflight-checklist-container'>
+	<div id='preflight-checklist'>
+	{{#checklist}}
+		<span class={{status}}>
+			<span>
+				{{text}}
+			</span>
+			<span class='action'>
+				{{action}}
+			</span>
+		</span>
+	{{/checklist}}
+	</div>
+</div>
+
+<hr/>
 <div id='build-commands' class='centered'>
 	<a href="/mdk/download"><button class='edit_button orange' id='download_button'>Download .wigt</button></a>
 	<a href="/mdk/install"><button class='edit_button orange' id='install_button'>Install to Docker Materia</button></a>
@@ -12,6 +30,8 @@
 </div>
 
 <script>
+
+
 	document.getElementById('cancel-button').onclick = (e) => {
 		window.parent.MDK.Package.cancel();
 		return false
