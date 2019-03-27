@@ -44,8 +44,10 @@ body#download #preflight-checklist{
 	margin: 0 auto;
 }
 
-body#download #preflight-checklist > span .action{
-	font-size: 10px;
+body#download #preflight-checklist > span.action{
+	display: block;
+	margin-left: 20px;
+	font-size: 12px;
 }
 
 body#download #preflight-checklist > span:before{
@@ -54,15 +56,15 @@ body#download #preflight-checklist > span:before{
 	width: 20px;
 }
 
-body#download #preflight-checklist > span.pass:before{
+body#download #preflight-checklist > span:not(.action).pass:before{
 	content: "✔";
 	color: green;
 }
-body#download #preflight-checklist > span.fail:before{
+body#download #preflight-checklist > span:not(.action).fail:before{
 	content: "X";
 	color: red;
 }
-body#download #preflight-checklist > span.unknown:before{
+body#download #preflight-checklist > span:not(.action).unknown:before{
 	content: "?";
 	color: orange;
 }

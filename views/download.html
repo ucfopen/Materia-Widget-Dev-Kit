@@ -11,19 +11,21 @@
 			<span>
 				{{text}}
 			</span>
-			<span class='action'>
-				{{action}}
-			</span>
+		</span>
+		<span class='action'>
+			{{action}}
 		</span>
 	{{/checklist}}
 	</div>
 </div>
 
 <hr/>
+{{#allGood}}
 <div id='build-commands' class='centered'>
 	<a href="/mdk/download"><button class='edit_button orange' id='download_button'>Download .wigt</button></a>
 	<a href="/mdk/install"><button class='edit_button orange' id='install_button'>Install to Docker Materia</button></a>
 </div>
+{{/allGood}}
 
 <div class='centered'>
 	<a id="cancel-button" href="#">Cancel</a>
