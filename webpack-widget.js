@@ -195,7 +195,7 @@ const getDefaultRules = () => ({
 	//
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
-		exclude: /node_modules/,
+		exclude: /node_modules|_helper-docs/,
 		use: [
 			{
 				loader: 'file-loader',
