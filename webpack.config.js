@@ -37,7 +37,7 @@ module.exports = [
 		},
 
 		plugins: [
-			new CleanPlugin([buildPath]),
+			new CleanPlugin(),
 			new ExtractTextPlugin({filename: '[name]'}),
 			new CopyPlugin([
 				{
