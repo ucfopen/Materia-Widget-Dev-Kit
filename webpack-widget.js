@@ -1,11 +1,11 @@
-const fs                 = require('fs')
-const path               = require('path')
-const webpack            = require('webpack')
-const CleanPlugin        = require('clean-webpack-plugin')
-const CopyPlugin         = require('copy-webpack-plugin')
-const ExtractTextPlugin  = require('extract-text-webpack-plugin')
-const ZipPlugin          = require('zip-webpack-plugin')
-const MateriaDevServer   = require('./express');
+const fs = require('fs')
+const path = require('path')
+const webpack = require('webpack')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
+const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const ZipPlugin = require('zip-webpack-plugin')
+const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 
 
@@ -13,7 +13,7 @@ const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
 const packagedJSPath = 'src=\\"../../../js/$3\\"'
-const devServerJSPath = 'src=\\"/mdk/assets/js/$3\\"'
+const devServerJSPath = 'src=\\"/mwdk/assets/js/$3\\"'
 const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 
@@ -306,7 +306,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
-			new CleanPlugin([outputPath], {root: process.cwd()}),
+			new CleanWebpackPlugin(),
 			// copy all the common resources to the build directory
 			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
 			// extract css from the webpack output
