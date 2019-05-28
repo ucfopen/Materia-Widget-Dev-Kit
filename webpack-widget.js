@@ -83,7 +83,8 @@ const combineConfig = (extras = {}) => {
 		rules.copyImages,
 		rules.loadHTMLAndReplaceMateriaScripts,
 		rules.loadAndPrefixCSS,
-		rules.loadAndPrefixSASS
+		rules.loadAndPrefixSASS,
+		rules.loadGuideTemplate
 	]
 
 	const pkgConfig = configFromPackage()
@@ -194,7 +195,7 @@ const getDefaultRules = () => ({
 	//
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
-		exclude: /node_modules/,
+		exclude: /node_modules|_helper-docs/,
 		use: [
 			{
 				loader: 'file-loader',
@@ -213,7 +214,7 @@ const getDefaultRules = () => ({
 	// Process CSS Files
 	// Adds autoprefixer
 	loadAndPrefixCSS: {
-		test: /\.css/i,
+		test: /\.css$/i,
 		exclude: /node_modules/,
 		loader: ExtractTextPlugin.extract({
 			use: [
@@ -246,6 +247,23 @@ const getDefaultRules = () => ({
 					}
 				},
 				'sass-loader'
+			]
+		})
+	},
+	// Load a HTML template for the guide docs
+	// processes inline ${} script in the HTML with `interpolate: true`
+	loadGuideTemplate: {
+		test: /_helper-docs\/.*\.html$/i,
+		exclude: /node_modules/,
+		loader: ExtractTextPlugin.extract({
+			use: [
+				{
+					loader: 'html-loader',
+					options: {
+						interpolate: true,
+						minimize: true
+					}
+				}
 			]
 		})
 	}
