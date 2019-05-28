@@ -13,7 +13,7 @@ const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
 const packagedJSPath = 'src=\\"../../../js/$3\\"'
-const devServerJSPath = 'src=\\"/mdk/assets/js/$3\\"'
+const devServerJSPath = 'src=\\"/mwdk/assets/js/$3\\"'
 const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 

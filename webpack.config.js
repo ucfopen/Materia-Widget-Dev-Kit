@@ -3,17 +3,17 @@ const CleanWebpackPlugin = require('clean-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 
-const mdkSrcPath = path.resolve(__dirname, 'src');
-const buildPath = path.resolve(__dirname, 'build') + path.sep
+const mwdkSrcPath  = path.resolve(__dirname, 'src');
+const buildPath   = path.resolve(__dirname, 'build') + path.sep
 
 module.exports = [
 	{
 		entry: {
-			'mdk-splash.js': [
-				path.join(mdkSrcPath, 'mdk.splash.js')
+			'mwdk-splash.js': [
+				path.join(mwdkSrcPath, 'mwdk.splash.js')
 			],
-			'mdk-package.js': [
-				path.join(mdkSrcPath, 'mdk.package.js'),
+			'mwdk-package.js': [
+				path.join(mwdkSrcPath, 'mwdk.package.js'),
 			],
 		},
 

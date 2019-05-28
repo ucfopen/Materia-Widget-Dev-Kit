@@ -1,6 +1,6 @@
 window.API_LINK = ''
 
-fetch('mdk/saved_qsets')
+fetch('mwdk/saved_qsets')
 .then(res => res.json())
 .then(data => {
   const qsets = document.getElementById('qsets')
@@ -14,7 +14,7 @@ fetch('mdk/saved_qsets')
   }
 
   qsets.onchange = (e) => {
-    document.getElementById('player_button').setAttribute('href', "/mdk/player/" + e.target.value)
-    document.getElementById('creator_button').setAttribute('href', "/mdk/widgets/1-mdk/#" + e.target.value)
+    document.getElementById('player_button').setAttribute('href', "/mwdk/player/" + e.target.value)
+    document.getElementById('creator_button').setAttribute('href', "/mwdk/widgets/1-mwdk/#" + e.target.value)
   }
 })
