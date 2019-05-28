@@ -1,11 +1,11 @@
-const fs                = require('fs')
-const path              = require('path')
-const webpack           = require('webpack')
-const CleanPlugin       = require('clean-webpack-plugin')
-const CopyPlugin        = require('copy-webpack-plugin')
+const fs = require('fs')
+const path = require('path')
+const webpack = require('webpack')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const ZipPlugin         = require('zip-webpack-plugin')
-const MateriaDevServer  = require('./express');
+const ZipPlugin = require('zip-webpack-plugin')
+const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 
 
@@ -288,7 +288,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
-			new CleanPlugin(),
+			new CleanWebpackPlugin(),
 			// copy all the common resources to the build directory
 			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
 			// extract css from the webpack output
