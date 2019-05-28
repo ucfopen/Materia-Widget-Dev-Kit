@@ -1,10 +1,14 @@
 language: node_js
 node_js:
-- '6'
+- '12'
 cache:
   yarn: true
   directories:
   - node_modules
+before_install:
+- npm install -g yarn # make sure yarn is new
+- npm config set spin false
+- npm install -g npm@^6.9.0
 deploy:
   provider: npm
   email: iturgeon+npm@gmail.com
