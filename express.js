@@ -477,6 +477,10 @@ module.exports = (app) => {
 		res.json(createApiWidgetInstanceData(id));
 	});
 
+	app.use('/api/json/widget_publish_perms_verify', (req, res) => {
+		res.json(true);
+	})
+
 	app.use('/api/json/widgets_get', (req, res) => {
 		const id = JSON.parse(req.body.data);
 		res.json([createApiWidgetData(id)]);
