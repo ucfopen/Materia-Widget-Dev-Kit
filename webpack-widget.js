@@ -288,7 +288,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
-			new CleanPlugin([outputPath], {root: process.cwd()}),
+			new CleanPlugin(),
 			// copy all the common resources to the build directory
 			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
 			// extract css from the webpack output

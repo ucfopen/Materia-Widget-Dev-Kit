@@ -1,11 +1,11 @@
-const path              = require('path')
-const CleanPlugin       = require('clean-webpack-plugin')
+const path = require('path')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const CopyPlugin        = require('copy-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 const MateriaClientAssetWebpack = require('materia-server-client-assets/webpack.config.js')
 
-const mdkSrcPath  = path.resolve(__dirname, 'src');
-const buildPath   = path.resolve('build') + path.sep
+const mdkSrcPath = path.resolve(__dirname, 'src');
+const buildPath = path.resolve(__dirname, 'build') + path.sep
 
 module.exports = [
 	{
@@ -37,7 +37,7 @@ module.exports = [
 		},
 
 		plugins: [
-			new CleanPlugin(),
+			new CleanWebpackPlugin(),
 			new ExtractTextPlugin({filename: '[name]'}),
 			new CopyPlugin([
 				{
