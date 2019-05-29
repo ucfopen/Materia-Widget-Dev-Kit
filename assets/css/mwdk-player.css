@@ -1,4 +1,4 @@
-#body.player_mdk .logo {
+#body.player_mwdk .logo {
 	color: #fff;
 }
 
@@ -10,7 +10,7 @@
 	margin-left: 120px;
 }
 
-#body.player_mdk .widget[ng-app="materia"]{
+#body.player_mwdk .widget[ng-app="materia"]{
 	display: block;
 	width: 100%;
 	height: 100%;
@@ -18,16 +18,16 @@
 	margin-top: 20px;
 }
 
-#body.player_mdk #build-options hr,
-#body.player_mdk #test-options hr {
+#body.player_mwdk #build-options hr,
+#body.player_mwdk #test-options hr {
 	margin-top: 20px;
 }
 
-#body.player_mdk #build-options p.disclaimer,
-#body.player_mdk #test-options p.disclaimer {
+#body.player_mwdk #build-options p.disclaimer,
+#body.player_mwdk #test-options p.disclaimer {
 	font-size: 11px;
 }
 
-#body.player_mdk #rebuild button {
+#body.player_mwdk #rebuild button {
 	margin-left: 10px;
 }
