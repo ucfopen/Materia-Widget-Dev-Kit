@@ -10,7 +10,7 @@
     "test": "echo 'No tests yet'",
     "start": "env TEST_MDK=true webpack-dev-server --open --config webpack.config.widget.js",
     "postinstall": "yarn build",
-    "prettier:run": "prettier --write 'src/*.js' --write 'assets/**/*.{js,css}' --write '*.js",
+    "prettier:run": "prettier --write 'src/*.js' --write 'assets/**/*.{js,css}' --write '*.js'",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
   },
   "materia": {
