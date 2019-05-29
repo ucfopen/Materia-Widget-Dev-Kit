@@ -94,13 +94,12 @@ var getDemoQset = () => {
 }
 
 var performQSetSubsitutions = (qset) => {
+	console.log('media and ids inserted into qset..')
 	// convert media urls into usable ones
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
 	// look for "id": null or "id": 0 or "id": "" and build a mock id
-	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, function(match, offset, string){
-		return `"id": "mwdk-mock-id-${uuid()}"`
-	})
+	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuid()}"`)
 
 	return JSON.parse(qset)
 }
@@ -282,7 +281,7 @@ module.exports = (app) => {
 
 
 	// insert the port into the res.locals
-	app.use(function (req, res, next) {
+	app.use( (req, res, next) => {
 		// console.log(`request to ${req.url}`)
 		res.locals.port = process.env.PORT || 8118
 		next()
@@ -365,7 +364,7 @@ module.exports = (app) => {
 	});
 
 	// Play Score page
-	app.get('/mwdk/scores/demo', (req, res) => {
+	app.get(['/mwdk/scores/demo', '/mwdk/scores/preview/:id'], (req, res) => {
 		res.locals = Object.assign(res.locals, { template: 'score_mwdk'})
 		res.render(res.locals.template)
 	})
@@ -495,12 +494,8 @@ module.exports = (app) => {
 		try {
 			const id = JSON.parse(req.body.data)[0];
 			let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
-			console.log('before')
-			console.log(qset)
 			qset = performQSetSubsitutions(qset)
 			qset = JSON.stringify(qset)
-			console.log('after')
-			console.log(qset)
 			res.send(qset.toString());
 		} catch (e) {
 			res.json(getDemoQset().qset);

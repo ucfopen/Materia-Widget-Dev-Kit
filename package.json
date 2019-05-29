@@ -10,6 +10,7 @@
     "test": "echo 'No tests yet'",
     "start": "env TEST_MDK=true webpack-dev-server --open --config webpack.config.widget.js",
     "postinstall": "yarn build",
+    "prettier:run": "prettier --write 'src/*.js' --write 'assets/**/*.{js,css}'",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
   },
   "materia": {
@@ -50,5 +51,11 @@
     "whatwg-fetch": "^3.0.0",
     "yamljs": "^0.2.8",
     "zip-webpack-plugin": "^2.0.0"
+  },
+  "prettier": {
+    "printWidth": 100,
+    "semi": false,
+    "useTabs": true,
+    "singleQuote": true
   }
 }
