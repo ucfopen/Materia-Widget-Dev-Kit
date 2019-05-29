@@ -1,6 +1,6 @@
-# Materia Widget Development Kit (MDK)
+# Materia Widget Development Kit (MWDK)
 
-Materia Widget Development Kit (MDK) is a local dev environment for quickly building Materia Widgets.
+Materia Widget Development Kit (MWDK) is a local dev environment for quickly building Materia Widgets.
 
 ## Features
 
@@ -12,5 +12,5 @@ Materia Widget Development Kit (MDK) is a local dev environment for quickly buil
 
 ## Setup
 
-> @TODO
+* Require as a dependency for any Materia widget
 

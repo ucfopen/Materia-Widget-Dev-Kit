@@ -1,11 +1,11 @@
-const fs                = require('fs')
-const path              = require('path')
-const webpack           = require('webpack')
-const CleanPlugin       = require('clean-webpack-plugin')
-const CopyPlugin        = require('copy-webpack-plugin')
+const fs = require('fs')
+const path = require('path')
+const webpack = require('webpack')
+const CleanWebpackPlugin = require('clean-webpack-plugin')
+const CopyPlugin = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
-const ZipPlugin         = require('zip-webpack-plugin')
-const MateriaDevServer  = require('./express');
+const ZipPlugin = require('zip-webpack-plugin')
+const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 
 
@@ -13,7 +13,7 @@ const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
 const packagedJSPath = 'src=\\"../../../js/$3\\"'
-const devServerJSPath = 'src=\\"/mdk/assets/js/$3\\"'
+const devServerJSPath = 'src=\\"/mwdk/assets/js/$3\\"'
 const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 
@@ -83,7 +83,8 @@ const combineConfig = (extras = {}) => {
 		rules.copyImages,
 		rules.loadHTMLAndReplaceMateriaScripts,
 		rules.loadAndPrefixCSS,
-		rules.loadAndPrefixSASS
+		rules.loadAndPrefixSASS,
+		rules.loadGuideTemplate
 	]
 
 	const pkgConfig = configFromPackage()
@@ -194,7 +195,7 @@ const getDefaultRules = () => ({
 	//
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
-		exclude: /node_modules/,
+		exclude: /node_modules|_helper-docs/,
 		use: [
 			{
 				loader: 'file-loader',
@@ -213,7 +214,7 @@ const getDefaultRules = () => ({
 	// Process CSS Files
 	// Adds autoprefixer
 	loadAndPrefixCSS: {
-		test: /\.css/i,
+		test: /\.css$/i,
 		exclude: /node_modules/,
 		loader: ExtractTextPlugin.extract({
 			use: [
@@ -246,6 +247,23 @@ const getDefaultRules = () => ({
 					}
 				},
 				'sass-loader'
+			]
+		})
+	},
+	// Load a HTML template for the guide docs
+	// processes inline ${} script in the HTML with `interpolate: true`
+	loadGuideTemplate: {
+		test: /_helper-docs\/.*\.html$/i,
+		exclude: /node_modules/,
+		loader: ExtractTextPlugin.extract({
+			use: [
+				{
+					loader: 'html-loader',
+					options: {
+						interpolate: true,
+						minimize: true
+					}
+				}
 			]
 		})
 	}
@@ -288,7 +306,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
-			new CleanPlugin([outputPath], {root: process.cwd()}),
+			new CleanWebpackPlugin(),
 			// copy all the common resources to the build directory
 			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
 			// extract css from the webpack output
