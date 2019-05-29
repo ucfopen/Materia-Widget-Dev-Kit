@@ -6,6 +6,7 @@ const yaml            = require('yamljs');
 const { execSync }    = require('child_process');
 const waitUntil       = require('wait-until-promise').default
 const hoganExpress    = require('hogan-express')
+const uuid            = require('uuid')
 
 var webPackMiddleware = false;
 var hasCompiled = false;
@@ -89,16 +90,16 @@ var getDemoQset = () => {
 		throw "Couldn't find demo.json file for qset data"
 	}
 
+	return performQSetSubsitutions(qset.toString())
+}
+
+var performQSetSubsitutions = (qset) => {
+	console.log('media and ids inserted into qset..')
 	// convert media urls into usable ones
-	qset = qset.toString()
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
-	// look for "id": null or "id": 0 and build a mock id
-	let id = 0
-	qset = qset.replace(/("id"\s?:\s?)(null|0)/g, function(match, offset, string){
-		id++
-		return `"id": "mwdk-mock-id-${id}"`
-	})
+	// look for "id": null or "id": 0 or "id": "" and build a mock id
+	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuid()}"`)
 
 	return JSON.parse(qset)
 }
@@ -280,7 +281,7 @@ module.exports = (app) => {
 
 
 	// insert the port into the res.locals
-	app.use(function (req, res, next) {
+	app.use( (req, res, next) => {
 		// console.log(`request to ${req.url}`)
 		res.locals.port = process.env.PORT || 8118
 		next()
@@ -363,7 +364,7 @@ module.exports = (app) => {
 	});
 
 	// Play Score page
-	app.get('/mwdk/scores/demo', (req, res) => {
+	app.get(['/mwdk/scores/demo', '/mwdk/scores/preview/:id'], (req, res) => {
 		res.locals = Object.assign(res.locals, { template: 'score_mwdk'})
 		res.render(res.locals.template)
 	})
@@ -492,7 +493,10 @@ module.exports = (app) => {
 		// load instance, fallback to demo
 		try {
 			const id = JSON.parse(req.body.data)[0];
-			res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
+			let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
+			qset = performQSetSubsitutions(qset)
+			qset = JSON.stringify(qset)
+			res.send(qset.toString());
 		} catch (e) {
 			res.json(getDemoQset().qset);
 		}
