@@ -482,6 +482,10 @@ module.exports = (app) => {
 		res.json(true);
 	})
 
+	app.use('/api/json/widget_instance_lock', (req, res) => {
+		res.json(true)
+	})
+
 	app.use('/api/json/widgets_get', (req, res) => {
 		const id = JSON.parse(req.body.data);
 		res.json([createApiWidgetData(id)]);
