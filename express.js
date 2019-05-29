@@ -6,6 +6,7 @@ const yaml            = require('yamljs');
 const { execSync }    = require('child_process');
 const waitUntil       = require('wait-until-promise').default
 const hoganExpress    = require('hogan-express')
+const uuid            = require('uuid')
 
 var webPackMiddleware = false;
 var hasCompiled = false;
@@ -14,7 +15,7 @@ var hasCompiled = false;
 // 1. talk to the middlware
 // 2. load the widget's install.yaml from webpack's in-memory files
 var waitForWebpack = (app, next) => {
-	if(process.env.TEST_MDK) return next(); // short circuit for tests
+	if(process.env.TEST_MWDK) return next(); // short circuit for tests
 	if(hasCompiled) return next(); // short circuit if ready
 
 	waitUntil(() => {
@@ -40,7 +41,7 @@ var waitForWebpack = (app, next) => {
 		return next();
 	})
 	.catch((error) => {
-		throw "MDK couldn't locate the widget's install.yaml.  Make sure you have one and webpack is processing it."
+		throw "MWDK couldn't locate the widget's install.yaml.  Make sure you have one and webpack is processing it."
 	})
 }
 // For whatever reason, the middleware isn't availible when this class
@@ -78,7 +79,7 @@ var getDemoQset = () => {
 	// generate a new instance with the given ID
 	let qset
 	try {
-		if(process.env.TEST_MDK){
+		if(process.env.TEST_MWDK){
 			qset = fs.readFileSync(path.resolve('views', 'sample-demo.json'))
 		}
 		else{
@@ -89,16 +90,16 @@ var getDemoQset = () => {
 		throw "Couldn't find demo.json file for qset data"
 	}
 
+	return performQSetSubsitutions(qset.toString())
+}
+
+var performQSetSubsitutions = (qset) => {
+	console.log('media and ids inserted into qset..')
 	// convert media urls into usable ones
-	qset = qset.toString()
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
-	// look for "id": null or "id": 0 and build a mock id
-	let id = 0
-	qset = qset.replace(/("id"\s?:\s?)(null|0)/g, function(match, offset, string){
-		id++
-		return `"id": "mwdk-mock-id-${id}"`
-	})
+	// look for "id": null or "id": 0 or "id": "" and build a mock id
+	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuid()}"`)
 
 	return JSON.parse(qset)
 }
@@ -181,7 +182,7 @@ var buildWidget = () => {
 
 var getInstall = () => {
 	try {
-		if(process.env.TEST_MDK) return fs.readFileSync(path.resolve('views', 'sample-install.yaml')); // short circuit for tests
+		if(process.env.TEST_MWDK) return fs.readFileSync(path.resolve('views', 'sample-install.yaml')); // short circuit for tests
 		return getFileFromWebpack('install.yaml', true);
 	} catch(e) {
 		console.error(e)
@@ -207,7 +208,7 @@ var getAllQuestions = (type) => {
 
 	const qlist = [];
 
-	const obj = JSON.parse(fs.readFileSync(path.join(__dirname, 'src', 'mdk_questions.json')).toString());
+	const obj = JSON.parse(fs.readFileSync(path.join(__dirname, 'src', 'mwdk_questions.json')).toString());
 	let i = 1;
 
 	const qarr = obj.set;
@@ -233,7 +234,7 @@ var getQuestion = (ids) => {
 
 	const qlist = [];
 
-	const obj = JSON.parse(fs.readFileSync(path.join(__dirname, 'src', 'mdk_questions.json')).toString());
+	const obj = JSON.parse(fs.readFileSync(path.join(__dirname, 'src', 'mwdk_questions.json')).toString());
 	let i = 1;
 
 	const qarr = obj.set;
@@ -265,7 +266,7 @@ module.exports = (app) => {
 	app.set('views', path.join(__dirname , 'views')); // set the views directory
 
 	// the web pack middlewere takes time to show up
-	app.use([/^\/$/, '/mdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
+	app.use([/^\/$/, '/mwdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
 
 	// allow express to parse a JSON post body that ends up in req.body.data
 	app.use(express.json()); // for parsing application/json
@@ -274,13 +275,13 @@ module.exports = (app) => {
 	// serve the static files from devmateria
 	let clientAssetsPath = require('materia-server-client-assets/path')
 	app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
-	app.use('/mdk/assets', express.static(path.join(__dirname, 'assets')))
-	app.use('/mdk/mdk-assets/js', express.static(path.join(__dirname, 'build')))
-	app.use('/mdk/assets/', express.static(path.join(clientAssetsPath, 'dist')))
+	app.use('/mwdk/assets', express.static(path.join(__dirname, 'assets')))
+	app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
+	app.use('/mwdk/assets/', express.static(path.join(clientAssetsPath, 'dist')))
 
 
 	// insert the port into the res.locals
-	app.use(function (req, res, next) {
+	app.use( (req, res, next) => {
 		// console.log(`request to ${req.url}`)
 		res.locals.port = process.env.PORT || 8118
 		next()
@@ -294,27 +295,27 @@ module.exports = (app) => {
 		res.render(res.locals.template)
 	});
 
-	// ============= MDK ROUTES =======================
+	// ============= MWDK ROUTES =======================
 
-	app.get('/mdk/my-widgets', (req, res) => {
+	app.get('/mwdk/my-widgets', (req, res) => {
 		res.redirect('/')
 	});
 
 	// Match any MEDIA URLS that get build into our demo.jsons
 	// worth noting the <MEDIA=dfdf> is converted to __dfdf__
 	// this redirects the request directly to the file served by webpack
-	app.get(/\/mdk\/media\/__(.+)__/, (req, res) => {
+	app.get(/\/mwdk\/media\/__(.+)__/, (req, res) => {
 		console.log(`mocking media asset from demo.json :<MEDIA='${req.params[0]}'>`)
 		res.redirect(`http://localhost:${res.locals.port}/${req.params[0]}`)
 	})
 
-	app.get('/mdk/media/import', (req, res) => {
+	app.get('/mwdk/media/import', (req, res) => {
 		res.locals = Object.assign(res.locals, { template: 'media_importer'})
 		res.render(res.locals.template)
 	})
 
 	// If asking for a media item by id, determine action based on requested type
-	app.get('/mdk/media/:id', (req, res) => {
+	app.get('/mwdk/media/:id', (req, res) => {
 		const filetype = (req.params.id).match(/\.[0-9a-z]+$/i)
 		// TODO: have a small library of assets for each file type and pull a random one when needed?
 		switch (filetype[0]) {
@@ -337,7 +338,7 @@ module.exports = (app) => {
 	})
 
 	// route to list the saved qsets
-	app.use('/mdk/saved_qsets', (req, res) => {
+	app.use('/mwdk/saved_qsets', (req, res) => {
 		const saved_qsets = {};
 
 		const files = fs.readdirSync(qsets);
@@ -357,50 +358,50 @@ module.exports = (app) => {
 	});
 
 	// The play page frame that loads the widget player in an iframe
-	app.get(['/mdk/player/:instance?', '/mdk/preview/:instance?'], (req, res) => {
-		res.locals = Object.assign(res.locals, { template: 'player_mdk', instance: req.params.instance || 'demo'})
+	app.get(['/mwdk/player/:instance?', '/mwdk/preview/:instance?'], (req, res) => {
+		res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.instance || 'demo'})
 		res.render(res.locals.template)
 	});
 
 	// Play Score page
-	app.get('/mdk/scores/demo', (req, res) => {
-		res.locals = Object.assign(res.locals, { template: 'score_mdk'})
+	app.get(['/mwdk/scores/demo', '/mwdk/scores/preview/:id'], (req, res) => {
+		res.locals = Object.assign(res.locals, { template: 'score_mwdk'})
 		res.render(res.locals.template)
 	})
 
 	// The create page frame that loads the widget creator
-	app.get('/mdk/widgets/1-mdk/:instance?', (req, res) => {
-		res.locals = Object.assign(res.locals, {template: 'creator_mdk', instance: req.params.instance || null})
+	app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
+		res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.instance || null})
 		res.render(res.locals.template)
 	});
 
 	// Show the package options
-	app.get('/mdk/package', (req, res) => {
+	app.get('/mwdk/package', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'download'})
 		res.render(res.locals.template)
 	})
 
 	// Build and download the widget file
-	app.get('/mdk/download', (req, res) => {
+	app.get('/mwdk/download', (req, res) => {
 		let { widgetPath, widgetData } = buildWidget()
 		res.set('Content-Disposition', `attachment; filename=${widgetData.clean_name}.wigt`);
 		res.send(fs.readFileSync(widgetPath));
 	});
 
 	// Question importer for creator
-	app.get('/mdk/questions/import/', (req, res) => {
+	app.get('/mwdk/questions/import/', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'question_importer'})
 		res.render(res.locals.template)
 	});
 
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
-	app.get('/mdk/preview_blocked/:instance?', (req, res) => {
+	app.get('/mwdk/preview_blocked/:instance?', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'preview_blocked', instance: req.params.instance || 'demo'})
 		res.render(res.locals.template)
 	});
 
-	app.get('/mdk/install', (req, res) => {
+	app.get('/mwdk/install', (req, res) => {
 		res.write('<html><body><pre>');
 		// Find the docker-compose container for materia-web
 		// 1. lists all containers
@@ -409,7 +410,7 @@ module.exports = (app) => {
 		// 4. pick the container name
 		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-web-base:.* .*phpfpm_\\d" | head -n 1 | cut -d" " -f2');
 		if(!targetImage){
-			throw "MDK Couldn't find a docker container using a 'materia-web' image named 'phpfpm'."
+			throw "MWDK Couldn't find a docker container using a 'materia-web' image named 'phpfpm'."
 		}
 		targetImage = targetImage.toString().trim();
 		res.write(`> Using Docker image '${targetImage}' to install widgets<br/>`);
@@ -422,7 +423,7 @@ module.exports = (app) => {
 		let found = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
 		if(!found){
 			res.write(`</pre><h1>Cant Find Materia</h1>`);
-			throw `MDK Couldn't find the Materia mount on the host system'`
+			throw `MWDK Couldn't find the Materia mount on the host system'`
 		}
 		let materiaPath = found[0].Source;
 		let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
@@ -465,7 +466,7 @@ module.exports = (app) => {
 			res.write("<h2>Something failed!<h2/>");
 		}
 
-		res.write('<a onclick="window.parent.MDK.Package.cancel();"><button>Close</button></a></body></html>');
+		res.write('<a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
 		res.end()
 	});
 
@@ -476,6 +477,14 @@ module.exports = (app) => {
 		const id = JSON.parse(req.body.data)[0][0];
 		res.json(createApiWidgetInstanceData(id));
 	});
+
+	app.use('/api/json/widget_publish_perms_verify', (req, res) => {
+		res.json(true);
+	})
+
+	app.use('/api/json/widget_instance_lock', (req, res) => {
+		res.json(true)
+	})
 
 	app.use('/api/json/widgets_get', (req, res) => {
 		const id = JSON.parse(req.body.data);
@@ -488,7 +497,10 @@ module.exports = (app) => {
 		// load instance, fallback to demo
 		try {
 			const id = JSON.parse(req.body.data)[0];
-			res.send(fs.readFileSync(path.join(qsets, id+'.json')).toString());
+			let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
+			qset = performQSetSubsitutions(qset)
+			qset = JSON.stringify(qset)
+			res.send(qset.toString());
 		} catch (e) {
 			res.json(getDemoQset().qset);
 		}
