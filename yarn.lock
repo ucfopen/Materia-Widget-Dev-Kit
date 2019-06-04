@@ -4136,8 +4136,9 @@ next-tick@^1.0.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
   integrity sha1-yobR/ogoFpsBICCOPchCS524NCw=
 
-"ngmodal@github:ucfcdl/ngModal#v1.2.2":
+ngmodal@ucfcdl/ngModal#v1.2.2:
   version "1.2.2"
+  uid "6abad982bdb8f258ffcdc20316a907c2292399d2"
   resolved "https://codeload.github.com/ucfcdl/ngModal/tar.gz/6abad982bdb8f258ffcdc20316a907c2292399d2"
 
 no-case@^2.2.0:
