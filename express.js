@@ -164,7 +164,7 @@ var createApiWidgetData = (id) => {
 var buildWidget = () => {
 	try{
 		console.log('Building production ready widget')
-		let output = execSync('yarn run build -- -p')
+		let output = execSync('yarn run build')
 	} catch(e) {
 		console.error(e)
 		console.log(output.toString())
@@ -408,7 +408,7 @@ module.exports = (app) => {
 		// 2. filter for materia-web image and named xxxx_phpfpm_1 name
 		// 3. pick the first line
 		// 4. pick the container name
-		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-web-base:.* .*phpfpm_\\d" | head -n 1 | cut -d" " -f2');
+		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-web-base:.* materia-phpfpm" | head -n 1 | cut -d" " -f2');
 		if(!targetImage){
 			throw "MWDK Couldn't find a docker container using a 'materia-web' image named 'phpfpm'."
 		}
