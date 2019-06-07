@@ -175,7 +175,19 @@ const getDefaultRules = () => ({
 		test: /\.coffee$/i,
 		exclude: /node_modules/,
 		loader: ExtractTextPlugin.extract({
-			use: ['raw-loader', 'coffee-loader']
+			use: [
+				'raw-loader',
+				{
+					loader: 'coffee-loader',
+					options: {
+						transpile:{
+							presets: [
+								'@babel/preset-env'
+							]
+						}
+					}
+				}
+			]
 		})
 	},
 	// webpack is going to look at all the images, fonts, etc
