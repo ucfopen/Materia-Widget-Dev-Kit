@@ -68,6 +68,11 @@ body {
 	border-bottom: solid 4px #0093e7;
 }
 
+.tools {
+	margin-top: -12px;
+	float: right;
+}
+
 .creator {
 	margin-left: 0px;
 	margin-top: 200px;
@@ -76,8 +81,12 @@ body {
 }
 
 .center {
-	width: calc(100% - 330px);
-	height: 600px;
+	/*
+	Default to 100% in creator and player
+	In the player, the js will set the size according
+	*/
+	width: 100%;
+	height: 100%;
 }
 
 .center.full {
@@ -102,7 +111,7 @@ body {
 	justify-content: space-around;
 }
 
-#mdk_dialog {
+#mwdk_dialog {
 	position: relative;
 	background: #fff;
 
@@ -112,7 +121,7 @@ body {
 	margin: 0 auto;
 }
 
-#mdk_dialog pre {
+#mwdk_dialog pre {
 	font-size: 10px;
 }
 
@@ -251,4 +260,9 @@ h2 {
 	width: 495px;
 	height: 360px;
 	display: block;
+}
+
+#container {
+	height: 100%;
+	width: 100%;
 }
