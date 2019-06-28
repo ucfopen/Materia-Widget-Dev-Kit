@@ -4,6 +4,7 @@ const webpack = require('webpack')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
 const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
@@ -80,11 +81,11 @@ const combineConfig = (extras = {}) => {
 	const orderedRules = [
 		rules.loaderDoNothingToJs,
 		rules.loaderCompileCoffee,
+		rules.loadAndCompileMarkdown,
 		rules.copyImages,
 		rules.loadHTMLAndReplaceMateriaScripts,
 		rules.loadAndPrefixCSS,
-		rules.loadAndPrefixSASS,
-		rules.loadGuideTemplate
+		rules.loadAndPrefixSASS
 	]
 
 	const pkgConfig = configFromPackage()
@@ -207,7 +208,7 @@ const getDefaultRules = () => ({
 	//
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
-		exclude: /node_modules|_helper-docs/,
+		exclude: /node_modules|_helper-docs|guides/,
 		use: [
 			{
 				loader: 'file-loader',
@@ -262,22 +263,18 @@ const getDefaultRules = () => ({
 			]
 		})
 	},
-	// Load a HTML template for the guide docs
-	// processes inline ${} script in the HTML with `interpolate: true`
-	loadGuideTemplate: {
-		test: /_helper-docs\/.*\.html$/i,
+	loadAndCompileMarkdown: {
+		test: /\.md$/,
 		exclude: /node_modules/,
-		loader: ExtractTextPlugin.extract({
-			use: [
+		use: [
 				{
-					loader: 'html-loader',
+					loader: 'file-loader',
 					options: {
-						interpolate: true,
-						minimize: true
+						name: '[name].html',
+						outputPath: 'guides/'
 					}
-				}
-			]
-		})
+				},
+				'extract-loader','html-loader','markdown-loader']
 	}
 })
 
@@ -323,6 +320,21 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
 			// extract css from the webpack output
 			new ExtractTextPlugin({filename: '[name]'}),
+			// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
+			new CleanWebpackPlugin({
+				cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
+			}),
+			// inject the compiled helper-docs markdown into the templates and re-emit the guides
+			new HtmlWebpackPlugin({
+				chunks: [],
+				template: 'node_modules/materia-widget-development-kit/templates/player-docs-template',
+				filename: 'guides/player.html'
+			}),
+			new HtmlWebpackPlugin({
+				chunks: [],
+				template: 'node_modules/materia-widget-development-kit/templates/creator-docs-template',
+				filename: 'guides/creator.html'
+			}),
 			// zip everything in the build path to zip dir
 			new ZipPlugin({
 				path: `${outputPath}_output`,
