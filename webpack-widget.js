@@ -288,7 +288,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	// load and combine the config
 	let cfg = combineConfig(config)
 
-	return {
+	let build = {
 		stats: {children: false},
 		devServer: {
 			contentBase: outputPath,
@@ -320,6 +320,23 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
 			// extract css from the webpack output
 			new ExtractTextPlugin({filename: '[name]'}),
+			// zip everything in the build path to zip dir
+			new ZipPlugin({
+				path: `${outputPath}_output`,
+				filename: cfg.cleanName,
+				extension: 'wigt'
+			}),
+			new GenerateWidgetHash({
+				widget: `_output/${cfg.cleanName}.wigt`,
+				output: `_output/${cfg.cleanName}-build-info.yml`
+			})
+		]
+	}
+
+	// conditionally add plugins to handle helper-docs if the directory exists in /src
+	if (fs.existsSync(`${srcPath}_helper-docs`))
+	{
+		build.plugins.unshift(
 			// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
 			new CleanWebpackPlugin({
 				cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
@@ -335,18 +352,13 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				template: 'node_modules/materia-widget-development-kit/templates/creator-docs-template',
 				filename: 'guides/creator.html'
 			}),
-			// zip everything in the build path to zip dir
-			new ZipPlugin({
-				path: `${outputPath}_output`,
-				filename: cfg.cleanName,
-				extension: 'wigt'
-			}),
-			new GenerateWidgetHash({
-				widget: `_output/${cfg.cleanName}.wigt`,
-				output: `_output/${cfg.cleanName}-build-info.yml`
-			})
-		]
-	};
+		)		
+	}
+	else {
+		console.warn("No helper docs found, skipping plugins")
+	}
+
+	return build
 }
 
 module.exports = {
