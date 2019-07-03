@@ -11,6 +11,6 @@
 		<script>hljs.initHighlightingOnLoad();</script>
 	</head>
 	<body>
-		<%= compilation.assets['guides/player.html'].source() %>
+		<%= compilation.assets['guides/player.html'] ? compilation.assets['guides/player.html'].source() : '' %>
 	</body>
 </html>
