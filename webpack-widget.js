@@ -208,7 +208,7 @@ const getDefaultRules = () => ({
 	//
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
-		exclude: /node_modules|_helper-docs|guides/,
+		exclude: /node_modules|_guides|guides/,
 		use: [
 			{
 				loader: 'file-loader',
@@ -288,6 +288,8 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	// load and combine the config
 	let cfg = combineConfig(config)
 
+	console.log(cfg)
+
 	let build = {
 		stats: {children: false},
 		devServer: {
@@ -333,15 +335,15 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		]
 	}
 
-	// conditionally add plugins to handle helper-docs if the directory exists in /src
-	if (fs.existsSync(`${srcPath}_helper-docs`))
+	// conditionally add plugins to handle guides if the directory exists in /src
+	if (fs.existsSync(`${srcPath}_guides`))
 	{
 		build.plugins.unshift(
 			// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
 			new CleanWebpackPlugin({
 				cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
 			}),
-			// inject the compiled helper-docs markdown into the templates and re-emit the guides
+			// inject the compiled guides markdown into the templates and re-emit the guides
 			new HtmlWebpackPlugin({
 				chunks: [],
 				template: 'node_modules/materia-widget-development-kit/templates/player-docs-template',
