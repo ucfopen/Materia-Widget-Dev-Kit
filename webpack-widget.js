@@ -288,8 +288,6 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	// load and combine the config
 	let cfg = combineConfig(config)
 
-	console.log(cfg)
-
 	let build = {
 		stats: {children: false},
 		devServer: {
