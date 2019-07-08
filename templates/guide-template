@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Widget Creator Guide</title>
+		<% if (htmlWebpackPlugin.options.filename.includes('creator')) { %>
+        <title>Widget Creator Guide</title>
+        <% } else { %>
+        <title>Widget Player Guide</title>
+        <% } %>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link href="https://fonts.googleapis.com/css?family=Kameron:700&text=0123456789%25" rel="stylesheet" type="text/css" data-src="fonts" />
 		<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,700italic,900&amp;v2" rel="stylesheet" type="text/css" data-src="fonts" />
@@ -11,6 +15,6 @@
 		<script>hljs.initHighlightingOnLoad();</script>
 	</head>
 	<body>
-		<%= compilation.assets['guides/creator.html'] ? compilation.assets['guides/creator.html'].source() : '' %>
+        <%= compilation.assets[htmlWebpackPlugin.options.filename].source() %>
 	</body>
 </html>

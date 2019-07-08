@@ -349,13 +349,13 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			// inject the compiled guides markdown into the templates and re-emit the guides
 			new HtmlWebpackPlugin({
 				chunks: [],
-				template: 'node_modules/materia-widget-development-kit/templates/player-docs-template',
-				filename: 'guides/player.html'
+				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+				filename: 'guides/player.html',
 			}),
 			new HtmlWebpackPlugin({
 				chunks: [],
-				template: 'node_modules/materia-widget-development-kit/templates/creator-docs-template',
-				filename: 'guides/creator.html'
+				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+				filename: 'guides/creator.html',
 			}),
 		)		
 	}
