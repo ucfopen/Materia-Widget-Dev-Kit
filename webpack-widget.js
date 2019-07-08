@@ -4,6 +4,7 @@ const webpack = require('webpack')
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
 const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
@@ -80,11 +81,11 @@ const combineConfig = (extras = {}) => {
 	const orderedRules = [
 		rules.loaderDoNothingToJs,
 		rules.loaderCompileCoffee,
+		rules.loadAndCompileMarkdown,
 		rules.copyImages,
 		rules.loadHTMLAndReplaceMateriaScripts,
 		rules.loadAndPrefixCSS,
-		rules.loadAndPrefixSASS,
-		rules.loadGuideTemplate
+		rules.loadAndPrefixSASS
 	]
 
 	const pkgConfig = configFromPackage()
@@ -207,7 +208,7 @@ const getDefaultRules = () => ({
 	//
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
-		exclude: /node_modules|_helper-docs/,
+		exclude: /node_modules|_guides|guides/,
 		use: [
 			{
 				loader: 'file-loader',
@@ -262,22 +263,18 @@ const getDefaultRules = () => ({
 			]
 		})
 	},
-	// Load a HTML template for the guide docs
-	// processes inline ${} script in the HTML with `interpolate: true`
-	loadGuideTemplate: {
-		test: /_helper-docs\/.*\.html$/i,
+	loadAndCompileMarkdown: {
+		test: /\.md$/,
 		exclude: /node_modules/,
-		loader: ExtractTextPlugin.extract({
-			use: [
+		use: [
 				{
-					loader: 'html-loader',
+					loader: 'file-loader',
 					options: {
-						interpolate: true,
-						minimize: true
+						name: '[name].html',
+						outputPath: 'guides/'
 					}
-				}
-			]
-		})
+				},
+				'extract-loader','html-loader','markdown-loader']
 	}
 })
 
@@ -291,7 +288,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	// load and combine the config
 	let cfg = combineConfig(config)
 
-	return {
+	let build = {
 		stats: {children: false},
 		devServer: {
 			contentBase: outputPath,
@@ -334,7 +331,41 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				output: `_output/${cfg.cleanName}-build-info.yml`
 			})
 		]
-	};
+	}
+
+	// conditionally add plugins to handle guides if the directory exists in /src
+	if (fs.existsSync(`${srcPath}_guides`))
+	{
+		// attach the guideStyles css to the default entry, if used
+		build.entry['guides/guideStyles.css'] = [
+			'./node_modules/materia-widget-development-kit/templates/guideStyles.scss'
+		]
+
+		build.plugins.unshift(
+			// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
+			new CleanWebpackPlugin({
+				cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
+			}),
+			// inject the compiled guides markdown into the templates and re-emit the guides
+			new HtmlWebpackPlugin({
+				chunks: [],
+				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+				filename: 'guides/player.html',
+				htmlTitle: 'Widget Player Guide'
+			}),
+			new HtmlWebpackPlugin({
+				chunks: [],
+				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+				filename: 'guides/creator.html',
+				htmlTitle: 'Widget Creator Guide'
+			}),
+		)		
+	}
+	else {
+		console.warn("No helper docs found, skipping plugins")
+	}
+
+	return build
 }
 
 module.exports = {
