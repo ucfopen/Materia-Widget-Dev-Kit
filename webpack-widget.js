@@ -336,6 +336,11 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	// conditionally add plugins to handle guides if the directory exists in /src
 	if (fs.existsSync(`${srcPath}_guides`))
 	{
+		// attach the guideStyles css to the default entry, if used
+		build.entry['guides/guideStyles.css'] = [
+			'./node_modules/materia-widget-development-kit/templates/guideStyles.scss'
+		]
+
 		build.plugins.unshift(
 			// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
 			new CleanWebpackPlugin({
