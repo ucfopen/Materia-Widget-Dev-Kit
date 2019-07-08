@@ -351,11 +351,13 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				chunks: [],
 				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
 				filename: 'guides/player.html',
+				htmlTitle: 'Widget Player Guide'
 			}),
 			new HtmlWebpackPlugin({
 				chunks: [],
 				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
 				filename: 'guides/creator.html',
+				htmlTitle: 'Widget Creator Guide'
 			}),
 		)		
 	}
