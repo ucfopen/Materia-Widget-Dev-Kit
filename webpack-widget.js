@@ -247,7 +247,7 @@ const getDefaultRules = () => ({
 	// Adds autoprefixer
 	loadAndPrefixSASS: {
 		test: /\.s[ac]ss$/i,
-		exclude: /node_modules/,
+		exclude: /node_modules\/(?!(materia-widget-development-kit\/templates)\/).*/,
 		loader: ExtractTextPlugin.extract({
 			use: [
 				'raw-loader',
