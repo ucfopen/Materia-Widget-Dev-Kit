@@ -3,7 +3,7 @@
   "description": "Materia Widget Development Kit (MWDK) is a local dev environment for quickly building Materia Widgets.",
   "license": "AGPL-3.0",
   "homepage": "https://ucfopen.github.io/Materia-Docs/",
-  "version": "2.4.2-alpha1",
+  "version": "2.4.2",
   "author": "University of Central Florida, Center for Distributed Learning",
   "scripts": {
     "build": "webpack",
