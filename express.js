@@ -7,6 +7,7 @@ const { execSync }    = require('child_process');
 const waitUntil       = require('wait-until-promise').default
 const hoganExpress    = require('hogan-express')
 const uuid            = require('uuid')
+const sharp           = require('sharp')
 
 var webPackMiddleware = false;
 var hasCompiled = false;
@@ -299,6 +300,35 @@ module.exports = (app) => {
 
 	app.get('/mwdk/my-widgets', (req, res) => {
 		res.redirect('/')
+	});
+
+	app.get('/mwdk/icons', (req, res) => {
+		const sizes = [
+			{size: 394, canGenerateLarge: false, canGenerateSmall: true},
+			{size: 275, canGenerateLarge: true, canGenerateSmall: true},
+			{size: 92, canGenerateLarge: true, canGenerateSmall: true},
+			{size: 60, canGenerateLarge: true, canGenerateSmall: true}
+		];
+		res.locals = Object.assign(res.locals, { template: 'icons', sizes: sizes})
+		res.render(res.locals.template)
+	});
+
+	app.get('/mwdk/auto-icon/:size/:double?', (req, res) => {
+		let size = parseInt(req.params.size, 10);
+
+		let writePath = './src/_icons/icon-' + size;
+		if(req.params.double) {
+			size = size * 2;
+			writePath += '@2x';
+		}
+		writePath += '.png';
+
+		const readBuffer = fs.readFileSync('./src/_icons/icon-394@2x.png');
+		sharp(readBuffer)
+			.resize(size, size)
+			.toFile(writePath, (err, info) => {
+				res.redirect('/mwdk/icons')
+			});
 	});
 
 	// Match any MEDIA URLS that get build into our demo.jsons

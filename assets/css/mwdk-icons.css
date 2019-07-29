@@ -1,0 +1,19 @@
+section {
+	background-color: #a3a3a3;
+	border-radius: 20px;
+	padding: 5px;
+	margin: 5px;
+}
+
+section:nth-child(even) {
+	background-color: #cbcbcb;
+}
+
+h2, h3 {
+	text-align: center;
+}
+
+.icons {
+	display: flex;
+	justify-content: space-around;
+}

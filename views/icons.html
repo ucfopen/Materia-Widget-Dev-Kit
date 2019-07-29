@@ -1,0 +1,50 @@
+<link rel='stylesheet' href='/mwdk/assets/css/mwdk-icons.css' type='text/css' />
+
+<div id="topbar">
+	<a class='logo' href='/'>Materia Widget Developer Kit</a>
+</div>
+<p>
+	Materia widgets are required to have eight icons in sets of two.
+	The largest icon required must be <strong>icon-394@2x</strong>,
+	and the icon must be 788x788 pixels in size.
+</p>
+<p>
+	This page will display all of the icons your widget requires
+	and allow you to automatically generate icons from the 394x2 size.
+</p>
+<p>
+	Be aware that any icons automatically generated will automatically
+	overwrite any files of that size, if they already exist.
+</p>
+
+{{#sizes}}
+<section>
+		<h2>{{ size }}</h2>
+		<div class='icons'>
+			<div>
+				<h3>
+					X2
+					{{#canGenerateLarge}}
+					<a href='/mwdk/auto-icon/{{size}}/double'>
+						Generate Automatically
+					</a>
+					{{/canGenerateLarge}}
+				</h3>
+				<img src='/img/icon-{{size}}@2x.png' />
+			</div>
+			<div>
+				<h3>
+					Standard
+					{{#canGenerateSmall}}
+					<a href='/mwdk/auto-icon/{{size}}'>
+						Generate Automatically
+					</a>
+					{{/canGenerateSmall}}
+				</h3>
+				<img src='/img/icon-{{size}}.png' />
+			</div>
+		</div>
+	</section>
+{{/sizes}}
+
+
