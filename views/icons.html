@@ -4,41 +4,42 @@
 	<a class='logo' href='/'>Materia Widget Developer Kit</a>
 </div>
 <p>
-	Materia widgets are required to have eight icons in sets of two.
-	The largest icon required must be <strong>icon-394@2x</strong>,
+	Materia widgets are required to have eight icons in the <strong>src/_icons</strong> folder.
+</p>
+<p>
+	The largest icon required must be named <strong>icon-394@2x.png</strong>,
 	and the icon must be 788x788 pixels in size.
 </p>
 <p>
 	This page will display all of the icons your widget requires
-	and allow you to automatically generate icons from the 394x2 size.
+	and allow you to automatically generate icons based on the largest required size.
 </p>
 <p>
 	Be aware that any icons automatically generated will automatically
 	overwrite any files of that size, if they already exist.
 </p>
 
+<p>
+	<a href="/mwdk/auto-icon/all/"><button class='orange edit_button'>Generate All</button></a>
+</p>
+
 {{#sizes}}
 <section>
-		<h2>{{ size }}</h2>
 		<div class='icons'>
 			<div>
 				<h3>
-					X2
+					{{ x2 }} x {{ x2 }}
 					{{#canGenerateLarge}}
-					<a href='/mwdk/auto-icon/{{size}}/double'>
-						Generate Automatically
-					</a>
+					<a href='/mwdk/auto-icon/{{size}}/double'><button class='orange edit_button'>Generate</button></a>
 					{{/canGenerateLarge}}
 				</h3>
 				<img src='/img/icon-{{size}}@2x.png' />
 			</div>
 			<div>
 				<h3>
-					Standard
+					{{ size }} x {{ size }}
 					{{#canGenerateSmall}}
-					<a href='/mwdk/auto-icon/{{size}}'>
-						Generate Automatically
-					</a>
+					<a href='/mwdk/auto-icon/{{size}}'><button class='orange edit_button'>Generate</button></a>
 					{{/canGenerateSmall}}
 				</h3>
 				<img src='/img/icon-{{size}}.png' />
