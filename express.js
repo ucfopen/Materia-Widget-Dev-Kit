@@ -291,7 +291,6 @@ module.exports = (app) => {
 
 	// Display index page
 	app.get('/', (req, res) => {
-		console.log("butts")
 		res.locals = Object.assign(res.locals, {template: 'index', title: getWidgetTitle()})
 		res.render(res.locals.template)
 	});

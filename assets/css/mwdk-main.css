@@ -19,6 +19,36 @@ body {
 	text-decoration: none;
 }
 
+.mwdk-home {
+	display: block;
+	width: 800px;
+	margin-left: auto;
+	margin-right: auto;
+	background: #ffffff;
+	border: solid 1px #0093e7;
+}
+
+.mwdk-home img {
+	display: inline-block;
+	margin: 10px;
+}
+
+
+.mwdk-home aside {
+	display: inline-block;
+	width: 470px;
+	padding: 15px;
+	vertical-align: top;
+}
+
+.mwdk-home aside .edit_button {
+	font-size: 1.3em;
+}
+
+.mwdk-home .title {
+	font-size: 1.5em;
+}
+
 #leftbar {
 	width: 250px;
 	background: #333;
@@ -267,17 +297,25 @@ h2 {
 	width: 100%;
 }
 
-#annotation-button button {
+.helper-button button {
 	margin-right: 6px;
 	margin-bottom: 15px;
 	padding: 6px;
 
-	font-size: 1.2em;
+	font-size: 1.1em;
 	color: #000;
 
-	border: solid 1px #909090;
+	border: solid 1px #9bb827;
 	border-radius: 4px;
 	background: #c4dd61;
+	background-image: -webkit-linear-gradient(top, #ddee99, #c4dd61);
+	background-image: -o-linear-gradient(top, #ddee99, #c4dd61);
+	background-image: -moz-linear-gradient(top, #ddee99, #c4dd61);
+	background-image: -ms-linear-gradient(top, #ddee99, #c4dd61);
+
+	-moz-box-shadow: 1px 2px 4px #888;
+	-webkit-box-shadow: 1px 2px 4px #888;
+	box-shadow: 1px 2px 4px #888;
 
 	cursor: pointer;
 }
