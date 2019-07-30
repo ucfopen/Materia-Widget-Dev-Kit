@@ -291,6 +291,7 @@ module.exports = (app) => {
 
 	// Display index page
 	app.get('/', (req, res) => {
+		console.log("butts")
 		res.locals = Object.assign(res.locals, {template: 'index', title: getWidgetTitle()})
 		res.render(res.locals.template)
 	});
@@ -398,6 +399,11 @@ module.exports = (app) => {
 	// @TODO im not sure this is used?
 	app.get('/mwdk/preview_blocked/:instance?', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'preview_blocked', instance: req.params.instance || 'demo'})
+		res.render(res.locals.template)
+	});
+
+	app.get('/mwdk/helper/annotations', (req, res) => {
+		res.locals = Object.assign(res.locals, {template: 'helper-annotator', title: 'annotate yo widget'})
 		res.render(res.locals.template)
 	});
 

@@ -1,0 +1,26 @@
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.9/angular.min.js"></script>
+<script src="/mwdk/assets/js/materia.js"></script>
+
+<div id="topbar">
+	<a class='logo' href='/'>Materia Widget Developer Kit</a>
+</div>
+
+<div class="helper-content">
+    <p>Pick a screenshot</p>
+    <div class="screenshot-selection">
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(1);"><img src='/img/screen-shots/1.png' /></span>
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(2);"><img src='/img/screen-shots/2.png' /></span>
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(3);"><img src='/img/screen-shots/3.png' /></span>
+    </div>
+    <p id="debug"></p>
+    <div id="toolbox">
+        <button id="place-number" onclick="MWDK.Helpers.placeNumberAnnotation();">Place a Number</button>
+        <button id="place-box" onclick="MWDK.Helpers.placeBox();">Draw a Box</button>
+        <a id="download-image" onclick="MWDK.Helpers.saveAsImage();" href="#">Export!</a>
+    </div>
+    <canvas id="annotation-editor">
+    </canvas>
+    <p id="tips"></p>
+</div>
+
+<script src='/mwdk/mwdk-assets/js/mwdk-helpers.js'></script>

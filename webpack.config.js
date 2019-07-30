@@ -15,6 +15,9 @@ module.exports = [
 			'mwdk-package.js': [
 				path.join(mwdkSrcPath, 'mwdk.package.js'),
 			],
+			'mwdk-helpers.js': [
+				path.join(mwdkSrcPath, 'mwdk.helpers.js')
+			]
 		},
 
 		// write files to the outputPath (default = ./build) using the object keys from 'entry' above
