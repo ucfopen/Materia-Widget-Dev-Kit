@@ -6,11 +6,13 @@
 </div>
 
 <div class="helper-content">
-    <p>Pick a screenshot</p>
+    <h3>Screenshot Annotation Tool for Widget Guides</h3>
+    <p id="instructions">Select one of the screenshots below or choose to upload your own. You can place numerical annotations or rounded boxes. Click and drag to move them around. Hold CMD and select an annotation to delete it.</p>
+    <input id="local-upload-button" type="file" />
     <div class="screenshot-selection">
-        <span class="img-selection" onclick="MWDK.Helpers.selectImage(1);"><img src='/img/screen-shots/1.png' /></span>
-        <span class="img-selection" onclick="MWDK.Helpers.selectImage(2);"><img src='/img/screen-shots/2.png' /></span>
-        <span class="img-selection" onclick="MWDK.Helpers.selectImage(3);"><img src='/img/screen-shots/3.png' /></span>
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(null,1);"><img src='/img/screen-shots/1.png' /></span>
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(null,2);"><img src='/img/screen-shots/2.png' /></span>
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(null,3);"><img src='/img/screen-shots/3.png' /></span>
     </div>
     <p id="debug"></p>
     <div id="toolbox">

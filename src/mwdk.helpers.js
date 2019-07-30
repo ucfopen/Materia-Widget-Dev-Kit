@@ -1,3 +1,6 @@
+// this file was rapidly put together for UCF Hack Day
+// It's not exactly optimized, but it's at least functional
+
 Namespace('MWDK').Helpers = (() => {
 
     var shouldRefresh = false
@@ -48,11 +51,12 @@ Namespace('MWDK').Helpers = (() => {
                 context.fill()
 
                 context.fillStyle = "white"
-                context.font = "28px Helvetica"
-                context.fillText(annotation.increment+1, annotation.x-8,annotation.y+9)
+                context.font = "26px Helvetica"
+                context.fillText(annotation.increment+1, annotation.x-7,annotation.y+9)
         }
-        }
+    }
 
+    // object definitions
     function Annotation(inc){
         this.increment = inc
         this.x = 30
@@ -69,9 +73,33 @@ Namespace('MWDK').Helpers = (() => {
         this.stroke = "#4e88ef"
     }
 
-    var selectImage = (index) => {
+    // listener for file upload button
+    document.getElementById("local-upload-button").addEventListener("change", (event) => {
+
+        let reader = new FileReader()
+
+        reader.onload = (e) => {
+            let img = new Image();
+            img.addEventListener("load", (e) => {
+                selectImage(img, null)
+            });
+            img.src = e.target.result;
+        }
+
+        reader.readAsDataURL(event.target.files[0])
+    })
+
+    // upload = local image upload
+    // index = index of screenshot (if selected from screenshot selection)
+    var selectImage = (upload, index) => {
         document.getElementById("tips").innerHTML = ""
-        selectedImage = document.getElementsByClassName("img-selection")[index-1].childNodes[0]
+
+        if (upload) {
+            selectedImage = upload
+        }
+        else {
+            selectedImage = document.getElementsByClassName("img-selection")[index-1].childNodes[0]
+        }        
 
         canvas.width = selectedImage.width
         canvas.height = selectedImage.height
@@ -100,6 +128,8 @@ Namespace('MWDK').Helpers = (() => {
         increment++
     }
 
+    // save the canvas as an image
+    // NOTE: pretty sure this only works with Webkit browsers
     var saveAsImage = () => {
         if (selectedImage == null) {
             document.getElementById("tips").innerHTML = "You need to select an image first!"
@@ -112,11 +142,13 @@ Namespace('MWDK').Helpers = (() => {
         button.href = dataURL;
     }
 
+    // Handler for mousedown on the canvas element, behavior is contextual
     canvas.addEventListener("mousedown", (event) => {
         if (!shouldRefresh) return
         let x = event.pageX - canvas.offsetLeft
         let y = event.pageY - canvas.offsetTop
 
+        // "Draw box" button clicked, so let's start drawing a box at this location
         if (drawBoxMode == mode_pending) {
             let box = new Box(x, y)
             boxes.push(box)
@@ -124,30 +156,33 @@ Namespace('MWDK').Helpers = (() => {
         }
 
         // annotations have selection priority over boxes
+        // loop through all annotations and check if click coords exist within the annotation's bounding box
         for (let j = 0; j < annotations.length; j++) {
             let annotation = annotations[j]
             if (y > annotation.y - 15 && y < annotation.y + 15 && x > annotation.x - 15 && x < annotation.x + 15) {
 
+                // delete the annotation if deleteMode is active
                 if (deleteModeActive) {
                     annotations.splice(j, 1)
                     return // prevents boxes under this coordinate from being selected too
                 }
                 else {
-                    console.log("annotation target set to: " +j)
                     dragAnnotationTarget = j
                     return
                 }                
             }
         }
 
+        // loop through all boxes and check if click coords are within one of the boxes
         for (let i = 0; i < boxes.length; i++) {
             let box = boxes[i]
             if (x > box.startX && x < box.endX && y > box.startY && y < box.endY) {
-                if (deleteModeActive) {
+               
+                if (deleteModeActive) {  // delete if modifier key is held
                     boxes.splice(i, 1)
                     return
                 }
-                else {
+                else { // start dragging
                     drawBoxMode = mode_dragging
                     dragBoxTarget = i
                     dragBoxDelta.x = x
@@ -158,6 +193,8 @@ Namespace('MWDK').Helpers = (() => {
         }
     })
 
+    // mouseup handler for canvas element
+    // again, contextual
     canvas.addEventListener("mouseup", (event) => {
         if (!shouldRefresh) return
         
@@ -177,6 +214,7 @@ Namespace('MWDK').Helpers = (() => {
         
     })
 
+    // drag either an annotation or box if required
     canvas.addEventListener("mousemove", (event) => {
         if (!shouldRefresh) return
 
@@ -226,6 +264,7 @@ Namespace('MWDK').Helpers = (() => {
         }
     })
 
+    // there isn't an out-of-the-box rounded rectangle function, so we have to draw it manually
     function drawBox(context, startX, startY, endX, endY) {
         let radius = {tl: 5, tr: 5, br: 5, bl: 5}
 
@@ -249,6 +288,7 @@ Namespace('MWDK').Helpers = (() => {
         context.stroke()
     }
 
+    // refresh the canvas based on the time interval (in milliseconds)
     setInterval(drawCanvas, 20)
 
     return {

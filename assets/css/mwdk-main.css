@@ -278,12 +278,26 @@ h2 {
 	border: solid 1px #909090;
 	border-radius: 4px;
 	background: #c4dd61;
+
+	cursor: pointer;
 }
 
 .helper-content {
 	width: 960px;
 	margin-left: auto;
 	margin-right: auto;
+}
+
+.helper-content #instructions {
+	display: inline-block;
+	width: 75%;
+}
+
+.helper-content #local-upload-button {
+	float: right;
+	width: 20%;
+	margin-top: 15px;
+	margin-left: 5%;
 }
 
 .helper-content .screenshot-selection {
