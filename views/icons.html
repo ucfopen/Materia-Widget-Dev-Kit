@@ -3,6 +3,9 @@
 <div id="topbar">
 	<a class='logo' href='/'>Materia Widget Developer Kit</a>
 </div>
+
+<h2>Icon List</h2>
+
 <p>
 	Materia widgets are required to have eight icons in the <strong>src/_icons</strong> folder.
 </p>
@@ -18,13 +21,17 @@
 	Be aware that any icons automatically generated will automatically
 	overwrite any files of that size, if they already exist.
 </p>
+<p>
+	The larger icon in each set may be clicked to expand it to its true size.
+</p>
 
 <p>
 	<a href="/mwdk/auto-icon/all/"><button class='orange edit_button'>Generate All</button></a>
 </p>
 
-{{#sizes}}
-<section>
+<section id='sets'>
+	{{#sizes}}
+	<section>
 		<div class='icons'>
 			<div>
 				<h3>
@@ -33,7 +40,7 @@
 					<a href='/mwdk/auto-icon/{{size}}/double'><button class='orange edit_button'>Generate</button></a>
 					{{/canGenerateLarge}}
 				</h3>
-				<img src='/img/icon-{{size}}@2x.png' />
+				<img class='size_{{size}} large' src='/img/icon-{{size}}@2x.png' />
 			</div>
 			<div>
 				<h3>
@@ -46,6 +53,16 @@
 			</div>
 		</div>
 	</section>
-{{/sizes}}
+	{{/sizes}}
+</section>
 
+<script>
+	var toggleExpanded = function(event) {
+		event.target.classList.toggle('expanded');
+	};
 
+	var largeImages = document.getElementsByClassName('large');
+	for(var i = 0; i < largeImages.length; i++) {
+		largeImages[i].addEventListener('click', toggleExpanded);
+	}
+</script>
