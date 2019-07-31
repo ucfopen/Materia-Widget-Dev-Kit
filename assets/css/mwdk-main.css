@@ -46,7 +46,7 @@ body {
 }
 
 .mwdk-home .title {
-	font-size: 1.5em;
+	font-size: 1.8em;
 }
 
 #leftbar {
@@ -318,6 +318,14 @@ h2 {
 	box-shadow: 1px 2px 4px #888;
 
 	cursor: pointer;
+}
+
+.helper-button button:hover {
+	background: #ddee99;
+	background-image: -webkit-linear-gradient(top, #c4dd61, #ddee99);
+	background-image: -o-linear-gradient(top, #c4dd61, #ddee99);
+	background-image: -moz-linear-gradient(top, #c4dd61, #ddee99);
+	background-image: -ms-linear-gradient(top, #c4dd61, #ddee99);
 }
 
 .helper-content {

@@ -15,7 +15,7 @@ Namespace('MWDK').Helpers = (() => {
     var dragBoxTarget = -1
     var dragBoxDelta = { x: 0, y: 0}
 
-    var increment = 0
+    var increment = 9
     
     var annotations = []
     var boxes = []
@@ -45,14 +45,23 @@ Namespace('MWDK').Helpers = (() => {
 
         // then draw annotations
         for (annotation of annotations) {
-                context.beginPath()
-                context.arc(annotation.x, annotation.y, annotation.r, 0, 2 * Math.PI);
-                context.fillStyle = "#4e88ef"
-                context.fill()
+            context.beginPath()
+            context.arc(annotation.x, annotation.y, annotation.r, 0, 2 * Math.PI);
+            context.fillStyle = "#4e88ef"
+            context.fill()
 
-                context.fillStyle = "white"
+            context.fillStyle = "white"
+            if (annotation.increment < 9) {
+                // single character positioning
                 context.font = "26px Helvetica"
                 context.fillText(annotation.increment+1, annotation.x-7,annotation.y+9)
+            }
+            else
+            {
+                // double character positioning - not smart and will look off due to variable width of certain number combos
+                context.font= "21px Helvetica"
+                context.fillText(annotation.increment+1, annotation.x-12, annotation.y+7)
+            }
         }
     }
 
@@ -68,8 +77,8 @@ Namespace('MWDK').Helpers = (() => {
     function Box(x, y) {
         this.startX = x
         this.startY = y
-        this.endX = x
-        this.endY = y
+        this.endX = x + 5
+        this.endY = y + 5
         this.stroke = "#4e88ef"
     }
 
@@ -221,12 +230,17 @@ Namespace('MWDK').Helpers = (() => {
         let x = event.pageX - canvas.offsetLeft
         let y = event.pageY - canvas.offsetTop
 
+        // drawing a box
         if (drawBoxMode == mode_drawing) {
             let index = boxes.length - 1
-            boxes[index].endX = x
-            boxes[index].endY = y
+            // disallow boxes to be drawn with negative (relative) endX and endY values, which breaks them
+            if (x < boxes[index].startX + 10) boxes[index].endX = boxes[index].startX + 10
+            else boxes[index].endX = x
+            if (y < boxes[index].startY + 10) boxes[index].endY = boxes[index].startY + 10
+            else boxes[index].endY = y
         }
-
+        
+        // dragging an already drawn box
         else if (drawBoxMode == mode_dragging) {
             let dx = x - dragBoxDelta.x
             let dy = y - dragBoxDelta.y
@@ -240,6 +254,7 @@ Namespace('MWDK').Helpers = (() => {
             dragBoxDelta.y = y
         }
 
+        // dragging an annotation
         else if (dragAnnotationTarget != -1) {
             annotations[dragAnnotationTarget].x = x
             annotations[dragAnnotationTarget].y = y
