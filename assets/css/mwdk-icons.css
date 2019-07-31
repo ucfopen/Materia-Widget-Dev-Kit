@@ -1,0 +1,76 @@
+p {
+	margin-left: 5px;
+}
+
+#sets {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+#sets section {
+	background-color: #a3a3a3;
+	border-radius: 20px;
+	padding: 5px;
+	margin: 5px;
+}
+
+#sets section:nth-child(even) {
+	background-color: #cbcbcb;
+}
+
+h3 {
+	text-align: center;
+	height: 60px;
+	margin: 5px 0;
+}
+
+h3 a {
+	display: block;
+	width: 90px;
+	margin: 0 auto;
+}
+
+a .edit_button {
+	margin: 0;
+}
+
+.icons {
+	display: flex;
+}
+
+.icons div:first-child {
+	margin-right: 5px;
+}
+
+.large {
+	cursor: pointer;
+	transition: width .25s ease-in-out;
+}
+
+.size_394 {
+	width: 394px;
+}
+.size_394.large.expanded {
+	width: 788px;
+}
+
+.size_275 {
+	width: 275px;
+}
+.size_275.large.expanded {
+	width: 550px;
+}
+
+.size_92 {
+	width: 92px;
+}
+.size_92.large.expanded {
+	width: 184px;
+}
+
+.size_60 {
+	width: 60px;
+}
+.size_60.large.expanded {
+	width: 120px;
+}

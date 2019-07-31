@@ -9,7 +9,6 @@ const ZipPlugin = require('zip-webpack-plugin')
 const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 
-
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
@@ -345,21 +344,32 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
 			new CleanWebpackPlugin({
 				cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
-			}),
-			// inject the compiled guides markdown into the templates and re-emit the guides
-			new HtmlWebpackPlugin({
-				chunks: [],
-				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
-				filename: 'guides/player.html',
-				htmlTitle: 'Widget Player Guide'
-			}),
-			new HtmlWebpackPlugin({
-				chunks: [],
-				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
-				filename: 'guides/creator.html',
-				htmlTitle: 'Widget Creator Guide'
-			}),
-		)		
+			})
+		)
+
+		// inject the compiled guides markdown into the templates and re-emit the guides
+		if (fs.existsSync(`${outputPath}guides/creator.temp.html`))
+		{
+			build.plugins.unshift(
+				new HtmlWebpackPlugin({
+					chunks: [],
+					template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+					filename: 'guides/creator.html',
+					htmlTitle: 'Widget Creator Guide'
+				})
+			)
+		}
+		if (fs.existsSync(`${outputPath}guides/player.temp.html`))
+		{
+			build.plugins.unshift(
+				new HtmlWebpackPlugin({
+					chunks: [],
+					template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+					filename: 'guides/player.html',
+					htmlTitle: 'Widget Player Guide'
+				})
+			)
+		}
 	}
 	else {
 		console.warn("No helper docs found, skipping plugins")
