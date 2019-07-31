@@ -450,6 +450,11 @@ module.exports = (app) => {
 		res.render(res.locals.template)
 	});
 
+	app.get('/mwdk/helper/annotations', (req, res) => {
+		res.locals = Object.assign(res.locals, {template: 'helper-annotator', title: 'annotate yo widget'})
+		res.render(res.locals.template)
+	});
+
 	app.get('/mwdk/install', (req, res) => {
 		res.write('<html><body><pre>');
 		// Find the docker-compose container for materia-web

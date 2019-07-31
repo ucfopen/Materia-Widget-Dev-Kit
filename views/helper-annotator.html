@@ -1,0 +1,28 @@
+<script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.9/angular.min.js"></script>
+<script src="/mwdk/assets/js/materia.js"></script>
+
+<div id="topbar">
+	<a class='logo' href='/'>Materia Widget Developer Kit</a>
+</div>
+
+<div class="helper-content">
+    <h3>Screenshot Annotation Tool for Widget Guides</h3>
+    <p id="instructions">Select one of the screenshots below or choose to upload your own. You can place numerical annotations or rounded boxes. Click and drag to move them around. Hold CMD and select an annotation to delete it.</p>
+    <input id="local-upload-button" type="file" />
+    <div class="screenshot-selection">
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(null,1);"><img src='/img/screen-shots/1.png' /></span>
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(null,2);"><img src='/img/screen-shots/2.png' /></span>
+        <span class="img-selection" onclick="MWDK.Helpers.selectImage(null,3);"><img src='/img/screen-shots/3.png' /></span>
+    </div>
+    <p id="debug"></p>
+    <div id="toolbox">
+        <button id="place-number" onclick="MWDK.Helpers.placeNumberAnnotation();">Place a Number</button>
+        <button id="place-box" onclick="MWDK.Helpers.placeBox();">Draw a Box</button>
+        <a id="download-image" onclick="MWDK.Helpers.saveAsImage();" href="#">Export!</a>
+    </div>
+    <canvas id="annotation-editor">
+    </canvas>
+    <p id="tips"></p>
+</div>
+
+<script src='/mwdk/mwdk-assets/js/mwdk-helpers.js'></script>
