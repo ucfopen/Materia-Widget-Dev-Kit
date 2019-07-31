@@ -15,7 +15,7 @@ Namespace('MWDK').Helpers = (() => {
     var dragBoxTarget = -1
     var dragBoxDelta = { x: 0, y: 0}
 
-    var increment = 9
+    var increment = 0
     
     var annotations = []
     var boxes = []
@@ -124,7 +124,7 @@ Namespace('MWDK').Helpers = (() => {
             return
         }
         drawBoxMode = mode_pending
-        document.getElementById("tips").innerHTML = "Click and drag to start drawing a box."
+        document.getElementById("tips").innerHTML = "Click and drag (left-to-right) to start drawing a box."
     }
 
     var placeNumberAnnotation = () => {
