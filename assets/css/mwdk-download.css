@@ -31,3 +31,40 @@ body#download #build-commands{
 body#download #download_button{
 	margin-right:20px;
 }
+
+body#download #preflight-checklist-container{
+	display: block;
+	text-align: center;
+}
+
+body#download #preflight-checklist{
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	margin: 0 auto;
+}
+
+body#download #preflight-checklist > span.action{
+	display: block;
+	margin-left: 20px;
+	font-size: 12px;
+}
+
+body#download #preflight-checklist > span:before{
+	display: inline-block;
+	text-align: left;
+	width: 20px;
+}
+
+body#download #preflight-checklist > span:not(.action).pass:before{
+	content: "✔";
+	color: green;
+}
+body#download #preflight-checklist > span:not(.action).fail:before{
+	content: "X";
+	color: red;
+}
+body#download #preflight-checklist > span:not(.action).unknown:before{
+	content: "?";
+	color: orange;
+}
