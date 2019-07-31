@@ -7,6 +7,7 @@ const { execSync }    = require('child_process');
 const waitUntil       = require('wait-until-promise').default
 const hoganExpress    = require('hogan-express')
 const uuid            = require('uuid')
+const sharp           = require('sharp')
 
 var webPackMiddleware = false;
 var hasCompiled = false;
@@ -255,6 +256,20 @@ var getQuestion = (ids) => {
 	return qlist;
 };
 
+var resizeImage = (size, double) => {
+	let writePath = './src/_icons/icon-' + size;
+	if(double) {
+		size = size * 2;
+		writePath += '@2x';
+	}
+	writePath += '.png';
+
+	const readBuffer = fs.readFileSync('./src/_icons/icon-394@2x.png');
+	return sharp(readBuffer)
+	.resize(size, size)
+	.toFile(writePath);
+}
+
 // app is passed a reference to the webpack dev server (Express.js)
 module.exports = (app) => {
 
@@ -299,6 +314,40 @@ module.exports = (app) => {
 
 	app.get('/mwdk/my-widgets', (req, res) => {
 		res.redirect('/')
+	});
+
+	app.get('/mwdk/icons', (req, res) => {
+		const sizes = [
+			{size: 394, x2: 394*2, canGenerateLarge: false, canGenerateSmall: true},
+			{size: 275, x2: 275*2, canGenerateLarge: true, canGenerateSmall: true},
+			{size: 92, x2: 92*2, canGenerateLarge: true, canGenerateSmall: true},
+			{size: 60, x2: 60*2, canGenerateLarge: true, canGenerateSmall: true}
+		];
+		res.locals = Object.assign(res.locals, { template: 'icons', sizes: sizes})
+		res.render(res.locals.template)
+	});
+
+
+
+	app.get('/mwdk/auto-icon/:size/:double?', (req, res) => {
+		if(req.params.size === 'all') {
+			const sizes = [394, 275, 275, 92, 92, 60, 60];
+			var flipFlop = true;
+			let resizePromises = sizes.map(size => {
+				flipFlop = !flipFlop;
+				return resizeImage(size, size < 394 && flipFlop);
+			})
+
+			Promise.all(resizePromises)
+			.then(() => {
+				res.redirect('/mwdk/icons')
+			});
+		} else {
+			resizeImage(parseInt(req.params.size, 10), req.params.double)
+			.then(() => {
+				res.redirect('/mwdk/icons')
+			});
+		}
 	});
 
 	// Match any MEDIA URLS that get build into our demo.jsons
