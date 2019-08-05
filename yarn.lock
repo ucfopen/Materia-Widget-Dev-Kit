@@ -3933,10 +3933,10 @@ marked@^0.6.0:
   resolved "https://registry.yarnpkg.com/marked/-/marked-0.6.2.tgz#c574be8b545a8b48641456ca1dbe0e37b6dccc1a"
   integrity sha512-LqxwVH3P/rqKX4EKGz7+c2G9r98WeM/SW34ybhgNGhUQNKtf1GmmSkJ6cDGJ/t6tiyae49qRkpyTw2B9HOrgUA==
 
-materia-server-client-assets@2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/materia-server-client-assets/-/materia-server-client-assets-2.0.0.tgz#341df286e4e4611e9fa9da943e2e76e0adb8d3b4"
-  integrity sha512-Mfg5cfSHMb3R0yOgsem+m87gc96+cJ/iQyADiopQmf3+nvhejthJx9fdja/lVw4BunXESRHDy41+SMyWtwaMiw==
+materia-server-client-assets@2.1.0-alpha1:
+  version "2.1.0-alpha1"
+  resolved "https://registry.yarnpkg.com/materia-server-client-assets/-/materia-server-client-assets-2.1.0-alpha1.tgz#f1a9c73b1fec831e0bef822c9f1d1ac9af285da8"
+  integrity sha512-dRQCzxJfW/rrEmMS/+ko9mM3R3pfoMFJoqFlCjz55bco3g7JCtgQKY8H6cZY+D99+F1KM0EGbq7Ad/mF79/v4A==
   dependencies:
     angular "1.6.9"
     js-snakecase "^1.2.0"
@@ -4228,7 +4228,7 @@ next-tick@^1.0.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
   integrity sha1-yobR/ogoFpsBICCOPchCS524NCw=
 
-ngmodal@ucfcdl/ngModal#v1.2.2:
+"ngmodal@github:ucfcdl/ngModal#v1.2.2":
   version "1.2.2"
   resolved "https://codeload.github.com/ucfcdl/ngModal/tar.gz/6abad982bdb8f258ffcdc20316a907c2292399d2"
 
