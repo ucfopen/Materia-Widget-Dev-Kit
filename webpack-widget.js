@@ -348,7 +348,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		)
 
 		// inject the compiled guides markdown into the templates and re-emit the guides
-		if (fs.existsSync(`${outputPath}guides/creator.temp.html`))
+		if (fs.existsSync(`${srcPath}_guides/creator.md`))
 		{
 			build.plugins.unshift(
 				new HtmlWebpackPlugin({
@@ -359,7 +359,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				})
 			)
 		}
-		if (fs.existsSync(`${outputPath}guides/player.temp.html`))
+		if (fs.existsSync(`${srcPath}_guides/player.md`))
 		{
 			build.plugins.unshift(
 				new HtmlWebpackPlugin({
