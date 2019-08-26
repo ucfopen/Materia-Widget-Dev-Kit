@@ -364,13 +364,33 @@ h2 {
 	height: 150px;
 	margin-right: 10px;
 	vertical-align: top;
-	cursor: pointer;
-	/* border: solid 1px #0093e7; */
+	cursor: pointer;	
+}
+
+.helper-content .img-selection:nth-child(1) {
+	background: url('/img/screen-shots/1.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+.helper-content .img-selection:nth-child(2) {
+	background: url('/img/screen-shots/2.png');
+	background-size: contain;
+	background-repeat: no-repeat;
+}
+
+.helper-content .img-selection:nth-child(3) {
+	background: url('/img/screen-shots/3.png');
+	background-size: contain;
+	background-repeat: no-repeat;
 }
 
 .helper-content .img-selection img {
+	display: none;
 	transform-origin: left top;
 	transform: scale(0.25);
+	/* max-width: 200px;
+	max-height: 150px; */
 }
 
 .helper-content #toolbox {
