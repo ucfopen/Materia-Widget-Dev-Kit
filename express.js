@@ -330,24 +330,27 @@ module.exports = (app) => {
 
 
 	app.get('/mwdk/auto-icon/:size/:double?', (req, res) => {
-		if(req.params.size === 'all') {
-			const sizes = [394, 275, 275, 92, 92, 60, 60];
-			var flipFlop = true;
-			let resizePromises = sizes.map(size => {
-				flipFlop = !flipFlop;
-				return resizeImage(size, size < 394 && flipFlop);
-			})
+		let regularSizes = [60, 92, 275, 394]
+		let doubleSizes = [60, 92, 275]
 
-			Promise.all(resizePromises)
-			.then(() => {
-				res.redirect('/mwdk/icons')
-			});
-		} else {
-			resizeImage(parseInt(req.params.size, 10), req.params.double)
-			.then(() => {
-				res.redirect('/mwdk/icons')
-			});
+		if(req.params.size !== 'all') {
+			const size = parseInt(req.params.size, 10)
+			const isDouble = Boolean(req.params.double)
+
+			// double sized or not?
+			regularSizes = isDouble ? [] : [size]
+			doubleSizes = isDouble ? [size] : []
 		}
+
+		const resizePromises = [
+			...regularSizes.map(size => resizeImage(size, false)),
+			...doubleSizes.map(size => resizeImage(size, true))
+		]
+
+		Promise.all(resizePromises)
+		.then(() => {
+			res.redirect('/mwdk/icons')
+		});
 	});
 
 	// Match any MEDIA URLS that get build into our demo.jsons

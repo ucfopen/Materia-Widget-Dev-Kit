@@ -3,314 +3,335 @@
 
 Namespace('MWDK').Helpers = (() => {
 
-    var shouldRefresh = false
-    var dragAnnotationTarget = -1
+	let shouldRefresh = false
+	let dragAnnotationTarget = -1
 
-    const mode_none = "box_none"
-    const mode_pending = "box_pending"
-    const mode_drawing = "box_drawing"
-    const mode_dragging = "box_dragging"
+	const MODE_NONE = "box_none"
+	const MODE_PENDING = "box_pending"
+	const MODE_DRAWING = "box_drawing"
+	const MODE_DRAGGING = "box_dragging"
 
-    var drawBoxMode = mode_none
-    var dragBoxTarget = -1
-    var dragBoxDelta = { x: 0, y: 0}
+	let drawBoxMode = MODE_NONE
+	let dragBoxTarget = -1
+	let dragBoxDelta = { x: 0, y: 0}
 
-    var increment = 0
-    
-    var annotations = []
-    var boxes = []
+	let increment = 0
+	
+	let annotations = []
+	let boxes = []
 
-    var selectedImage = null
+	let selectedImage = null
 
-    var deleteModeActive = false
+	let deleteModeActive = false
 
-    var canvas = document.getElementById("annotation-editor")
-    var context = canvas.getContext("2d")
+	let canvas = document.getElementById("annotation-editor")
+	let context = canvas.getContext("2d")
 
-    context.fillStyle = "white"
-    context.fillRect(0,0,canvas.width,canvas.height)
+	// object definitions
+	function Annotation(inc){
+		this.increment = inc
+		this.x = 30
+		this.y = 30
+		this.r = 15
+		this.fill = "#4e88ef"
+	}
 
-    drawCanvas = () => {
-        if (!shouldRefresh) return
-        // clear canvas first
-        context.clearRect(0, 0, canvas.width, canvas.height)
+	function Box(x, y) {
+		this.startX = x
+		this.startY = y
+		this.endX = x + 5
+		this.endY = y + 5
+		this.stroke = "#4e88ef"
+	}
 
-        // draw BG image
-        context.drawImage(selectedImage,0,0, selectedImage.width,selectedImage.height)
+	const drawCanvas = () => {
+		if (!shouldRefresh) return
+		// clear canvas first
+		context.clearRect(0, 0, canvas.width, canvas.height)
 
-        // draw boxes first
-        for (box of boxes) {
-            drawBox(context, box.startX, box.startY, box.endX, box.endY)
-        }
+		// draw BG image
+		context.drawImage(selectedImage,0,0, selectedImage.width,selectedImage.height)
 
-        // then draw annotations
-        for (annotation of annotations) {
-            context.beginPath()
-            context.arc(annotation.x, annotation.y, annotation.r, 0, 2 * Math.PI);
-            context.fillStyle = "#4e88ef"
-            context.fill()
+		// draw boxes first
+		for (box of boxes) {
+			drawBox(context, box.startX, box.startY, box.endX, box.endY)
+		}
 
-            context.fillStyle = "white"
-            if (annotation.increment < 9) {
-                // single character positioning
-                context.font = "26px Helvetica"
-                context.fillText(annotation.increment+1, annotation.x-7,annotation.y+9)
-            }
-            else
-            {
-                // double character positioning - not smart and will look off due to variable width of certain number combos
-                context.font= "21px Helvetica"
-                context.fillText(annotation.increment+1, annotation.x-12, annotation.y+7)
-            }
-        }
-    }
+		// then draw annotations
+		for (annotation of annotations) {
+			context.beginPath()
+			context.arc(annotation.x, annotation.y, annotation.r, 0, 2 * Math.PI);
+			context.fillStyle = "#4e88ef"
+			context.fill()
 
-    // object definitions
-    function Annotation(inc){
-        this.increment = inc
-        this.x = 30
-        this.y = 30
-        this.r = 15
-        this.fill = "#4e88ef"
-    }
+			context.fillStyle = "white"
+			if (annotation.increment < 9) {
+				// single character positioning
+				context.font = "26px Helvetica"
+				context.fillText(annotation.increment+1, annotation.x-7,annotation.y+9)
+			}
+			else
+			{
+				// double character positioning - not smart and will look off due to variable width of certain number combos
+				context.font= "21px Helvetica"
+				context.fillText(annotation.increment+1, annotation.x-12, annotation.y+7)
+			}
+		}
+	}
 
-    function Box(x, y) {
-        this.startX = x
-        this.startY = y
-        this.endX = x + 5
-        this.endY = y + 5
-        this.stroke = "#4e88ef"
-    }
+	// there isn't an out-of-the-box rounded rectangle function, so we have to draw it manually
+	const drawBox = (context, startX, startY, endX, endY) => {
+		const radius = {tl: 5, tr: 5, br: 5, bl: 5}
 
-    // listener for file upload button
-    document.getElementById("local-upload-button").addEventListener("change", (event) => {
+		const width = endX - startX
+		const height = endY - startY
 
-        let reader = new FileReader()
+		context.beginPath()
+		// top left
+		context.moveTo(startX + radius.tl, startY)
+		// to top right
+		context.lineTo(startX + width - radius.tr, startY)
+		context.quadraticCurveTo(startX + width, startY, startX + width, startY + radius.tr)
+		// to bottom right
+		context.lineTo(startX + width, startY + height - radius.br)
+		context.quadraticCurveTo(startX + width, startY + height, startX + width - radius.br, startY + height)
+		// to bottom left
+		context.lineTo(startX + radius.bl, startY + height)
+		context.quadraticCurveTo(startX, startY + height, startX, startY + height - radius.bl)
+		// back to top left
+		context.lineTo(startX, startY + radius.tl)
+		context.quadraticCurveTo(startX, startY, startX + radius.tl, startY)
+		context.closePath()
 
-        reader.onload = (e) => {
-            let img = new Image();
-            img.addEventListener("load", (e) => {
-                selectImage(img, null)
-            });
-            img.src = e.target.result;
-        }
+		context.lineWidth = 3
+		context.strokeStyle = "#4e88ef"
+		context.stroke()
+	}
 
-        reader.readAsDataURL(event.target.files[0])
-    })
+	// upload = local image upload
+	// index = index of screenshot (if selected from screenshot selection)
+	const selectImage = (upload, index) => {
+		tip("")
 
-    // upload = local image upload
-    // index = index of screenshot (if selected from screenshot selection)
-    var selectImage = (upload, index) => {
-        document.getElementById("tips").innerHTML = ""
+		if (upload) {
+			selectedImage = upload
+		}
+		else {
+			selectedImage = document.getElementsByClassName("img-selection")[index-1].childNodes[0]
+		}        
 
-        if (upload) {
-            selectedImage = upload
-        }
-        else {
-            selectedImage = document.getElementsByClassName("img-selection")[index-1].childNodes[0]
-        }        
+		canvas.width = selectedImage.width
+		canvas.height = selectedImage.height
 
-        canvas.width = selectedImage.width
-        canvas.height = selectedImage.height
+		canvas.setAttribute("style","display: block;")
 
-        canvas.setAttribute("style","display: block;")
+		shouldRefresh = true
+	}
 
-        shouldRefresh = true
-    }
+	const placeBox = () => {
+		if (selectedImage == null) {
+			tip("You need to select an image first!")
+			return
+		}
+		drawBoxMode = MODE_PENDING
+		tip("Click and drag (left-to-right) to start drawing a box.")
+	}
 
-    var placeBox = () => {
-        if (selectedImage == null) {
-            document.getElementById("tips").innerHTML = "You need to select an image first!"
-            return
-        }
-        drawBoxMode = mode_pending
-        document.getElementById("tips").innerHTML = "Click and drag (left-to-right) to start drawing a box."
-    }
+	const placeNumberAnnotation = () => {
+		if (selectedImage == null) {
+			tip("You need to select an image first!")
+			return
+		}
+		var annotation = new Annotation(increment)
+		annotations.push(annotation)
+		increment++
+	}
 
-    var placeNumberAnnotation = () => {
-        if (selectedImage == null) {
-            document.getElementById("tips").innerHTML = "You need to select an image first!"
-            return
-        }
-        var annotation = new Annotation(increment)
-        annotations.push(annotation)
-        increment++
-    }
+	// save the canvas as an image
+	// NOTE: pretty sure this only works with Webkit browsers
+	const saveAsImage = () => {
+		if (selectedImage == null) {
+			tip("You need to select an image first!")
+			return
+		}
+		let dataURL = canvas.toDataURL('image/png');
+		let button = document.getElementById("download-image")
 
-    // save the canvas as an image
-    // NOTE: pretty sure this only works with Webkit browsers
-    var saveAsImage = () => {
-        if (selectedImage == null) {
-            document.getElementById("tips").innerHTML = "You need to select an image first!"
-            return
-        }
-        let dataURL = canvas.toDataURL('image/png');
-        let button = document.getElementById("download-image")
+		button.setAttribute("download","export.png")
+		button.href = dataURL;
+	}
 
-        button.setAttribute("download","export.png")
-        button.href = dataURL;
-    }
+	const uploadImage = (event) => {
+		let reader = new FileReader()
 
-    // Handler for mousedown on the canvas element, behavior is contextual
-    canvas.addEventListener("mousedown", (event) => {
-        if (!shouldRefresh) return
-        let x = event.pageX - canvas.offsetLeft
-        let y = event.pageY - canvas.offsetTop
+		reader.onload = (e) => {
+			let img = new Image();
+			img.addEventListener("load", (e) => {
+				selectImage(img, null)
+			});
+			img.src = e.target.result;
+		}
 
-        // "Draw box" button clicked, so let's start drawing a box at this location
-        if (drawBoxMode == mode_pending) {
-            let box = new Box(x, y)
-            boxes.push(box)
-            drawBoxMode = mode_drawing
-        }
+		reader.readAsDataURL(event.target.files[0])
+	}
 
-        // annotations have selection priority over boxes
-        // loop through all annotations and check if click coords exist within the annotation's bounding box
-        for (let j = 0; j < annotations.length; j++) {
-            let annotation = annotations[j]
-            if (y > annotation.y - 15 && y < annotation.y + 15 && x > annotation.x - 15 && x < annotation.x + 15) {
+	const tip = (msg) => {
+		document.getElementById("tips").innerHTML = msg
+	}
 
-                // delete the annotation if deleteMode is active
-                if (deleteModeActive) {
-                    annotations.splice(j, 1)
-                    return // prevents boxes under this coordinate from being selected too
-                }
-                else {
-                    dragAnnotationTarget = j
-                    return
-                }                
-            }
-        }
+	const handleMouseDown = (event) => {
+		if (!shouldRefresh) return
+		let x = event.pageX - canvas.offsetLeft
+		let y = event.pageY - canvas.offsetTop
 
-        // loop through all boxes and check if click coords are within one of the boxes
-        for (let i = 0; i < boxes.length; i++) {
-            let box = boxes[i]
-            if (x > box.startX && x < box.endX && y > box.startY && y < box.endY) {
-               
-                if (deleteModeActive) {  // delete if modifier key is held
-                    boxes.splice(i, 1)
-                    return
-                }
-                else { // start dragging
-                    drawBoxMode = mode_dragging
-                    dragBoxTarget = i
-                    dragBoxDelta.x = x
-                    dragBoxDelta.y = y
-                    return
-                }                
-            }
-        }
-    })
+		// "Draw box" button clicked, so let's start drawing a box at this location
+		if (drawBoxMode == MODE_PENDING) {
+			let box = new Box(x, y)
+			boxes.push(box)
+			drawBoxMode = MODE_DRAWING
+		}
 
-    // mouseup handler for canvas element
-    // again, contextual
-    canvas.addEventListener("mouseup", (event) => {
-        if (!shouldRefresh) return
-        
-        let x = event.pageX - canvas.offsetLeft
-        let y = event.pageY - canvas.offsetTop
-        console.log("drag complete, location:")
-        console.log("x: " + x + ", y: " + y)
+		// annotations have selection priority over boxes
+		// loop through all annotations and check if click coords exist within the annotation's bounding box
+		for (let j = 0; j < annotations.length; j++) {
+			let annotation = annotations[j]
+			if (y > annotation.y - 15 && y < annotation.y + 15 && x > annotation.x - 15 && x < annotation.x + 15) {
 
-        if (drawBoxMode == mode_drawing || drawBoxMode == mode_pending) {
-            document.getElementById("tips").innerHTML = ""
-            drawBoxMode = mode_none
-        }
-        else if (drawBoxMode == mode_dragging) {
-            drawBoxMode = mode_none
-        }
-        else if (dragAnnotationTarget != -1) dragAnnotationTarget = -1
-        
-    })
+				// delete the annotation if deleteMode is active
+				if (deleteModeActive) {
+					annotations.splice(j, 1)
+					return // prevents boxes under this coordinate from being selected too
+				}
+				else {
+					dragAnnotationTarget = j
+					return
+				}
+			}
+		}
 
-    // drag either an annotation or box if required
-    canvas.addEventListener("mousemove", (event) => {
-        if (!shouldRefresh) return
+		// loop through all boxes and check if click coords are within one of the boxes
+		for (let i = 0; i < boxes.length; i++) {
+			let box = boxes[i]
+			if (x > box.startX && x < box.endX && y > box.startY && y < box.endY) {
+			   
+				if (deleteModeActive) {  // delete if modifier key is held
+					boxes.splice(i, 1)
+					return
+				}
+				else { // start dragging
+					drawBoxMode = MODE_DRAGGING
+					dragBoxTarget = i
+					dragBoxDelta.x = x
+					dragBoxDelta.y = y
+					return
+				}
+			}
+		}
+	}
 
-        let x = event.pageX - canvas.offsetLeft
-        let y = event.pageY - canvas.offsetTop
+	const handleMouseMove = (event) => {
+		if (!shouldRefresh) return
 
-        // drawing a box
-        if (drawBoxMode == mode_drawing) {
-            let index = boxes.length - 1
-            // disallow boxes to be drawn with negative (relative) endX and endY values, which breaks them
-            if (x < boxes[index].startX + 10) boxes[index].endX = boxes[index].startX + 10
-            else boxes[index].endX = x
-            if (y < boxes[index].startY + 10) boxes[index].endY = boxes[index].startY + 10
-            else boxes[index].endY = y
-        }
-        
-        // dragging an already drawn box
-        else if (drawBoxMode == mode_dragging) {
-            let dx = x - dragBoxDelta.x
-            let dy = y - dragBoxDelta.y
+		const x = event.pageX - canvas.offsetLeft
+		const y = event.pageY - canvas.offsetTop
 
-            boxes[dragBoxTarget].startX += dx
-            boxes[dragBoxTarget].startY += dy
-            boxes[dragBoxTarget].endX += dx
-            boxes[dragBoxTarget].endY += dy
+		// drawing a box
+		if (drawBoxMode == MODE_DRAWING) {
+			let index = boxes.length - 1
+			// disallow boxes to be drawn with negative (relative) endX and endY values, which breaks them
+			if (x < boxes[index].startX + 10) boxes[index].endX = boxes[index].startX + 10
+			else boxes[index].endX = x
+			if (y < boxes[index].startY + 10) boxes[index].endY = boxes[index].startY + 10
+			else boxes[index].endY = y
+		}
+		
+		// dragging an already drawn box
+		else if (drawBoxMode == MODE_DRAGGING) {
+			const dx = x - dragBoxDelta.x
+			const dy = y - dragBoxDelta.y
 
-            dragBoxDelta.x = x
-            dragBoxDelta.y = y
-        }
+			boxes[dragBoxTarget].startX += dx
+			boxes[dragBoxTarget].startY += dy
+			boxes[dragBoxTarget].endX += dx
+			boxes[dragBoxTarget].endY += dy
 
-        // dragging an annotation
-        else if (dragAnnotationTarget != -1) {
-            annotations[dragAnnotationTarget].x = x
-            annotations[dragAnnotationTarget].y = y
-        }        
-    })
+			dragBoxDelta.x = x
+			dragBoxDelta.y = y
+		}
 
-    document.addEventListener("keydown", (event) => {
-        // 91 = left CMD, 93 = right CMD. Only compatible with webkit browsers (!)
-        if (event.keyCode == 91 || event.keyCode == 93) {
-            document.getElementById("tips").innerHTML = "With CMD pressed, click a box or annotation to delete it."
-            deleteModeActive = true
-            event.preventDefault()
-        }
-    })
+		// dragging an annotation
+		else if (dragAnnotationTarget != -1) {
+			annotations[dragAnnotationTarget].x = x
+			annotations[dragAnnotationTarget].y = y
+		}
+	}
 
-    document.addEventListener("keyup", (event) => {
-         // 91 = left CMD, 93 = right CMD. Only compatible with webkit browsers (!)
-        if ((event.keyCode == 91 || event.keyCode == 93) && deleteModeActive == true) {
-            document.getElementById("tips").innerHTML = ""
-            deleteModeActive = false
-            event.preventDefault()
-        }
-    })
+	const handleMouseUp = (event) => {
+		if (!shouldRefresh) return
 
-    // there isn't an out-of-the-box rounded rectangle function, so we have to draw it manually
-    function drawBox(context, startX, startY, endX, endY) {
-        let radius = {tl: 5, tr: 5, br: 5, bl: 5}
+		if (drawBoxMode == MODE_DRAWING || drawBoxMode == MODE_PENDING) {
+			tip("")
+			drawBoxMode = MODE_NONE
+		}
+		else if (drawBoxMode == MODE_DRAGGING) {
+			drawBoxMode = MODE_NONE
+		}
+		else if (dragAnnotationTarget != -1) dragAnnotationTarget = -1
+	}
 
-        let width = endX - startX
-        let height = endY - startY
+	const handleKeyDown = (event) => {
+		// 91 = left CMD, 93 = right CMD. Only compatible with webkit browsers (!)
+		if (event.keyCode == 91 || event.keyCode == 93) {
+			tip("With CMD pressed, click a box or annotation to delete it.")
+			deleteModeActive = true
+			event.preventDefault()
+		}
+	}
 
-        context.beginPath()
-        context.moveTo(startX + radius.tl, startY)
-        context.lineTo(startX + width - radius.tr, startY)
-        context.quadraticCurveTo(startX + width, startY, startX + width, startY + radius.tr)
-        context.lineTo(startX + width, startY + height - radius.br)
-        context.quadraticCurveTo(startX + width, startY + height, startX + width - radius.br, startY + height)
-        context.lineTo(startX + radius.bl, startY + height)
-        context.quadraticCurveTo(startX, startY + height, startX, startY + height - radius.bl)
-        context.lineTo(startX, startY + radius.tl)
-        context.quadraticCurveTo(startX, startY, startX + radius.tl, startY)
-        context.closePath()
+	const handleKeyUp = (event) => {
+		// 91 = left CMD, 93 = right CMD. Only compatible with webkit browsers (!)
+		if ((event.keyCode == 91 || event.keyCode == 93) && deleteModeActive == true) {
+			tip("")
+			deleteModeActive = false
+			event.preventDefault()
+		}
+	}
 
-        context.lineWidth = 3
-        context.strokeStyle = "#4e88ef"
-        context.stroke()
-    }
+	// Handler for mousedown on the canvas element, behavior is contextual
+	canvas.addEventListener("mousedown", handleMouseDown)
 
-    // refresh the canvas based on the time interval (in milliseconds)
-    setInterval(drawCanvas, 20)
+	// mouseup handler for canvas element
+	// again, contextual
+	canvas.addEventListener("mouseup", handleMouseUp)
 
-    return {
-        selectImage : selectImage,
-        placeNumberAnnotation : placeNumberAnnotation,
-        placeBox : placeBox,
-        saveAsImage : saveAsImage
-    };
-    
+	// drag either an annotation or box if required
+	canvas.addEventListener("mousemove", handleMouseMove)
+
+	document.addEventListener("keydown", handleKeyDown)
+
+	document.addEventListener("keyup", handleKeyUp)
+	
+	// listener for file upload button
+	document.getElementById("local-upload-button").addEventListener("change", uploadImage)
+
+	// refresh the canvas based on the time interval (in milliseconds)
+	setInterval(drawCanvas, 20)
+
+	context.fillStyle = "white"
+	context.fillRect(0,0,canvas.width,canvas.height)
+
+	return {
+		drawCanvas : drawCanvas,
+		drawBox : drawBox,
+		saveAsImage : saveAsImage,
+		uploadImage : uploadImage,
+		selectImage : selectImage,
+		placeNumberAnnotation : placeNumberAnnotation,
+		placeBox : placeBox,
+		saveAsImage : saveAsImage,
+		tip : tip,
+		handleKeyDown : handleKeyDown,
+		handleKeyUp : handleKeyUp
+	};
+	
 })();
