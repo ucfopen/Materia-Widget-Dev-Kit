@@ -181,8 +181,8 @@ Namespace('MWDK').Helpers = (() => {
 
 	const handleMouseDown = (event) => {
 		if (!shouldRefresh) return
-		let x = event.pageX - canvas.offsetLeft
-		let y = event.pageY - canvas.offsetTop
+		const x = event.pageX - canvas.offsetLeft
+		const y = event.pageY - canvas.offsetTop
 
 		// "Draw box" button clicked, so let's start drawing a box at this location
 		if (drawBoxMode == MODE_PENDING) {
