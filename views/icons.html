@@ -40,7 +40,8 @@
 					<a href='/mwdk/auto-icon/{{size}}/double'><button class='orange edit_button'>Generate</button></a>
 					{{/canGenerateLarge}}
 				</h3>
-				<img class='size_{{size}} large' src='/img/icon-{{size}}@2x.png' />
+				<img class='size_{{size}} large' src='/img/icon-{{size}}@2x.png?cachebuster={{timestamp}}' />
+				<span>icon-{{size}}@2x.png</span>
 			</div>
 			<div>
 				<h3>
@@ -49,7 +50,8 @@
 					<a href='/mwdk/auto-icon/{{size}}'><button class='orange edit_button'>Generate</button></a>
 					{{/canGenerateSmall}}
 				</h3>
-				<img src='/img/icon-{{size}}.png' />
+				<img src='/img/icon-{{size}}.png?cachebuster={{timestamp}}' />
+				<span>icon-{{size}}.png</span>
 			</div>
 		</div>
 	</section>

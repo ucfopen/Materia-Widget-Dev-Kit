@@ -323,7 +323,7 @@ module.exports = (app) => {
 			{size: 92, x2: 92*2, canGenerateLarge: true, canGenerateSmall: true},
 			{size: 60, x2: 60*2, canGenerateLarge: true, canGenerateSmall: true}
 		];
-		res.locals = Object.assign(res.locals, { template: 'icons', sizes: sizes})
+		res.locals = Object.assign(res.locals, { template: 'icons', sizes: sizes, timestamp: new Date().getTime()})
 		res.render(res.locals.template)
 	});
 

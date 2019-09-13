@@ -38,8 +38,18 @@ a .edit_button {
 	display: flex;
 }
 
+.icons div {
+	text-align: center;
+}
+
 .icons div:first-child {
 	margin-right: 5px;
+}
+
+.icons span {
+	display: block;
+	width: 100%;
+	font-size: 0.7em;
 }
 
 .large {
