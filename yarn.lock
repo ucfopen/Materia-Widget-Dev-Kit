@@ -3933,10 +3933,10 @@ marked@^0.6.0:
   resolved "https://registry.yarnpkg.com/marked/-/marked-0.6.2.tgz#c574be8b545a8b48641456ca1dbe0e37b6dccc1a"
   integrity sha512-LqxwVH3P/rqKX4EKGz7+c2G9r98WeM/SW34ybhgNGhUQNKtf1GmmSkJ6cDGJ/t6tiyae49qRkpyTw2B9HOrgUA==
 
-materia-server-client-assets@2.1.0-alpha1:
-  version "2.1.0-alpha1"
-  resolved "https://registry.yarnpkg.com/materia-server-client-assets/-/materia-server-client-assets-2.1.0-alpha1.tgz#f1a9c73b1fec831e0bef822c9f1d1ac9af285da8"
-  integrity sha512-dRQCzxJfW/rrEmMS/+ko9mM3R3pfoMFJoqFlCjz55bco3g7JCtgQKY8H6cZY+D99+F1KM0EGbq7Ad/mF79/v4A==
+materia-server-client-assets@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/materia-server-client-assets/-/materia-server-client-assets-2.1.0.tgz#8e10383296804fab2b7c2b25358ede26e9e9024c"
+  integrity sha512-osOIJ7xlf5cQJwOxA6JUD499gs3arjDTB7vKTUM68icg6gDq+kmhfFGE+XcBFQuoI/HTcqN9JR/TsA+Z5n5Rqg==
   dependencies:
     angular "1.6.9"
     js-snakecase "^1.2.0"
