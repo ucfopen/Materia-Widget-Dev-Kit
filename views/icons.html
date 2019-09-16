@@ -1,0 +1,70 @@
+<link rel='stylesheet' href='/mwdk/assets/css/mwdk-icons.css' type='text/css' />
+
+<div id="topbar">
+	<a class='logo' href='/'>Materia Widget Developer Kit</a>
+</div>
+
+<h2>Icon List</h2>
+
+<p>
+	Materia widgets are required to have eight icons in the <strong>src/_icons</strong> folder.
+</p>
+<p>
+	The largest icon required must be named <strong>icon-394@2x.png</strong>,
+	and the icon must be 788x788 pixels in size.
+</p>
+<p>
+	This page will display all of the icons your widget requires
+	and allow you to automatically generate icons based on the largest required size.
+</p>
+<p>
+	Be aware that any icons automatically generated will automatically
+	overwrite any files of that size, if they already exist.
+</p>
+<p>
+	The larger icon in each set may be clicked to expand it to its true size.
+</p>
+
+<p>
+	<a href="/mwdk/auto-icon/all/"><button class='orange edit_button'>Generate All</button></a>
+</p>
+
+<section id='sets'>
+	{{#sizes}}
+	<section>
+		<div class='icons'>
+			<div>
+				<h3>
+					{{ x2 }} x {{ x2 }}
+					{{#canGenerateLarge}}
+					<a href='/mwdk/auto-icon/{{size}}/double'><button class='orange edit_button'>Generate</button></a>
+					{{/canGenerateLarge}}
+				</h3>
+				<img class='size_{{size}} large' src='/img/icon-{{size}}@2x.png?cachebuster={{timestamp}}' />
+				<span>icon-{{size}}@2x.png</span>
+			</div>
+			<div>
+				<h3>
+					{{ size }} x {{ size }}
+					{{#canGenerateSmall}}
+					<a href='/mwdk/auto-icon/{{size}}'><button class='orange edit_button'>Generate</button></a>
+					{{/canGenerateSmall}}
+				</h3>
+				<img src='/img/icon-{{size}}.png?cachebuster={{timestamp}}' />
+				<span>icon-{{size}}.png</span>
+			</div>
+		</div>
+	</section>
+	{{/sizes}}
+</section>
+
+<script>
+	var toggleExpanded = function(event) {
+		event.target.classList.toggle('expanded');
+	};
+
+	var largeImages = document.getElementsByClassName('large');
+	for(var i = 0; i < largeImages.length; i++) {
+		largeImages[i].addEventListener('click', toggleExpanded);
+	}
+</script>

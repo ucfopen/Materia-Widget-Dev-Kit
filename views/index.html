@@ -2,21 +2,20 @@
 	<a class='logo' href='/'>Materia Widget Developer Kit</a>
 </div>
 
-<center class='widget'>
+<content class="mwdk-home">
 	<img src='/img/icon-275.png' />
-	<div class='title'>{{title}}</div>
-	<a id='player_button'  href="/mwdk/player"><button class='orange edit_button'>Player</button></a>
-	<a id='creator_button' href="/mwdk/widgets/1-mwdk/"><button class='orange edit_button'>Creator</button></a>
-</center>
-<center class='qsets'>
-	<label for='qsets'>Select Saved Widget:</label>
-	<select id='qsets'>
-		<option value=''>New</option>
-	</select>
-</center>
-
-<center>
-	<a href="/webpack-dev-server"><button>View Compiled Widget Assets</button></a>
-</center>
-
+	<aside>
+		<div class='title'>{{title}}</div>
+		<a id='player_button'  href="/mwdk/player"><button class='orange edit_button'>Player</button></a>
+		<a id='creator_button' href="/mwdk/widgets/1-mwdk/"><button class='orange edit_button'>Creator</button></a>
+		<h5>Additional Tools</h5>
+		<a id="annotation-button" class="helper-button" href="/mwdk/helper/annotations"><button>Annotate Screenshots</button></a>
+		<a class="helper-button" href="/webpack-dev-server"><button>View Compiled Widget Assets</button></a>
+		<a id='icons_button' class='helper-button' href="/mwdk/icons/"><button>Generate Icons</button></a>
+		<label for='qsets'>Select Saved Widget:</label>
+		<select id='qsets'>
+			<option value=''>New</option>
+		</select>
+	</aside>
+</content>
 <script src='/mwdk/mwdk-assets/js/mwdk-splash.js'></script>
