@@ -482,7 +482,8 @@ module.exports = (app) => {
 			res.write(`</pre><h1>Cant Find Materia</h1>`);
 			throw `MWDK Couldn't find the Materia mount on the host system'`
 		}
-		let materiaPath = found[0].Source;
+		let pathPattern = new RegExp(/^\/(?:host_mnt)?([\/A-Za-z0-9_-\s]+)/) // depending on your Docker version, host_mnt may be prepended to the directory path
+		let materiaPath = pathPattern.exec(found[0].Source)[pathPattern.exec(found[0].Source).length - 1]
 		let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
 
 		// make sure the dir exists
