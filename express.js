@@ -465,9 +465,9 @@ module.exports = (app) => {
 		// 2. filter for materia-web image and named xxxx_phpfpm_1 name
 		// 3. pick the first line
 		// 4. pick the container name
-		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-web-base:.* materia-phpfpm" | head -n 1 | cut -d" " -f2');
+		let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia-phpfpm:.* materia-phpfpm" | head -n 1 | cut -d" " -f2');
 		if(!targetImage){
-			throw "MWDK Couldn't find a docker container using a 'materia-web' image named 'phpfpm'."
+			throw "MWDK Couldn't find a docker container using a 'materia-phpfpm' image named 'phpfpm'."
 		}
 		targetImage = targetImage.toString().trim();
 		res.write(`> Using Docker image '${targetImage}' to install widgets<br/>`);
@@ -482,7 +482,7 @@ module.exports = (app) => {
 			res.write(`</pre><h1>Cant Find Materia</h1>`);
 			throw `MWDK Couldn't find the Materia mount on the host system'`
 		}
-		let materiaPath = found[0].Source;
+		let materiaPath = found[0].Source.replace(/^\/host_mnt/, '') // depending on your Docker version, host_mnt may be prepended to the directory path
 		let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
 
 		// make sure the dir exists
