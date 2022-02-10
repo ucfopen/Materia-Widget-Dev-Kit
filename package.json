@@ -38,7 +38,7 @@
     "html-webpack-plugin": "^2.29.0",
     "markdown-loader": "^5.0.0",
     "materia-server-client-assets": "2.1.0",
-    "node-sass": "^4.12.0",
+    "node-sass": "^7.0.0",
     "postcss-loader": "2.0.6",
     "prettier": "^1.11.1",
     "raw-loader": "^0.5.1",
