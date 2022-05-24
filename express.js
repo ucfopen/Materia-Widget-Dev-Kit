@@ -1,15 +1,36 @@
-const path            = require('path');
-const fs              = require('fs')
-const express         = require('express')
-const qsets           = path.join(__dirname, 'qsets');
-const yaml            = require('yamljs');
-const { execSync }    = require('child_process');
-const waitUntil       = require('wait-until-promise').default
-const hoganExpress    = require('hogan-express')
-const uuid            = require('uuid')
-const sharp           = require('sharp')
+const path            	= require('path');
+const fs              	= require('fs');
+const MemoryFileSystem	= require('memory-fs');
+const express         	= require('express')
+const qsets           	= path.join(__dirname, 'qsets');
+const yaml            	= require('yamljs');
+const { execSync }    	= require('child_process');
+const waitUntil       	= require('wait-until-promise').default
+const hoganExpress    	= require('hogan-express')
+const uuid            	= require('uuid')
+const sharp           	= require('sharp')
+const util							= require('util');
 
-var webPackMiddleware = false;
+// common paths used here
+const srcPath 				= path.join(process.cwd(), 'src') + path.sep
+const outputPath 			= path.join(process.cwd(), 'build') + path.sep
+
+// Webpack middleware setup
+const webpack 							= require('webpack');
+const webpackDevMiddleware 	= require('webpack-dev-middleware');
+const config 								= require(path.resolve(process.cwd(), './webpack.config.js'));
+const compiler = webpack(config);
+
+// Create our own output file system
+// so we can access webpack's in-memory files
+const memfs = new MemoryFileSystem();
+memfs.mkdirpSync(outputPath);
+
+const webpackMiddleware = webpackDevMiddleware(compiler, {
+	publicPath: config.output.publicPath,
+	outputFileSystem: memfs
+})
+
 var hasCompiled = false;
 
 // this will call next() once webpack is ready by trying to:
@@ -20,15 +41,6 @@ var waitForWebpack = (app, next) => {
 	if(hasCompiled) return next(); // short circuit if ready
 
 	waitUntil(() => {
-		// check for the middleware first
-		if(!webPackMiddleware){
-			// search express for the webpack middleware
-			var found = app._router.stack.filter(mw => mw && mw.handle && mw.handle.name === 'webpackDevMiddleware')
-			if(found.length == 0) return false // not ready
-			webPackMiddleware = found[0].handle // found!
-		}
-
-		// then check to see if we can find install.yaml
 		try {
 			getInstall()
 			return true
@@ -45,25 +57,12 @@ var waitForWebpack = (app, next) => {
 		throw "MWDK couldn't locate the widget's install.yaml.  Make sure you have one and webpack is processing it."
 	})
 }
-// For whatever reason, the middleware isn't availible when this class
-var getWebPackMiddleWare = (app) => {
-	if(webPackMiddleware) return webPackMiddleware
-
-	var t = app._router.stack.filter((layer) => {
-		return layer && layer.handle && layer.handle.name === 'webpackDevMiddleware';
-	})
-
-	if(t.length > 0){
-		webPackMiddleware = t[0].handle
-		return webPackMiddleware
-	}
-}
 
 // Loads processed widget files from webpack's memory
 var getFileFromWebpack = (file, quiet = false) => {
 	try {
 		// pull the specified filename out of memory
-		return webPackMiddleware.fileSystem.readFileSync(path.resolve('build', file));
+		return memfs.readFileSync(path.resolve('build', file));
 	} catch (e) {
 		if(!quiet) console.error(e)
 		throw `error trying to load ${file} from widget src, reload if you just started the server`
@@ -165,7 +164,7 @@ var createApiWidgetData = (id) => {
 var buildWidget = () => {
 	try{
 		console.log('Building production ready widget')
-		let output = execSync('yarn run build')
+		let output = execSync('yarn build')
 	} catch(e) {
 		console.error(e)
 		console.log(output.toString())
@@ -271,14 +270,18 @@ var resizeImage = (size, double) => {
 }
 
 // app is passed a reference to the webpack dev server (Express.js)
-module.exports = (app) => {
+// module.exports = (app) => {
 
 	// ============= ASSETS and SETUP =======================
+	const app = express();
 
 	app.set('view engine', 'html') // set file extension to html
 	app.set('layout', 'layout') // set layout to layout.html
 	app.engine('html', hoganExpress) // set the layout engine for html
 	app.set('views', path.join(__dirname , 'views')); // set the views directory
+
+	// Tell express to use the webpack-dev-middleware and use the widget's webpack.config.js configuration file as a base.
+	app.use(webpackMiddleware);
 
 	// the web pack middlewere takes time to show up
 	app.use([/^\/$/, '/mwdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
@@ -637,4 +640,10 @@ module.exports = (app) => {
 		res.json(questions)
 	});
 
-}
+	app.listen(8118, function () {
+		console.log('Listening on port 8118');
+	})
+
+//}
+
+module.exports = app;

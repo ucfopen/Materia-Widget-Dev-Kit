@@ -4,7 +4,7 @@ const execSync = require('child_process').execSync
 
 function GenerateWidgetHash(options) {
 	const apply = function(compiler) {
-		compiler.plugin('emit', function(compilation, callback) {
+		compiler.hooks.emit.tapAsync('GenerateWidgetHash', function(compilation, callback) {
 
 			// if widget isnt in options or it isnt in the output, just warn and exit
 			if (typeof options.widget == 'undefined' || typeof compilation.assets[options.widget] == 'undefined') {

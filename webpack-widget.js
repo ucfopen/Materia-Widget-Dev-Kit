@@ -1,21 +1,23 @@
 const fs = require('fs')
 const path = require('path')
 const webpack = require('webpack')
+const autoprefixer = require('autoprefixer');
 const CleanWebpackPlugin = require('clean-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
-const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
+const nodeExternals = require("webpack-node-externals");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const postcssPresetEnv = require('postcss-preset-env');
 
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
 const packagedJSPath = 'src=\\"../../../js/$3\\"'
 const devServerJSPath = 'src=\\"/mwdk/assets/js/$3\\"'
-const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
-const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
+const replaceTarget = process.env.RUNNING_DEV_SERVER ? devServerJSPath : packagedJSPath
 
 // common paths used here
 const srcPath = path.join(process.cwd(), 'src') + path.sep
@@ -74,30 +76,6 @@ const configFromPackage = () => {
 	}
 }
 
-// Provides a default config option
-const combineConfig = (extras = {}) => {
-	const rules = getDefaultRules()
-	const orderedRules = [
-		rules.loaderDoNothingToJs,
-		rules.loaderCompileCoffee,
-		rules.loadAndCompileMarkdown,
-		rules.copyImages,
-		rules.loadHTMLAndReplaceMateriaScripts,
-		rules.loadAndPrefixCSS,
-		rules.loadAndPrefixSASS
-	]
-
-	const pkgConfig = configFromPackage()
-	const defaultCfg = {
-		cleanName: pkgConfig.cleanName,
-		copyList: getDefaultCopyList(),
-		entries: getDefaultEntries(),
-		moduleRules: orderedRules
-	}
-
-	return Object.assign({}, defaultCfg, extras)
-}
-
 // list of files and directories to copy into widget
 const getDefaultCopyList = () => {
 	const copyList = [
@@ -143,7 +121,7 @@ const getDefaultCopyList = () => {
 	// when running the dev server
 	const devDemo = 'demo_dev.json'
 	const devDemoPath = `${srcPath}${devDemo}`
-	if (isRunningDevServer && fs.existsSync(devDemoPath)) {
+	if (process.env.RUNNING_DEV_SERVER && fs.existsSync(devDemoPath)) {
 		console.log(`===== USING ${devDemo} ====`)
 		copyList.push({
 			flatten: true,
@@ -196,15 +174,14 @@ const getDefaultRules = () => ({
 	copyImages: {
 		test: /\.(jpe?g|png|gif|svg)$/i,
 		loader: 'file-loader',
-		query: {
-			emitFile: false, // keeps this plugin from renaming the file to an md5 hash
-			useRelativePath: true, // keeps path of img/src/imag.png intact
-			name: '[name].[ext]'
+		options: {
+			emitFile: false,
+			useRelativePath: true,
+			name: '[name].[ext]',
 		}
 	},
 	// Loads the html files and minifies their contents
 	// Rewrites the paths to our materia core libs provided by materia server
-	//
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
 		exclude: /node_modules|_guides|guides/,
@@ -236,7 +213,11 @@ const getDefaultRules = () => ({
 					loader: 'postcss-loader',
 					options: {
 						// add autoprefixer, tell it what to prefix
-						plugins: [require('autoprefixer')({browsers: browserList})]
+						plugins: [
+							require('autoprefixer')({
+								browsers: browserList
+							})
+						],
 					}
 				},
 			]
@@ -255,7 +236,11 @@ const getDefaultRules = () => ({
 					loader: 'postcss-loader',
 					options: {
 						// add autoprefixer, tell it what to prefix
-						plugins: [require('autoprefixer')({browsers: browserList})]
+						plugins: [
+							require('autoprefixer')({
+								browsers: browserList
+							})
+						],
 					}
 				},
 				'sass-loader'
@@ -284,51 +269,71 @@ const getDefaultRules = () => ({
 // you can update the return from this method to modify or alter
 // the base configuration
 const getLegacyWidgetBuildConfig = (config = {}) => {
-	// load and combine the config
-	let cfg = combineConfig(config)
+	let materiaCleanName = configFromPackage().cleanName;
+
+	let defaultRules = getDefaultRules();
 
 	let build = {
-		stats: {children: false},
+		mode: 'production',
+  	stats: {children: false},
 		devServer: {
-			contentBase: outputPath,
-			headers:{
+			static: outputPath,
+			headers: {
 				// allow iframes to talk to their parent containers
 				'Access-Control-Allow-Origin': '*',
 				'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
 			},
 			port: process.env.PORT || 8118,
-			setup: MateriaDevServer,
-			stats: {children: false},
+		},
+		// Creates a runtime file to be shared by all chunks
+		// Needed since we have multiple entry points
+		optimization: {
+		  runtimeChunk: 'single',
 		},
 
-		// These are the default js and css files
-		entry: cfg.entries,
+		// Use widget custom entry points
+		// Else use the default js and css files
+		entry: config.entries ? config.entries : getDefaultEntries(),
 
 		// write files to the outputPath (default = ./build) using the object keys from 'entry' above
 		output: {
 			path: outputPath,
 			filename: '[name]',
-			publicPath: ''
+			publicPath: '',
 		},
+		// Ignore built-in modules like path, fs when bundling
+		target: 'node',
+		// Ignore node_modules when bundling
+	  externals: [nodeExternals()],
 
-		module: {rules: cfg.moduleRules},
+		module: {
+			// Use widget rules, else use default rules
+			rules: config.moduleRules ? config.moduleRules : [
+				defaultRules.loaderDoNothingToJs,
+				defaultRules.loaderCompileCoffee,
+				defaultRules.loadAndCompileMarkdown,
+				defaultRules.loadHTMLAndReplaceMateriaScripts,
+				defaultRules.copyImages,
+				defaultRules.loadAndPrefixCSS,
+				defaultRules.loadAndPrefixSASS
+			]
+		},
 		plugins: [
-			// clear the build directory
 			new CleanWebpackPlugin(),
 			// copy all the common resources to the build directory
-			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
+			new CopyPlugin(getDefaultCopyList().concat(config.copyList)),
 			// extract css from the webpack output
 			new ExtractTextPlugin({filename: '[name]'}),
 			// zip everything in the build path to zip dir
 			new ZipPlugin({
-				path: `${outputPath}_output`,
-				filename: cfg.cleanName,
+				path: `${outputPath}_output/`,
+				filename: materiaCleanName,
 				extension: 'wigt'
 			}),
 			new GenerateWidgetHash({
-				widget: `_output/${cfg.cleanName}.wigt`,
-				output: `_output/${cfg.cleanName}-build-info.yml`
-			})
+				widget: `_output/${materiaCleanName}.wigt`,
+				output: `_output/${materiaCleanName}-build-info.yml`
+			}),
 		]
 	}
 
@@ -350,10 +355,9 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		// inject the compiled guides markdown into the templates and re-emit the guides
 		if (fs.existsSync(`${srcPath}_guides/creator.md`))
 		{
-			build.plugins.unshift(
+			build.plugins.push(
 				new HtmlWebpackPlugin({
-					chunks: [],
-					template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+					template: './node_modules/materia-widget-development-kit/templates/guide-template',
 					filename: 'guides/creator.html',
 					htmlTitle: 'Widget Creator Guide'
 				})
@@ -361,10 +365,9 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		}
 		if (fs.existsSync(`${srcPath}_guides/player.md`))
 		{
-			build.plugins.unshift(
+			build.plugins.push(
 				new HtmlWebpackPlugin({
-					chunks: [],
-					template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+					template: './node_modules/materia-widget-development-kit/templates/guide-template',
 					filename: 'guides/player.html',
 					htmlTitle: 'Widget Player Guide'
 				})
