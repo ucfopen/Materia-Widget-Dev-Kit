@@ -9,7 +9,6 @@ const waitUntil       	= require('wait-until-promise').default
 const hoganExpress    	= require('hogan-express')
 const uuid            	= require('uuid')
 const sharp           	= require('sharp')
-const util							= require('util');
 
 // common paths used here
 const srcPath 				= path.join(process.cwd(), 'src') + path.sep

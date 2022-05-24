@@ -274,7 +274,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	let defaultRules = getDefaultRules();
 
 	let build = {
-		mode: 'production',
+		mode: process.env.NODE_ENV || 'production',
   	stats: {children: false},
 		devServer: {
 			static: outputPath,

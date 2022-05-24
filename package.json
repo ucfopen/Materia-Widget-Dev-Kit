@@ -8,8 +8,7 @@
   "scripts": {
     "build": "webpack",
     "test": "echo 'No tests yet'",
-    "start": "env TEST_MWDK=true RUNNING_DEV_SERVER=true webpack-dev-server --open --config webpack.config.widget.js",
-    "server": "env TEST_MWDK=true RUNNING_DEV_SERVER=true node express.js",
+    "start": "env TEST_MWDK=true RUNNING_DEV_SERVER=true node express.js",
     "prettier:run": "prettier --write 'src/*.js' --write 'assets/**/*.{js,css}' --write '*.js'",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
   },
