@@ -1,6 +1,5 @@
 const path            	= require('path');
 const fs              	= require('fs');
-const MemoryFileSystem	= require('memory-fs');
 const express         	= require('express')
 const qsets           	= path.join(__dirname, 'qsets');
 const yaml            	= require('yamljs');
@@ -9,6 +8,8 @@ const waitUntil       	= require('wait-until-promise').default
 const hoganExpress    	= require('hogan-express')
 const uuid            	= require('uuid')
 const sharp           	= require('sharp')
+const util							= require('util');
+const cors 							= require('cors')
 
 // common paths used here
 const srcPath 				= path.join(process.cwd(), 'src') + path.sep
@@ -20,14 +21,9 @@ const webpackDevMiddleware 	= require('webpack-dev-middleware');
 const config 								= require(path.resolve(process.cwd(), './webpack.config.js'));
 const compiler = webpack(config);
 
-// Create our own output file system
-// so we can access webpack's in-memory files
-const memfs = new MemoryFileSystem();
-memfs.mkdirpSync(outputPath);
 
 const webpackMiddleware = webpackDevMiddleware(compiler, {
 	publicPath: config.output.publicPath,
-	outputFileSystem: memfs
 })
 
 var hasCompiled = false;
@@ -61,7 +57,7 @@ var waitForWebpack = (app, next) => {
 var getFileFromWebpack = (file, quiet = false) => {
 	try {
 		// pull the specified filename out of memory
-		return memfs.readFileSync(path.resolve('build', file));
+		return compiler.outputFileSystem.readFileSync(path.join('build', file));
 	} catch (e) {
 		if(!quiet) console.error(e)
 		throw `error trying to load ${file} from widget src, reload if you just started the server`
@@ -288,6 +284,12 @@ var resizeImage = (size, double) => {
 	// allow express to parse a JSON post body that ends up in req.body.data
 	app.use(express.json()); // for parsing application/json
 	app.use(express.urlencoded({extended: true})); // for parsing application/x-www-form-urlencoded
+
+	// Enable CORS
+	app.use(cors({
+		origin: '*',
+		allowedHeaders: ['Origin, X-Requested-With, Content-Type, Accept']
+	}));
 
 	// serve the static files from devmateria
 	let clientAssetsPath = require('materia-server-client-assets/path')

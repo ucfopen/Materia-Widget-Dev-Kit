@@ -172,7 +172,7 @@ const getDefaultRules = () => ({
 	// in the src of the html files, this will tell webpack
 	// how to deal with those files
 	copyImages: {
-		test: /\.(jpe?g|png|gif|svg)$/i,
+		test: /\.(jpe?g|png|gif|svg|mp3)$/i,
 		loader: 'file-loader',
 		options: {
 			emitFile: false,
