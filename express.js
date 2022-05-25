@@ -314,6 +314,56 @@ var resizeImage = (size, double) => {
 		res.render(res.locals.template)
 	});
 
+	// Display compiled widget assets
+	// Taken from: https://github.com/webpack/webpack-dev-server
+	app.get('/webpack-dev-server', (req, res) => {
+		webpackMiddleware.waitUntilValid((stats) => {
+			res.setHeader("Content-Type", "text/html");
+      res.write(
+        '<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body>'
+      );
+			const statsForPrint =
+        typeof ((stats).stats) !== "undefined"
+          ? (stats).toJson().children
+          : [(stats).toJson()];
+
+      res.write(`<h1>Assets Report:</h1>`);
+
+      (statsForPrint).forEach((item, index) => {
+        res.write("<div>");
+
+        const name =
+          typeof item.name !== "undefined"
+            ? item.name
+            : (stats).stats
+            ? `unnamed[${index}]`
+            : "unnamed";
+
+        res.write(`<h2>Compilation: ${name}</h2>`);
+        res.write("<ul>");
+
+        const publicPath =
+          item.publicPath === "auto" ? "" : item.publicPath;
+
+        for (const asset of item.assets) {
+          const assetName = asset.name;
+          const assetURL = `${publicPath}${assetName}`;
+
+          res.write(
+            `<li>
+          <strong><a href="${assetURL}" target="_blank">${assetName}</a></strong>
+        </li>`
+          );
+        }
+
+        res.write("</ul>");
+        res.write("</div>");
+      });
+
+      res.end("</body></html>");
+    });
+	})
+
 	// ============= MWDK ROUTES =======================
 
 	app.get('/mwdk/my-widgets', (req, res) => {

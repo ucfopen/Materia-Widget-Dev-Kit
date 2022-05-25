@@ -8,7 +8,7 @@
   "scripts": {
     "build": "webpack",
     "test": "echo 'No tests yet'",
-    "start": "env TEST_MWDK=true RUNNING_DEV_SERVER=true node express.js",
+    "start": "env TEST_MWDK=true RUNNING_DEV_SERVER=true nodemon express.js",
     "prettier:run": "prettier --write 'src/*.js' --write 'assets/**/*.{js,css}' --write '*.js'",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
   },
@@ -40,6 +40,7 @@
     "materia-server-client-assets": "2.1.0",
     "mini-css-extract-plugin": "^1.6.2",
     "node-sass": "^4.12.0",
+    "nodemon": "^2.0.16",
     "postcss": "^8.4.14",
     "postcss-loader": "2.0.6",
     "postcss-preset-env": "^7.6.0",
