@@ -11,10 +11,23 @@ const util				= require('util');
 const cors 				= require('cors')
 const hbs				= require('hbs');
 
-var hasCompiled = false;
+// common paths used here
+const srcPath 				= path.join(process.cwd(), 'src') + path.sep
+const outputPath 			= path.join(process.cwd(), 'build') + path.sep
 
 // Webpack middleware setup
+const webpack 							= require('webpack');
 const webpackDevMiddleware 	= require('webpack-dev-middleware');
+const config 								= require(path.resolve(process.cwd(), './webpack.config.js'));
+console.log(config.output.publicPath);
+const compiler = webpack(config);
+
+
+const webpackMiddleware = webpackDevMiddleware(compiler, {
+	publicPath: config.output.publicPath,
+})
+
+var hasCompiled = false;
 
 // this will call next() once webpack is ready by trying to:
 // 1. talk to the middlware
@@ -24,15 +37,6 @@ var waitForWebpack = (app, next) => {
 	if(hasCompiled) return next(); // short circuit if ready
 
 	waitUntil(() => {
-		// check for the middleware first
-		// if(!webPackMiddleware){
-		// 	// search express for the webpack middleware
-		// 	var found = app._router.stack.filter(mw => mw && mw.handle && mw.handle.name === 'webpackDevMiddleware')
-		// 	if(found.length == 0) return false // not ready
-		// 	webPackMiddleware = found[0].handle // found!
-		// }
-
-		// then check to see if we can find install.yaml
 		try {
 			getInstall()
 			return true
@@ -49,23 +53,11 @@ var waitForWebpack = (app, next) => {
 		throw "MWDK couldn't locate the widget's install.yaml.  Make sure you have one and webpack is processing it."
 	})
 }
-// For whatever reason, the middleware isn't availible when this class
-// var getWebPackMiddleWare = (app) => {
-// 	if(webPackMiddleware) return webPackMiddleware
-
-// 	var t = app._router.stack.filter((layer) => {
-// 		return layer && layer.handle && layer.handle.name === 'webpackDevMiddleware';
-// 	})
-
-// 	if(t.length > 0){
-// 		webPackMiddleware = t[0].handle
-// 		return webPackMiddleware
-// 	}
-// }
 
 // Loads processed widget files from webpack's memory
 var getFileFromWebpack = (file, quiet = false) => {
 	try {
+		console.log(file);
 		// pull the specified filename out of memory
 		return compiler.outputFileSystem.readFileSync(path.join('build', file));
 	} catch (e) {
@@ -88,6 +80,7 @@ var getDemoQset = () => {
 			qset = fs.readFileSync(path.resolve('views', 'sample-demo.json'))
 		}
 		else{
+			console.log("getting demo.json")
 			qset = getFileFromWebpack('demo.json')
 		}
 	} catch (e) {
@@ -162,6 +155,7 @@ var createApiWidgetData = (id) => {
 	widget.dir = ''
 	widget.width = widget.general.width;
 	widget.height = widget.general.height;
+	console.log(widget);
 	return widget;
 };
 
@@ -169,7 +163,7 @@ var createApiWidgetData = (id) => {
 var buildWidget = () => {
 	try{
 		console.log('Building production ready widget')
-		let output = execSync('yarn run build')
+		let output = execSync('yarn build')
 	} catch(e) {
 		console.error(e)
 		console.log(output.toString())
@@ -275,14 +269,18 @@ var resizeImage = (size, double) => {
 }
 
 // app is passed a reference to the webpack dev server (Express.js)
-module.exports = (app) => {
+// module.exports = (app) => {
 
 	// ============= ASSETS and SETUP =======================
+	const app = express();
+	// ============= ASSETS and SETUP =======================
 
-	app.set('view engine', 'html') // set file extension to html
-	app.set('layout', 'layout') // set layout to layout.html
-	app.engine('html', hoganExpress) // set the layout engine for html
-	app.set('views', path.join(__dirname , 'views')); // set the views directory
+	hbs.registerPartials(__dirname + '/views/partials', function(err) {});
+	hbs.localsAsTemplateData(app);
+
+	app.set('views', path.join(__dirname , '/views')); // set the views directory
+	app.set('layouts', path.join(__dirname , '/views/layouts')); // set the layouts directory
+	app.set('view engine', 'hbs') // set file extension to html
 
 	app.use(webpackDevMiddleware);
 
@@ -301,11 +299,10 @@ module.exports = (app) => {
 
 	// serve the static files from devmateria
 	// let clientAssetsPath = require('materia-server-client-assets/path')
-	let clientAssetsPath = require('materia-widget-dependencies');
 	app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 	app.use('/mwdk/assets', express.static(path.join(__dirname, 'assets')))
 	app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
-	app.use('/mwdk/assets/', express.static(path.join(clientAssetsPath, 'js')))
+	app.use('/mwdk/assets/', express.static(__dirname + '/node_modules/materia-widget-dependencies/'));
 
 
 	// insert the port into the res.locals
@@ -650,4 +647,10 @@ module.exports = (app) => {
 		res.json(questions)
 	});
 
-}
+	app.listen(8118, function () {
+		console.log('Listening on port 8118');
+	})
+
+//}
+
+module.exports = app;

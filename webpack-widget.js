@@ -1,13 +1,18 @@
 const fs = require('fs')
 const path = require('path')
 const webpack = require('webpack')
-const CleanWebpackPlugin = require('clean-webpack-plugin')
+const autoprefixer = require('autoprefixer');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
-const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
-const MateriaDevServer = require('./express');
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
+const nodeExternals = require("webpack-node-externals");
+const postcssPresetEnv = require('postcss-preset-env');
+const { addAbortSignal } = require('stream');
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
+const MateriaDevServer = require('./express');
 
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
@@ -83,31 +88,31 @@ const combineConfig = (extras = {}) => {
 		rules.loadAndCompileMarkdown,
 		rules.copyImages,
 		rules.loadHTMLAndReplaceMateriaScripts,
-		rules.loadAndPrefixCSS,
+		// rules.loadAndPrefixCSS,
 		rules.loadAndPrefixSASS
 	]
 
 	const pkgConfig = configFromPackage()
-	const defaultCfg = {
+	const config = {
 		cleanName: pkgConfig.cleanName,
-		copyList: getDefaultCopyList(),
-		entries: getDefaultEntries(),
-		moduleRules: orderedRules
+		copyList: extras.copyList ? extras.copyList : getDefaultCopyList(),
+		entries: extras.entries ? extras.entries : getDefaultEntries(),
+		moduleRules: extras.moduleRules ? extras.moduleRules : orderedRules
 	}
 
-	return Object.assign({}, defaultCfg, extras)
+	return config
 }
 
 // list of files and directories to copy into widget
 const getDefaultCopyList = () => {
 	const copyList = [
 		{
-			flatten: true,
+			//flatten: true,
 			from: `${srcPath}demo.json`,
 			to: `${outputPath}demo.json`,
 		},
 		{
-			flatten: true,
+			//flatten: true,
 			from: `${srcPath}install.yaml`,
 			to: outputPath,
 		},
@@ -117,7 +122,7 @@ const getDefaultCopyList = () => {
 			toType: 'dir'
 		},
 		{
-			flatten: true,
+			//flatten: true,
 			from: `${srcPath}_score`,
 			to: `${outputPath}_score-modules`,
 			toType: 'dir'
@@ -146,7 +151,7 @@ const getDefaultCopyList = () => {
 	if (isRunningDevServer && fs.existsSync(devDemoPath)) {
 		console.log(`===== USING ${devDemo} ====`)
 		copyList.push({
-			flatten: true,
+			// flatten: true,
 			from: devDemoPath,
 			to: `${outputPath}demo.json`,
 			force: true
@@ -164,9 +169,19 @@ const getDefaultRules = () => ({
 	loaderDoNothingToJs: {
 		test: /\.js$/i,
 		exclude: /node_modules/,
-		loader: ExtractTextPlugin.extract({
-			use: ['raw-loader']
-		})
+		// loader: ExtractTextPlugin.extract({
+		// 	use: ['raw-loader']
+		// }),
+		type: 'asset/source',
+		use: [
+			{
+				loader: 'raw-loader',
+				options: {
+					esModule: true,
+				}
+			}
+		],
+		type: 'javascript/auto'
 	},
 	// process coffee files by translating them to js
 	// SKIPS the default webpack Javascript functionality
@@ -174,33 +189,62 @@ const getDefaultRules = () => ({
 	loaderCompileCoffee: {
 		test: /\.coffee$/i,
 		exclude: /node_modules/,
-		loader: ExtractTextPlugin.extract({
-			use: [
-				'raw-loader',
-				{
-					loader: 'coffee-loader',
-					options: {
-						transpile:{
-							presets: [
-								'@babel/preset-env'
-							]
-						}
+		// loader: ExtractTextPlugin.extract({
+		// 	use: [
+		// 		'raw-loader',
+		// 		{
+		// 			loader: 'coffee-loader',
+		// 			options: {
+		// 				transpile:{
+		// 					presets: [
+		// 						'@babel/preset-env'
+		// 					]
+		// 				}
+		// 			}
+		// 		}
+		// 	]
+		// }),
+		type: 'asset/source',
+		use: [
+			{
+				loader: 'raw-loader',
+				options: {
+					esModule: true,
+				}
+			},
+			{
+				loader: 'coffee-loader',
+				options: {
+					transpile:{
+						presets: [
+							'@babel/preset-env'
+						]
 					}
 				}
-			]
-		})
+			}
+		],
+		type: 'javascript/auto'
 	},
 	// webpack is going to look at all the images, fonts, etc
 	// in the src of the html files, this will tell webpack
 	// how to deal with those files
 	copyImages: {
 		test: /\.(jpe?g|png|gif|svg)$/i,
-		loader: 'file-loader',
-		query: {
-			emitFile: false, // keeps this plugin from renaming the file to an md5 hash
-			useRelativePath: true, // keeps path of img/src/imag.png intact
-			name: '[name].[ext]'
-		}
+		// loader: 'file-loader',
+		// query: {
+		// 	emitFile: false, // keeps this plugin from renaming the file to an md5 hash
+		// 	useRelativePath: true, // keeps path of img/src/imag.png intact
+		// 	name: '[name].[ext]'
+		// },
+		use: [
+			{
+				loader: 'file-loader',
+				options: {
+					emitFile: false,
+					name: '[name].[ext]'
+				}
+			}
+		]
 	},
 	// Loads the html files and minifies their contents
 	// Rewrites the paths to our materia core libs provided by materia server
@@ -213,9 +257,9 @@ const getDefaultRules = () => ({
 				loader: 'file-loader',
 				options: { name: '[name].html' }
 			},
-			{
-				loader: 'extract-loader'
-			},
+			// {
+			// 	loader: 'extract-loader'
+			// },
 			{
 				loader: 'string-replace-loader',
 				options: { multiple: materiaJSReplacements }
@@ -225,42 +269,69 @@ const getDefaultRules = () => ({
 	},
 	// Process CSS Files
 	// Adds autoprefixer
-	loadAndPrefixCSS: {
-		test: /\.css$/i,
-		exclude: /node_modules/,
-		loader: ExtractTextPlugin.extract({
-			use: [
-				'raw-loader',
-				{
-					// postcss-loader is needed to run autoprefixer
-					loader: 'postcss-loader',
-					options: {
-						// add autoprefixer, tell it what to prefix
-						plugins: [require('autoprefixer')({browsers: browserList})]
-					}
-				},
-			]
-		})
-	},
+	// loadAndPrefixCSS: {
+	// 	test: /\.css$/i,
+	// 	exclude: /node_modules/,
+	// 	loader: ExtractTextPlugin.extract({
+	// 		use: [
+	// 			'raw-loader',
+	// 			{
+	// 				// postcss-loader is needed to run autoprefixer
+	// 				loader: 'postcss-loader',
+	// 				options: {
+	// 					// add autoprefixer, tell it what to prefix
+	// 					plugins: [require('autoprefixer')({browsers: browserList})]
+	// 				}
+	// 			},
+	// 		]
+	// 	})
+	// },
 	// Process SASS/SCSS Files
 	// Adds autoprefixer
 	loadAndPrefixSASS: {
 		test: /\.s[ac]ss$/i,
 		exclude: /node_modules\/(?!(materia-widget-development-kit\/templates)\/).*/,
-		loader: ExtractTextPlugin.extract({
-			use: [
-				'raw-loader',
-				{
-					// postcss-loader is needed to run autoprefixer
-					loader: 'postcss-loader',
-					options: {
+		// loader: ExtractTextPlugin.extract({
+		// 	use: [
+		// 		'raw-loader',
+		// 		{
+		// 			// postcss-loader is needed to run autoprefixer
+		// 			loader: 'postcss-loader',
+		// 			options: {
+		// 				// add autoprefixer, tell it what to prefix
+		// 				plugins: [require('autoprefixer')({browsers: browserList})]
+		// 			}
+		// 		},
+		// 		'sass-loader'
+		// 	]
+		// }),
+		use: [
+			{
+				loader: MiniCssExtractPlugin.loader
+			},
+			{
+				loader: "css-loader",
+				options: {
+					url: false,
+					esModule: false
+				},
+			},
+			{
+				// postcss-loader is needed to run autoprefixer
+				loader: 'postcss-loader',
+				options: {
+					postcssOptions: {
 						// add autoprefixer, tell it what to prefix
-						plugins: [require('autoprefixer')({browsers: browserList})]
+						plugins: [
+							require('autoprefixer')({
+								overrideBrowserslist: browserList
+							})
+						],
 					}
 				},
-				'sass-loader'
-			]
-		})
+			},
+			"sass-loader",
+		],
 	},
 	loadAndCompileMarkdown: {
 		test: /\.md$/,
@@ -273,7 +344,9 @@ const getDefaultRules = () => ({
 						outputPath: 'guides/'
 					}
 				},
-				'extract-loader','html-loader','markdown-loader']
+				'html-loader',
+				'markdown-loader'
+			]
 	}
 })
 
@@ -288,17 +361,24 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	let cfg = combineConfig(config)
 
 	let build = {
+		mode: 'development',
 		stats: {children: false},
 		devServer: {
-			contentBase: outputPath,
-			headers:{
+			// contentBase: outputPath,
+			headers: {
 				// allow iframes to talk to their parent containers
 				'Access-Control-Allow-Origin': '*',
 				'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
 			},
+			historyApiFallback: true,
 			port: process.env.PORT || 8118,
-			setup: MateriaDevServer,
-			stats: {children: false},
+			// static: 
+			devMiddleware: {
+				publicPath: './express2',
+				serverSideRender: true,
+				writeToDisk: true,
+			},
+			// stats: {children: false},
 		},
 
 		// These are the default js and css files
@@ -307,18 +387,24 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		// write files to the outputPath (default = ./build) using the object keys from 'entry' above
 		output: {
 			path: outputPath,
-			filename: '[name]',
-			publicPath: ''
+			filename: '[name].js',
+			publicPath: '',
+			clean: true
 		},
+		externals: [nodeExternals()],
 
 		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
 			new CleanWebpackPlugin(),
 			// copy all the common resources to the build directory
-			new CopyPlugin(cfg.copyList, {ignore: copyIgnore}),
+			new CopyPlugin({
+				patterns: cfg.copyList,
+			}, 
+			// {ignore: copyIgnore}
+			),
 			// extract css from the webpack output
-			new ExtractTextPlugin({filename: '[name]'}),
+			new MiniCssExtractPlugin({filename: '[name]-[hash]'}),
 			// zip everything in the build path to zip dir
 			new ZipPlugin({
 				path: `${outputPath}_output`,
@@ -333,47 +419,47 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	}
 
 	// conditionally add plugins to handle guides if the directory exists in /src
-	if (fs.existsSync(`${srcPath}_guides`))
-	{
-		// attach the guideStyles css to the default entry, if used
-		build.entry['guides/guideStyles.css'] = [
-			'./node_modules/materia-widget-development-kit/templates/guideStyles.scss'
-		]
+	// if (fs.existsSync(`${srcPath}_guides`))
+	// {
+	// 	// attach the guideStyles css to the default entry, if used
+	// 	build.entry['guides/guideStyles.css'] = [
+	// 		'./node_modules/materia-widget-development-kit/templates/guideStyles.scss'
+	// 	]
 
-		build.plugins.unshift(
-			// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
-			new CleanWebpackPlugin({
-				cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
-			})
-		)
+	// 	build.plugins.unshift(
+	// 		// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
+	// 		new CleanWebpackPlugin({
+	// 			cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
+	// 		})
+	// 	)
 
-		// inject the compiled guides markdown into the templates and re-emit the guides
-		if (fs.existsSync(`${srcPath}_guides/creator.md`))
-		{
-			build.plugins.unshift(
-				new HtmlWebpackPlugin({
-					chunks: [],
-					template: 'node_modules/materia-widget-development-kit/templates/guide-template',
-					filename: 'guides/creator.html',
-					htmlTitle: 'Widget Creator Guide'
-				})
-			)
-		}
-		if (fs.existsSync(`${srcPath}_guides/player.md`))
-		{
-			build.plugins.unshift(
-				new HtmlWebpackPlugin({
-					chunks: [],
-					template: 'node_modules/materia-widget-development-kit/templates/guide-template',
-					filename: 'guides/player.html',
-					htmlTitle: 'Widget Player Guide'
-				})
-			)
-		}
-	}
-	else {
-		console.warn("No helper docs found, skipping plugins")
-	}
+	// 	// inject the compiled guides markdown into the templates and re-emit the guides
+	// 	if (fs.existsSync(`${srcPath}_guides/creator.md`))
+	// 	{
+	// 		build.plugins.unshift(
+	// 			new HtmlWebpackPlugin({
+	// 				chunks: [],
+	// 				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+	// 				filename: 'guides/creator.html',
+	// 				htmlTitle: 'Widget Creator Guide'
+	// 			})
+	// 		)
+	// 	}
+	// 	if (fs.existsSync(`${srcPath}_guides/player.md`))
+	// 	{
+	// 		build.plugins.unshift(
+	// 			new HtmlWebpackPlugin({
+	// 				chunks: [],
+	// 				template: 'node_modules/materia-widget-development-kit/templates/guide-template',
+	// 				filename: 'guides/player.html',
+	// 				htmlTitle: 'Widget Player Guide'
+	// 			})
+	// 		)
+	// 	}
+	// }
+	// else {
+	// 	console.warn("No helper docs found, skipping plugins")
+	// }
 
 	return build
 }
