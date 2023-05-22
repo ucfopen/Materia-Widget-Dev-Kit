@@ -7,11 +7,15 @@
   "author": "University of Central Florida, Center for Distributed Learning",
   "scripts": {
     "build": "webpack",
+    "mwdk-start": "./bin/mwdk-start.js",
     "test": "echo 'No tests yet'",
     "start": "env TEST_MDK=true RUNNING_DEV_SERVER=true webpack-dev-server --open --config webpack.config.widget.js",
     "postinstall": "yarn build",
     "prettier:run": "prettier --write 'src/*.js' --write 'assets/**/*.{js,css}' --write '*.js'",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
+  },
+  "bin": {
+    "mwdk-start": "./bin/mwdk-start.js"
   },
   "materia": {
     "cleanName": "MWDK"
@@ -38,7 +42,7 @@
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "5.5.1",
     "markdown-loader": "^8.0.0",
-    "materia-widget-dependencies": "../Materia/public/dist",
+    "materia-widget-dependencies": "/Users/ca668810/Documents/Projects/Materia/public/dist",
     "mini-css-extract-plugin": "^2.7.2",
     "nodemon": "^2.0.20",
     "npm-check-updates": "^16.10.9",
@@ -54,6 +58,7 @@
     "sass": "^1.57.1",
     "sass-loader": "^13.2.0",
     "sharp": "^0.32.1",
+    "shelljs": "^0.8.5",
     "string-replace-loader": "^3.1.0",
     "style-loader": "^3.3.1",
     "uuid": "^9.0.0",

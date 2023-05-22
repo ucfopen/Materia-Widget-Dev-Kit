@@ -10,13 +10,11 @@ Namespace('MWDK').Package = (() => {
 		document.getElementById('modalbg').classList.add('visible');
 	};
 
-	var showPreview = () => {
-		console.log(window.location.href);
+	var showDemoPreview = () => {
 		window.location.pathname='/preview';
 	}
 
 	var showCreator = () => {
-		console.log(window.location.href);
 		window.location.href='/mwdk/widgets/1-mwdk/create#1';
 	}
 

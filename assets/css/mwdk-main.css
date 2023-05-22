@@ -458,3 +458,15 @@ header.logged-in {
 .alert-wrapper {
 	display: none;
 }
+
+.dot {
+	display: none !important;
+}
+
+#creatorPublishBtn {
+	display: none;
+}
+
+#saveHistoryLink, #importLink {
+	display: none;
+}

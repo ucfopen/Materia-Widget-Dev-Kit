@@ -1,18 +1,10 @@
 const fs = require('fs')
 const path = require('path')
-const webpack = require('webpack')
-const autoprefixer = require('autoprefixer');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
-const nodeExternals = require("webpack-node-externals");
-const postcssPresetEnv = require('postcss-preset-env');
-const { addAbortSignal } = require('stream');
-const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin');
-const MateriaDevServer = require('./express');
 
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
@@ -55,19 +47,11 @@ const materiaJSReplacements = [
 
 // webpack entries
 const getDefaultEntries = () => ({
-	'creator.js': [
+	'creator': [
 		`${srcPath}creator.coffee`
 	],
-	'player.js': [
+	'player': [
 		`${srcPath}player.coffee`
-	],
-	'creator.css': [
-		`${srcPath}creator.html`,
-		`${srcPath}creator.scss`
-	],
-	'player.css': [
-		`${srcPath}player.html`,
-		`${srcPath}player.scss`
 	]
 })
 
@@ -170,19 +154,7 @@ const getDefaultRules = () => ({
 	loaderDoNothingToJs: {
 		test: /\.js$/i,
 		exclude: /node_modules/,
-		// loader: ExtractTextPlugin.extract({
-		// 	use: ['raw-loader']
-		// }),
 		type: 'asset/source',
-		// use: [
-		// 	{
-		// 		loader: 'raw-loader',
-		// 		options: {
-		// 			esModule: true,
-		// 		}
-		// 	}
-		// ],
-		// type: 'javascript/auto'
 	},
 	// process coffee files by translating them to js
 	// SKIPS the default webpack Javascript functionality
@@ -190,29 +162,8 @@ const getDefaultRules = () => ({
 	loaderCompileCoffee: {
 		test: /\.coffee$/i,
 		exclude: /node_modules/,
-		// loader: ExtractTextPlugin.extract({
-		// 	use: [
-		// 		'raw-loader',
-		// 		{
-		// 			loader: 'coffee-loader',
-		// 			options: {
-		// 				transpile:{
-		// 					presets: [
-		// 						'@babel/preset-env'
-		// 					]
-		// 				}
-		// 			}
-		// 		}
-		// 	]
-		// }),
 		type: 'asset/source',
 		use: [
-			// {
-			// 	loader: 'raw-loader',
-			// 	options: {
-			// 		esModule: true,
-			// 	}
-			// },
 			{
 				loader: 'coffee-loader',
 				options: {
@@ -224,7 +175,6 @@ const getDefaultRules = () => ({
 				}
 			}
 		],
-		// type: 'javascript/auto'
 	},
 	// webpack is going to look at all the images, fonts, etc
 	// in the src of the html files, this will tell webpack
@@ -232,21 +182,6 @@ const getDefaultRules = () => ({
 	copyImages: {
 		test: /\.(jpe?g|png|gif|svg)$/i,
 		exclude: /node_modules/,
-		// loader: 'file-loader',
-		// query: {
-		// 	emitFile: false, // keeps this plugin from renaming the file to an md5 hash
-		// 	useRelativePath: true, // keeps path of img/src/imag.png intact
-		// 	name: '[name].[ext]'
-		// },
-		// use: [
-		// 	{
-		// 		loader: 'file-loader',
-		// 		options: {
-		// 			emitFile: false,
-		// 			name: '[name].[ext]'
-		// 		}
-		// 	}
-		// ]
 		type: 'asset/resource',
 		generator: {
 			filename: '[name][ext]'
@@ -260,18 +195,10 @@ const getDefaultRules = () => ({
 		exclude: /node_modules|_guides|guides/,
 		type: 'asset/source',
 		use: [
-			// {
-			// 	loader: 'file-loader',
-			// 	options: { name: '[name].html' }
-			// },
-			// {
-			// 	loader: 'extract-loader'
-			// },
 			{
 				loader: 'string-replace-loader',
 				options: { multiple: materiaJSReplacements }
 			},
-			//'html-loader'
 		]
 	},
 	// Process SASS/SCSS/CSS Files
@@ -374,13 +301,6 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				minify: false,
 				chunks: [`${name}`]
 			}));
-			// maphash.set(name, new HtmlWebpackPlugin({
-			// 	filename: `${name}.html`,
-			// 	template: `src/${name}.html`,
-			// 	inject: false,
-			// 	minify: false,
-			// 	chunks: [`${name}`]
-			// }));
 		}
 	}
 
@@ -391,7 +311,6 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		mode: 'development',
 		stats: {children: false},
 		devServer: {
-			// contentBase: outputPath,
 			headers: {
 				// allow iframes to talk to their parent containers
 				'Access-Control-Allow-Origin': '*',
@@ -399,13 +318,6 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			},
 			historyApiFallback: true,
 			port: process.env.PORT || 8118,
-			// static:
-			// devMiddleware: {
-			// 	publicPath: './express2',
-			// 	serverSideRender: true,
-			// 	writeToDisk: true,
-			// },
-			// stats: {children: false},
 		},
 
 		// These are the default js and css files
@@ -423,16 +335,10 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
-			// new CleanWebpackPlugin(),
 			// copy all the common resources to the build directory
 			new CopyPlugin({
 				patterns: cfg.copyList,
-			},
-			// {ignore: copyIgnore}
-			),
-			// new webpack.ProvidePlugin({
-			// 	angular: 'angular',
-			// }),
+			}),
 			...htmlWebpackPlugins,
 			// extract css from the webpack output
 			new MiniCssExtractPlugin({
@@ -450,75 +356,6 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			})
 		]
 	}
-
-
-	// conditionally add plugins to handle guides if the directory exists in /src
-	// if (fs.existsSync(`${srcPath}_guides/creator.md`))
-	// {
-	// 	const buffer = fs.readFileSync(path.join(outputPath, 'guides', `creator-partial.html`), 'utf8');
-
-	// 	const body = buffer.toString()
-
-	// 	build.plugins.unshift(new HtmlWebpackPlugin({
-	// 		template: 'node_modules/materia-widget-development-kit/templates/guide-template',
-	// 		templateContent: body,
-	// 		filename: `guides/creator.html`,
-	// 		htmlTitle: `Widget Creator Guide`,
-	// 		inject: false,
-	// 	}));
-	// 	// build.plugins.unshift(new CopyPlugin({
-	// 	// 	patterns: [
-	// 	// 		{
-	// 	// 			from: path.join(__dirname, 'templates', 'guideStyles.scss'),
-	// 	// 			to: path.join('./', `${srcPath}`)
-	// 	// 		}
-	// 	// 	]
-	// 	// }))
-	// }
-	// // if (fs.existsSync(`${srcPath}_guides`))
-	// // {
-	// // 	// attach the guideStyles css to the default entry, if used
-	// // 	build.entry['guides/guideStyles.css'] = [
-	// // 		'./node_modules/materia-widget-development-kit/templates/guideStyles.scss'
-	// // 	]
-
-	// // 	build.plugins.unshift(
-	// // 		// explicitly remove the creator.temp.html and player.temp.html files created as part of the markdown conversion process
-	// // 		new CleanWebpackPlugin({
-	// // 			cleanAfterEveryBuildPatterns: [`${outputPath}guides/creator.temp.html`, `${outputPath}guides/player.temp.html`]
-	// // 		})
-	// // 	)
-
-	// // 	// inject the compiled guides markdown into the templates and re-emit the guides
-	// // if (fs.existsSync(`${srcPath}_guides/creator.md`))
-	// // {
-	// // 	build.plugins.unshift(
-	// // 		new HtmlWebpackPlugin({
-	// // 			template: 'node_modules/materia-widget-development-kit/templates/guide-template',
-	// // 			filename: 'guides/creator.html',
-	// // 			htmlTitle: 'Widget Creator Guide'
-	// // 		})
-	// // 	)
-	// // }
-	// if (fs.existsSync(`${srcPath}_guides/player.md`))
-	// {
-	// 	const buffer = fs.readFileSync(path.join(outputPath, 'guides', `player-partial.html`), 'utf8');
-
-	// 	const body = buffer.toString()
-
-	// 	build.plugins.unshift(
-	// 		new HtmlWebpackPlugin({
-	// 			template: 'node_modules/materia-widget-development-kit/templates/guide-template',
-	// 			templateContent: body,
-	// 			filename: `guides/player.html`,
-	// 			htmlTitle: `Widget Player Guide`,
-	// 			inject: false,
-	// 		})
-	// 	)
-	// }
-	// else {
-	// 	console.warn("No helper docs found, skipping plugins")
-	// }
 
 	return build
 }
