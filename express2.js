@@ -19,7 +19,6 @@ const outputPath 			= path.join(process.cwd(), 'build') + path.sep
 const webpack 							= require('webpack');
 const webpackDevMiddleware 	= require('webpack-dev-middleware');
 const config 								= require(path.resolve(process.cwd(), './webpack.config.js'));
-console.log(config.output.publicPath);
 const compiler = webpack(config);
 
 
@@ -57,9 +56,13 @@ var waitForWebpack = (app, next) => {
 // Loads processed widget files from webpack's memory
 var getFileFromWebpack = (file, quiet = false) => {
 	try {
-		console.log(file);
 		// pull the specified filename out of memory
-		return compiler.outputFileSystem.readFileSync(path.join('build', file));
+		if(process.env.TEST_MWDK){
+			return compiler.outputFileSystem.readFileSync(path.join('build', file));
+		}
+		else {
+			return compiler.outputFileSystem.readFileSync(path.join(outputPath, file));
+		}
 	} catch (e) {
 		if(!quiet) console.error(e)
 		throw `error trying to load ${file} from widget src, reload if you just started the server`
@@ -77,6 +80,7 @@ var getDemoQset = () => {
 	let qset
 	try {
 		if(process.env.TEST_MWDK){
+			console.log("getting sample-demo.json")
 			qset = fs.readFileSync(path.resolve('views', 'sample-demo.json'))
 		}
 		else{
@@ -155,15 +159,15 @@ var createApiWidgetData = (id) => {
 	widget.dir = ''
 	widget.width = widget.general.width;
 	widget.height = widget.general.height;
-	console.log(widget);
 	return widget;
 };
 
 // run yarn build in production mode to build the widget
 var buildWidget = () => {
+	let output = '';
 	try{
 		console.log('Building production ready widget')
-		let output = execSync('yarn build')
+		output = execSync('yarn build-dev')
 	} catch(e) {
 		console.error(e)
 		console.log(output.toString())
@@ -275,14 +279,16 @@ var resizeImage = (size, double) => {
 	const app = express();
 	// ============= ASSETS and SETUP =======================
 
-	hbs.registerPartials(__dirname + '/views/partials', function(err) {});
+	hbs.registerPartials(__dirname + 'views/partials', function(err) {});
 	hbs.localsAsTemplateData(app);
 
-	app.set('views', path.join(__dirname , '/views')); // set the views directory
-	app.set('layouts', path.join(__dirname , '/views/layouts')); // set the layouts directory
-	app.set('view engine', 'hbs') // set file extension to html
+	app.set('views', path.join(__dirname , 'views/')); // set the views directory
+	app.set('layouts', path.join(__dirname , 'views/layouts')); // set the layouts directory
+	// app.set('view engine', 'html') // set file extension to html
+	// app.engine('html', require('hbs').__express);
+	app.set('view engine', 'hbs') // set file extension to hbs
 
-	app.use(webpackDevMiddleware);
+	app.use(webpackMiddleware);
 
 	// the web pack middlewere takes time to show up
 	app.use([/^\/$/, '/mwdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
@@ -299,11 +305,13 @@ var resizeImage = (size, double) => {
 
 	// serve the static files from devmateria
 	// let clientAssetsPath = require('materia-server-client-assets/path')
+	let clientAssetsPath = require('materia-widget-dependencies/path')
 	app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 	app.use('/mwdk/assets', express.static(path.join(__dirname, 'assets')))
 	app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
-	app.use('/mwdk/assets/', express.static(__dirname + '/node_modules/materia-widget-dependencies/'));
-
+	app.use('/mwdk/mwdk-assets/css', express.static(path.join(clientAssetsPath, 'css')))
+	app.use('/mwdk/mwdk-assets', express.static(path.join(clientAssetsPath, 'js')))
+	app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
 
 	// insert the port into the res.locals
 	app.use( (req, res, next) => {
@@ -420,9 +428,12 @@ var resizeImage = (size, double) => {
 	});
 
 	// The play page frame that loads the widget player in an iframe
-	app.get(['/mwdk/player/:instance?', '/mwdk/preview/:instance?'], (req, res) => {
-		res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.instance || 'demo'})
-		res.render(res.locals.template)
+	app.get('/player/:id?', (req, res) => {
+		res.redirect('/preview/' + (req.params.id ? req.params.id : ''))
+	})
+	app.get(['/preview/:id?', '/player/:id?'], (req, res) => {
+		res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo'})
+		res.render(res.locals.template, { layout: false})
 	});
 
 	// Play Score page
@@ -432,10 +443,37 @@ var resizeImage = (size, double) => {
 	})
 
 	// The create page frame that loads the widget creator
-	app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
-		res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.instance || null})
-		res.render(res.locals.template)
+	// Must have hash '1' to work
+	app.get('/mwdk/widgets/1-mwdk/create', (req, res) => {
+		res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.hash || '1'})
+		res.render(res.locals.template, { layout: false})
 	});
+
+	app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
+		res.locals = Object.assign(res.locals, {
+			template: 'guide_page',
+			name: '1-mwdk',
+			type: 'creator',
+			hasPlayerGuide: true,
+			hasCreatorGuide: true,
+			docPath: '/guides/creator.html',
+			instance: req.params.hash || '1'
+		})
+		res.render(res.locals.template, { layout: false})
+	})
+
+	app.get('/mwdk/widgets/1-mwdk/players-guide', (req, res) => {
+		res.locals = Object.assign(res.locals, {
+			template: 'guide_page',
+			name: '1-mwdk',
+			type: 'player',
+			hasPlayerGuide: true,
+			hasCreatorGuide: true,
+			docPath: '/guides/player.html',
+			instance: req.params.hash || '1'
+		})
+		res.render(res.locals.template, { layout: false})
+	})
 
 	// Show the package options
 	app.get('/mwdk/package', (req, res) => {
@@ -458,7 +496,7 @@ var resizeImage = (size, double) => {
 
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
-	app.get('/mwdk/preview_blocked/:instance?', (req, res) => {
+	app.get('/preview_blocked/:instance?', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'preview_blocked', instance: req.params.instance || 'demo'})
 		res.render(res.locals.template)
 	});
@@ -541,7 +579,7 @@ var resizeImage = (size, double) => {
 
 	// API endpoint for getting the widget instance data
 	app.use('/api/json/widget_instances_get', (req, res) => {
-		const id = JSON.parse(req.body.data)[0][0];
+		const id = JSON.parse(req.body.data)[0];
 		res.json(createApiWidgetInstanceData(id));
 	});
 
@@ -583,8 +621,9 @@ var resizeImage = (size, double) => {
 
 	// api mock for saving widget instances
 	// creates files in our qset directory (probably should use a better thing)session
-	app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update'], (req, res) => {
+	app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/api/json/widget_instance_save'], (req, res) => {
 		const data = JSON.parse(req.body.data);
+
 
 		// sweep through the qset items and make sure there aren't any nonstandard question properties
 		const standard_props = [
@@ -647,10 +686,21 @@ var resizeImage = (size, double) => {
 		res.json(questions)
 	});
 
+	app.use('/api/json/user_get', (req, res) => {
+		res.json([{
+			id: '1'
+		}])
+	})
+
+	app.use('/api/json/notifications_get', (req, res) => {
+		res.json([])
+	})
+
 	app.listen(8118, function () {
 		console.log('Listening on port 8118');
 	})
 
+
 //}
 
-module.exports = app;
+//module.exports = app;

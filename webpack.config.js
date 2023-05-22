@@ -2,6 +2,7 @@ const path = require('path')
 const CopyPlugin = require('copy-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 const srcPath = path.resolve(process.cwd(), 'src') + path.sep;
 const buildPath = path.resolve(process.cwd(), 'build') + path.sep;
@@ -56,7 +57,7 @@ module.exports =
 		},
 		plugins: [
 			new MiniCssExtractPlugin(),
-			new CleanWebpackPlugin(),
+			// new CleanWebpackPlugin(),
 			new CopyPlugin({
 				patterns: [
 					{
@@ -66,6 +67,7 @@ module.exports =
 					}
 				],
 			}),
+			new HtmlWebpackPlugin()
 		],
 	// this used to be here to enable a single webpack to build
 	// both MSCA and this project at the same time

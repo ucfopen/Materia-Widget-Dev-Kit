@@ -423,7 +423,7 @@ module.exports = (app) => {
 	});
 
 	// The play page frame that loads the widget player in an iframe
-	app.get(['/mwdk/player/:instance?', '/mwdk/preview/:instance?'], (req, res) => {
+	app.get(['/player/:instance?', '/preview/:instance?'], (req, res) => {
 		res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.instance || 'demo'})
 		res.render(res.locals.template)
 	});
@@ -461,7 +461,7 @@ module.exports = (app) => {
 
 	// A default preview blocked template if a widget's creator doesnt have one
 	// @TODO im not sure this is used?
-	app.get('/mwdk/preview_blocked/:instance?', (req, res) => {
+	app.get('/preview_blocked/:instance?', (req, res) => {
 		res.locals = Object.assign(res.locals, {template: 'preview_blocked', instance: req.params.instance || 'demo'})
 		res.render(res.locals.template)
 	});

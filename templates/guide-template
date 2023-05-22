@@ -11,6 +11,6 @@
 		<script>hljs.initHighlightingOnLoad();</script>
 	</head>
 	<body>
-        <%= compilation.assets[htmlWebpackPlugin.options.filename].source() %>
+		<iframe src=<%= htmlWebpackPlugin.options.filename %> frameborder=0></iframe>
 	</body>
 </html>

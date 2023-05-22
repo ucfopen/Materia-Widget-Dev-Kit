@@ -10,6 +10,16 @@ Namespace('MWDK').Package = (() => {
 		document.getElementById('modalbg').classList.add('visible');
 	};
 
+	var showPreview = () => {
+		console.log(window.location.href);
+		window.location.pathname='/preview';
+	}
+
+	var showCreator = () => {
+		console.log(window.location.href);
+		window.location.href='/mwdk/widgets/1-mwdk/create#1';
+	}
+
 	var closeDialog = () => {
 		var dialog;
 		dialog = document.getElementById('mwdk_dialog');
@@ -29,6 +39,8 @@ Namespace('MWDK').Package = (() => {
 	return {
 		build: build,
 		cancel: cancel,
-		showPackageDownload: showPackageDownload
+		showPackageDownload: showPackageDownload,
+		showPreview: showPreview,
+		showCreator: showCreator
 	};
 })();
