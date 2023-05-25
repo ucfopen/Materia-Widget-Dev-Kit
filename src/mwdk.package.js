@@ -38,7 +38,7 @@ Namespace('MWDK').Package = (() => {
 		build: build,
 		cancel: cancel,
 		showPackageDownload: showPackageDownload,
-		showPreview: showPreview,
+		showDemoPreview: showDemoPreview,
 		showCreator: showCreator
 	};
 })();

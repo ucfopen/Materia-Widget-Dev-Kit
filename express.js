@@ -167,7 +167,7 @@ var buildWidget = () => {
 	let output = '';
 	try{
 		console.log('Building production ready widget')
-		output = execSync('yarn build-dev')
+		output = execSync('yarn build')
 	} catch(e) {
 		console.error(e)
 		console.log(output.toString())

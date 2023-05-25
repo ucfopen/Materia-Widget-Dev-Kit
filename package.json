@@ -8,6 +8,8 @@
   "scripts": {
     "build": "webpack",
     "mwdk-start": "./bin/mwdk-start.js",
+    "mwdk-build-prod": "./bin/mwdk-build-prod.js",
+    "mwdk-build-dev": "./bin/mwdk-build-dev.js",
     "test": "echo 'No tests yet'",
     "start": "env TEST_MDK=true RUNNING_DEV_SERVER=true webpack-dev-server --open --config webpack.config.widget.js",
     "postinstall": "yarn build",
@@ -15,7 +17,9 @@
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
   },
   "bin": {
-    "mwdk-start": "./bin/mwdk-start.js"
+    "mwdk-start": "./bin/mwdk-start.js",
+    "mwdk-build-prod": "./bin/mwdk-build-prod.js",
+    "mwdk-build-dev": "./bin/mwdk-build-dev.js"
   },
   "materia": {
     "cleanName": "MWDK"

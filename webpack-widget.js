@@ -9,10 +9,10 @@ const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
-//const packagedJSPath = 'src=\\"../../../js/$3\\"'
-const packagedJSPath = 'src=\"/mwdk/mwdk-assets/$3\"'
-const devServerJSPath = 'src=\\"/mwdk/assets/js/$3\\"'
-const isRunningDevServer = process.argv.find((v) => {return v.includes('webpack-dev-server')} )
+const packagedJSPath = 'src="../../../js/$3"'
+const devServerJSPath = 'src="/mwdk/mwdk-assets/$3"'
+const isRunningDevServer = process.env.NODE_ENV !== "production";
+console.log("Mode: " + process.env.NODE_ENV);
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 
 // common paths used here
@@ -284,15 +284,19 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		{
 			// Default extension is html
 			let ext = "html";
+			// Template is the first element in entry array
 			let splitUpName = value[0].split('.');
 			if (splitUpName[splitUpName.length - 1] == "md")
 			{
-				console.log(value)
 				let hashSplit = splitUpName[0].split('/');
 				let type = '';
 				if (hashSplit.length > 1) type = hashSplit[hashSplit.length - 1];
 				else type = hashSplit[0];
 				ext = "md"
+			}
+			else if (splitUpName[splitUpName.length - 1] != "html")
+			{
+				continue;
 			}
 			maphash.set(name, new HtmlWebpackPlugin({
 				filename: `${name}.html`,
@@ -308,7 +312,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	console.log(htmlWebpackPlugins)
 
 	let build = {
-		mode: 'development',
+		mode: process.env.NODE_ENV == 'production' ? 'production' : 'development',
 		stats: {children: false},
 		devServer: {
 			headers: {
