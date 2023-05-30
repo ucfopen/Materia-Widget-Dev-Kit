@@ -154,7 +154,7 @@ const getDefaultRules = () => ({
 	loaderDoNothingToJs: {
 		test: /\.js$/i,
 		exclude: /node_modules/,
-		type: 'asset/source',
+		type: 'javascript/auto'
 	},
 	// process coffee files by translating them to js
 	// SKIPS the default webpack Javascript functionality
@@ -162,7 +162,7 @@ const getDefaultRules = () => ({
 	loaderCompileCoffee: {
 		test: /\.coffee$/i,
 		exclude: /node_modules/,
-		type: 'asset/source',
+		type: 'javascript/auto',
 		use: [
 			{
 				loader: 'coffee-loader',
@@ -294,10 +294,6 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				else type = hashSplit[0];
 				ext = "md"
 			}
-			else if (splitUpName[splitUpName.length - 1] != "html")
-			{
-				continue;
-			}
 			maphash.set(name, new HtmlWebpackPlugin({
 				filename: `${name}.html`,
 				template: `${value[0].split('.')[0]}.${ext}`, // Include source path in template
@@ -314,19 +310,8 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	let build = {
 		mode: process.env.NODE_ENV == 'production' ? 'production' : 'development',
 		stats: {children: false},
-		devServer: {
-			headers: {
-				// allow iframes to talk to their parent containers
-				'Access-Control-Allow-Origin': '*',
-				'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
-			},
-			historyApiFallback: true,
-			port: process.env.PORT || 8118,
-		},
-
-		// These are the default js and css files
+		devtool: process.env.NODE_ENV == 'production' ? false : 'eval-source-map',
 		entry: cfg.entries,
-
 		// write files to the outputPath (default = ./build) using the object keys from 'entry' above
 		output: {
 			path: outputPath,
@@ -334,8 +319,6 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			publicPath: '',
 			clean: true
 		},
-		// externals: [nodeExternals()],
-
 		module: {rules: cfg.moduleRules},
 		plugins: [
 			// clear the build directory
