@@ -463,10 +463,6 @@ header.logged-in {
 	display: none !important;
 }
 
-#creatorPublishBtn {
-	display: none;
-}
-
-#saveHistoryLink {
+#creatorPublishBtn, #saveHistoryLink, #returnLink {
 	display: none;
 }

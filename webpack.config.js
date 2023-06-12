@@ -27,7 +27,7 @@ module.exports =
 			path: buildPath,
 			filename: '[name]',
 			publicPath: buildPath,
-			// clean: true
+			clean: true
 		},
 		module: {
 			rules: [
@@ -35,7 +35,8 @@ module.exports =
 					test: /\.css$/i,
 					use: [
 						{
-							loader: MiniCssExtractPlugin.loader
+							loader: MiniCssExtractPlugin.loader,
+
 						},
 						{
 							loader: "css-loader",
@@ -43,6 +44,17 @@ module.exports =
 								url: false,
 							},
 						},
+					],
+				},
+				{
+					test: /\.scss$/i,
+					use: [
+						// Creates `style` nodes from JS strings
+						"style-loader",
+						// Translates CSS into CommonJS
+						"css-loader",
+						// Compiles Sass to CSS
+						"sass-loader",
 					],
 				},
 				{
@@ -56,7 +68,9 @@ module.exports =
 			],
 		},
 		plugins: [
-			new MiniCssExtractPlugin(),
+			new MiniCssExtractPlugin({
+				filename: '[name].css'
+			}),
 			// new CleanWebpackPlugin(),
 			new CopyPlugin({
 				patterns: [

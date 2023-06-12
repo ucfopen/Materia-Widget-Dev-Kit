@@ -5,7 +5,8 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
-
+const showdown = require('showdown')
+converter = new showdown.Converter()
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
@@ -70,10 +71,8 @@ const combineConfig = (extras = {}) => {
 	const orderedRules = [
 		rules.loaderDoNothingToJs,
 		rules.loaderCompileCoffee,
-		rules.loadAndCompileMarkdown,
 		rules.copyImages,
 		rules.loadHTMLAndReplaceMateriaScripts,
-		// rules.loadAndPrefixCSS,
 		rules.loadAndPrefixSASS
 	]
 
@@ -110,6 +109,11 @@ const getDefaultCopyList = () => {
 			//flatten: true,
 			from: `${srcPath}_score`,
 			to: `${outputPath}_score-modules`,
+			toType: 'dir'
+		},
+		{
+			from: `${srcPath}_screen-shots`,
+			to: `${outputPath}img/screen-shots`,
 			toType: 'dir'
 		},
 		{
@@ -153,7 +157,7 @@ const getDefaultRules = () => ({
 	// that evaluates js code and processes module imports
 	loaderDoNothingToJs: {
 		test: /\.js$/i,
-		exclude: /node_modules/,
+		exclude: /node_modules|_guides|guides/,
 		type: 'javascript/auto'
 	},
 	// process coffee files by translating them to js
@@ -233,24 +237,6 @@ const getDefaultRules = () => ({
 			},
 			"sass-loader",
 		],
-	},
-	loadAndCompileMarkdown: {
-		test: /\.md$/,
-		exclude: /node_modules/,
-		// type: 'asset/source',
-		generator: {
-			name: '[name].html',
-			outputPath: 'guides/'
-		},
-		use: [
-			{
-				loader: 'html-loader',
-				options: {
-					sources: false,
-				}
-			},
-			'markdown-loader'
-		]
 	}
 })
 
@@ -282,21 +268,9 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		}
 		if (!maphash.has(name))
 		{
-			// Default extension is html
-			let ext = "html";
-			// Template is the first element in entry array
-			let splitUpName = value[0].split('.');
-			if (splitUpName[splitUpName.length - 1] == "md")
-			{
-				let hashSplit = splitUpName[0].split('/');
-				let type = '';
-				if (hashSplit.length > 1) type = hashSplit[hashSplit.length - 1];
-				else type = hashSplit[0];
-				ext = "md"
-			}
 			maphash.set(name, new HtmlWebpackPlugin({
 				filename: `${name}.html`,
-				template: `${value[0].split('.')[0]}.${ext}`, // Include source path in template
+				template: `${value[0].split('.')[0]}.html`, // Include source path in template
 				inject: false,
 				minify: false,
 				chunks: [`${name}`]
@@ -305,7 +279,45 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	}
 
 	let htmlWebpackPlugins = Array.from(maphash.values());
-	console.log(htmlWebpackPlugins)
+
+	if (fs.existsSync(`${srcPath}_guides/creator.md`) || fs.existsSync(`${srcPath}_guides/player.md`))
+	{
+		cfg.copyList.unshift(
+		{
+			from: `./node_modules/materia-widget-development-kit/templates/guideStyles.css`,
+			to: `${outputPath}guides/guideStyles.css`
+		})
+	}
+
+	if (fs.existsSync(`${srcPath}_guides/creator.md`))
+	{
+		let md = fs.readFileSync(`${srcPath}_guides/creator.md`, 'utf-8');
+		let html = converter.makeHtml(md);
+		htmlWebpackPlugins.unshift(
+			new HtmlWebpackPlugin({
+				chunks: [],
+				template: './node_modules/materia-widget-development-kit/templates/guide-template.hbs',
+				filename: `${outputPath}/guides/creator.html`,
+				htmlContent: html,
+				htmlTitle: 'Widget Guide'
+			})
+		)
+	}
+
+	if (fs.existsSync(`${srcPath}_guides/player.md`))
+	{
+		let md = fs.readFileSync(`${srcPath}_guides/player.md`, 'utf-8');
+		let html = converter.makeHtml(md);
+		htmlWebpackPlugins.unshift(
+			new HtmlWebpackPlugin({
+				chunks: [],
+				template: './node_modules/materia-widget-development-kit/templates/guide-template.hbs',
+				filename: `${outputPath}/guides/player.html`,
+				htmlContent: html,
+				htmlTitle: 'Widget Guide'
+			})
+		)
+	}
 
 	let build = {
 		mode: process.env.NODE_ENV == 'production' ? 'production' : 'development',
