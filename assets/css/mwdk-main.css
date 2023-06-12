@@ -467,6 +467,6 @@ header.logged-in {
 	display: none;
 }
 
-#saveHistoryLink, #importLink {
+#saveHistoryLink {
 	display: none;
 }

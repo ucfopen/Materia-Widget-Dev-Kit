@@ -14,6 +14,10 @@ Namespace('MWDK').Package = (() => {
 		window.location.pathname='/preview';
 	}
 
+	var showDemoCreator = () => {
+		window.location.href='/mwdk/widgets/1-mwdk/create#demo';
+	}
+
 	var showCreator = () => {
 		window.location.href='/mwdk/widgets/1-mwdk/create#1';
 	}
@@ -39,6 +43,7 @@ Namespace('MWDK').Package = (() => {
 		cancel: cancel,
 		showPackageDownload: showPackageDownload,
 		showDemoPreview: showDemoPreview,
-		showCreator: showCreator
+		showCreator: showCreator,
+		showDemoCreator: showDemoCreator
 	};
 })();

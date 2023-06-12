@@ -285,6 +285,8 @@ app.set('layouts', path.join(__dirname , 'views/layouts')); // set the layouts d
 app.set('view engine', 'hbs') // set file extension to hbs
 
 app.use(webpackMiddleware);
+// Serve static files from the assets folder
+app.use(express.static(path.join(__dirname, 'assets')));
 
 // the web pack middlewere takes time to show up
 app.use([/^\/$/, '/mwdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
@@ -303,7 +305,7 @@ app.use(cors({
 // let clientAssetsPath = require('materia-server-client-assets/path')
 let clientAssetsPath = require('materia-widget-dependencies/path')
 app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
-app.use('/mwdk/assets', express.static(path.join(__dirname, 'assets')))
+app.use('/mwdk/assets/', express.static(path.join(__dirname, 'assets')))
 app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
 app.use('/mwdk/mwdk-assets/css', express.static(path.join(clientAssetsPath, 'css')))
 app.use('/mwdk/mwdk-assets', express.static(path.join(clientAssetsPath, 'js')))
@@ -375,7 +377,7 @@ app.get(/\/mwdk\/media\/__(.+)__/, (req, res) => {
 	res.redirect(`http://localhost:${res.locals.port}/${req.params[0]}`)
 })
 
-app.get('/mwdk/media/import', (req, res) => {
+app.get('/media/import', (req, res) => {
 	res.locals = Object.assign(res.locals, { template: 'media_importer'})
 	res.render(res.locals.template)
 })
