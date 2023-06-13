@@ -234,6 +234,25 @@ h2 {
 	background-image: -ms-linear-gradient(top, #ff8f11, #ffbc78);
 	text-decoration:none;
 }
+.red
+{
+	background:#ff1111;
+	background-image: -webkit-linear-gradient(top, #ff8178, #ff1111);
+	background-image: -o-linear-gradient(top, #ff8178, #ff1111);
+	background-image: -moz-linear-gradient(top, #ff8178, #ff1111);
+	background-image: -ms-linear-gradient(top, #ff8178, #ff1111);
+	border:rgb(196, 18, 18) 1px solid;
+	color: #694d28;
+}
+.red:hover
+{
+	background:#ff8c8c;
+	background-image: -webkit-linear-gradient(top, #ff1111, #ff8178);
+	background-image: -o-linear-gradient(top, #ff1111, #ff8178);
+	background-image: -moz-linear-gradient(top, #ff1111, #ff8178);
+	background-image: -ms-linear-gradient(top, #ff1111, #ff8178);
+	text-decoration:none;
+}
 
 .edit_button {
 	margin: 10px 0 0 6px;

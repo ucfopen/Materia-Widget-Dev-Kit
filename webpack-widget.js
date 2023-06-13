@@ -261,7 +261,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		{
 			name = split[0];
 			// Sorting out css files (which are now handled by MiniCssExtractPlugin)
-			if (split[1].localeCompare("css") == 0)
+			if (split[1].localeCompare("css") == 0 || split[1].localeCompare("html") == 0)
 			{
 				continue;
 			}

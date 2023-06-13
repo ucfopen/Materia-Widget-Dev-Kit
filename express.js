@@ -505,7 +505,7 @@ app.get('/mwdk/helper/annotations', (req, res) => {
 });
 
 app.get('/mwdk/install', (req, res) => {
-	res.write('<html><body><pre>');
+	res.write('<html><body id="result"><pre>');
 	// Find the docker-compose container for materia-web
 	// 1. lists all containers
 	// 2. filter for materia-web image and named xxxx_phpfpm_1 name

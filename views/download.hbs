@@ -6,12 +6,47 @@
 	<a href="/mwdk/download"><button class='edit_button orange' id='download_button'>Download .wigt</button></a>
 	<a href="/mwdk/install"><button class='edit_button orange' id='install_button'>Install to Docker Materia</button></a>
 </div>
-
+<div id="progress-container" class="hide centered">
+	<span id="progress_status">Loading...</span>
+	<div id="progressbar">
+		<div id="fill"></div>
+	</div>
+</div>
 <div class='centered'>
-	<a id="cancel-button" href="#">Cancel</a>
+	<a id="cancel-button" class='edit_button red' href="#">Cancel</a>
 </div>
 
 <script>
+	function progressBar() {
+		document.getElementById("progress-container").classList.remove("hide");
+		document.getElementById("build-commands").classList.add("hide");
+
+		let statuses = ["Building your widget...", "Installing your instance...", "Calculating trajectories...", "..."]
+
+		let frameLength = 20;
+		let count = 0;
+
+		setInterval(() => {
+			document.getElementById("progress_status").innerHTML = statuses[count % statuses.length];
+
+			let progress = setInterval(frame, frameLength)
+			let width = 0;
+			count++;
+			function frame() {
+				if (width >= 100) {
+					clearInterval(progress);
+					width = 0;
+				} else {
+					width++;
+					document.getElementById("fill").style.width = width + "%";
+				}
+			}
+		}, frameLength * 100 + 300)
+	}
+	document.getElementById('install_button').onclick = (e) => {
+		progressBar();
+		return true
+	}
 	document.getElementById('cancel-button').onclick = (e) => {
 		window.parent.MWDK.Package.cancel();
 		return false
