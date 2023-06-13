@@ -45,7 +45,6 @@
     "hbs": "^4.2.0",
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "5.5.1",
-    "markdown-loader": "^8.0.0",
     "materia-widget-dependencies": "/Users/ca668810/Documents/Projects/Materia/public/dist",
     "mini-css-extract-plugin": "^2.7.2",
     "nodemon": "^2.0.20",
