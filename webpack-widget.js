@@ -256,21 +256,18 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 	for (const [key, value] of Object.entries(cfg.entries))
 	{
 		let name = key;
-		let split = key.split('.');
-		if (split.length > 1)
+		let valueSplit = value[0].split('.');
+		let valueExt = valueSplit.length > 1 ? valueSplit[valueSplit.length - 1] : '';
+		// If the first value in entry is not an HTML file, then we won't create an HtmlWebpackPlugin for it
+		if (valueExt != "html")
 		{
-			name = split[0];
-			// Sorting out css files (which are now handled by MiniCssExtractPlugin)
-			if (split[1].localeCompare("css") == 0 || split[1].localeCompare("html") == 0)
-			{
-				continue;
-			}
+			continue;
 		}
-		if (!maphash.has(name))
+		else if (!maphash.has(name))
 		{
 			maphash.set(name, new HtmlWebpackPlugin({
 				filename: `${name}.html`,
-				template: `${value[0].split('.')[0]}.html`, // Include source path in template
+				template: `${value[0].split('.')[0]}.html`,
 				inject: false,
 				minify: false,
 				chunks: [`${name}`]
