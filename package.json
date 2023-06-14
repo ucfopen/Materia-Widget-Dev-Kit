@@ -11,7 +11,7 @@
     "mwdk-build-prod": "./bin/mwdk-build-prod.js",
     "mwdk-build-dev": "./bin/mwdk-build-dev.js",
     "test": "echo 'No tests yet'",
-    "start": "env TEST_MDK=true RUNNING_DEV_SERVER=true webpack-dev-server --open --config webpack.config.widget.js",
+    "start": "env TEST_MWDK=true node ./express.js --mode=development",
     "postinstall": "yarn build",
     "prettier:run": "prettier --write 'src/*.js' --write 'assets/**/*.{js,css}' --write '*.js'",
     "clientAssets:link": "cd ../materia-server-client-assets && yarn link && cd - && yarn link materia-server-client-assets"
