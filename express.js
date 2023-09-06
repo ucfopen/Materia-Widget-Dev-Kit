@@ -101,7 +101,7 @@ var performQSetSubsitutions = (qset) => {
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
 	// look for "id": null or "id": 0 or "id": "" and build a mock id
-	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuidv4()}"`)
+	// qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuidv4()}"`)
 
 	return JSON.parse(qset)
 }
@@ -127,6 +127,7 @@ var createApiWidgetInstanceData = id => {
 		'close_at': '-1',
 		'created_at': Math.floor(Date.now() / 1000),
 		'embed_url': '',
+		'guest_access': true,
 		'height': 0,
 		'id': '',
 		'is_draft': true,
@@ -286,7 +287,7 @@ app.set('view engine', 'hbs') // set file extension to hbs
 
 app.use(webpackMiddleware);
 // Serve static files from the assets folder
-app.use(express.static(path.join(__dirname, 'assets')));
+app.use(express.static(path.join(outputPath, 'assets')));
 
 // the web pack middlewere takes time to show up
 app.use([/^\/$/, '/mwdk/*', '/api/*'], (req, res, next) => { waitForWebpack(app, next) })
@@ -310,6 +311,8 @@ app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
 app.use('/mwdk/mwdk-assets/css', express.static(path.join(clientAssetsPath, 'css')))
 app.use('/mwdk/mwdk-assets', express.static(path.join(clientAssetsPath, 'js')))
 app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
+// app.use('/fonts', express.static(path.join(outputPath, 'assets', 'fonts')))
+console.log(path.join(outputPath, 'assets', 'fonts'))
 
 // insert the port into the res.locals
 app.use( (req, res, next) => {
@@ -429,16 +432,20 @@ app.use(['/qsets/import', '/mwdk/saved_qsets'], (req, res) => {
 app.get('/player/:id?', (req, res) => {
 	res.redirect('/preview/' + (req.params.id ? req.params.id : ''))
 })
-app.get(['/preview/:id?', '/player/:id?'], (req, res) => {
+app.get(['/preview/:id?'], (req, res) => {
 	res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo'})
 	res.render(res.locals.template, { layout: false})
 });
-
 // Play Score page
-app.get(['/mwdk/scores/demo', '/mwdk/scores/preview/:id'], (req, res) => {
+app.get('/mwdk/scores/preview/', (req, res) => {
 	res.locals = Object.assign(res.locals, { template: 'score_mwdk'})
 	res.render(res.locals.template)
 })
+app.get(['/mwdk/scores/'], (req, res) => {
+	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: 'false'})
+	res.render(res.locals.template)
+})
+
 
 // The create page frame that loads the widget creator
 // Must have hash '1' to work
@@ -613,8 +620,14 @@ app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (
 
 app.use('/api/json/play_logs_save', (req, res) => {
 	const logs = JSON.parse(req.body.data)[1];
-	console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================");
-	res.json({score: 0});
+	try {
+		fs.writeFileSync(path.join(qsets, 'log.json'), JSON.stringify(logs));
+		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================");
+		res.json(true);
+	} catch(err) {
+		console.log(err)
+		res.json(false);
+	}
 });
 
 // api mock for saving widget instances
@@ -692,6 +705,225 @@ app.use('/api/json/user_get', (req, res) => {
 
 app.use('/api/json/notifications_get', (req, res) => {
 	res.json([])
+})
+
+app.use('/api/json/score_summary_get', (req, res) => {
+	let summary = [{
+		"id": 69,
+		"term": "Fall",
+		"year": 2023,
+		"students": 1,
+		"average": 100,
+		"distribution": [
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			2
+		],
+		"graphData": [
+			{
+			"label": "0-9",
+			"value": 0
+			},
+			{
+			"label": "10-19",
+			"value": 0
+			},
+			{
+			"label": "20-29",
+			"value": 0
+			},
+			{
+			"label": "30-39",
+			"value": 0
+			},
+			{
+			"label": "40-49",
+			"value": 0
+			},
+			{
+			"label": "50-59",
+			"value": 0
+			},
+			{
+			"label": "60-69",
+			"value": 0
+			},
+			{
+			"label": "70-79",
+			"value": 0
+			},
+			{
+			"label": "80-89",
+			"value": 0
+			},
+			{
+			"label": "90-100",
+			"value": 1
+			}
+		],
+		"totalScores": 1
+	}]
+	res.json(summary)
+})
+
+function get_detail_style(score)
+{
+	style = '';
+	switch (score)
+	{
+		case -1:
+		case '-1':
+			style = 'ignored-value';
+			break;
+
+		case 100:
+		case '100':
+			style = 'full-value';
+			break;
+
+		case '0':
+		case 0:
+			style = 'no-value';
+			break;
+
+		default:
+			style = 'partial-value';
+			break;
+	}
+	return style;
+}
+
+function get_ss_expected_answers(log, question)
+{
+	// switch (question.type)
+	// {
+	// 	case 'MC':
+	// 		max_value   = 0;
+	// 		max_answers = [];
+
+	// 		// find the correct answer(s)
+	// 		foreach (question.answers as answer)
+	// 		{
+	// 			if ((int)answer['value'] > max_value)
+	// 			{
+	// 				max_value     = (int)answer['value'];
+	// 				max_answers   = [];
+	// 				max_answers[] = answer['text'];
+	// 			}
+	// 			elseif ((int)answer['value'] == max_value)
+	// 			{
+	// 				max_answers[] = answer['text'];
+	// 			}
+	// 		}
+
+	// 		// display all of the correct answers
+	// 		return implode(' or ', max_answers);
+
+	// 	case 'QA':
+	// 	default:
+	// 		return question.answers[0]['text'];
+	// }
+}
+
+app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], (req, res) => {
+	const initialValue = 0
+
+	const id = JSON.parse(req.body.data)[1];
+	let logs = fs.readFileSync(path.join(qsets,'log.json')).toString()
+	logs = JSON.parse(logs)
+	let totalLength = 0
+	score = logs.reduce((accumulator, currentLog) => {
+		if (currentLog.value) {
+			totalLength += 1;
+			return accumulator + currentLog.value;
+		}
+		return accumulator
+	}, initialValue) / totalLength
+
+	res.set('Content-Type', 'application/json')
+
+	// load instance, fallback to demo
+	let questions = []
+	try {
+		let qset = fs.readFileSync(path.join(qsets, id+'.json'))
+		qset = JSON.parse(qset)
+		questions = qset.data.items
+	} catch (e) {
+		console.log(e)
+		questions = getDemoQset().qset.data.items[0].items
+	}
+
+	overview_items = [
+		{'message': 'Points Lost', 'value': score - 100},
+		{'message': 'Final Score', 'value': score}
+	];
+
+	let overview = {
+		'complete': true,
+		'score': score,
+		'table': overview_items,
+		'referrer_url': '',
+		'created_at': '',
+		'auth': ''
+	}
+
+	let playLogs = logs.filter(log => !log.is_end)
+
+	let table = playLogs.map(log => {
+		let question = questions.find(q => ((q.options && q.options.id) ? q.options.id : q.id ) === log.item_id)
+		console.log(question)
+		if (question) {
+			let answer = null
+			if (question.answers) answer = question.answers.find(a => log.text == a.text)
+			let feedback = null
+			if (answer && answer.options && answer.options.feedback) {
+				feedback = answer.options.feedback
+			}
+			let logScore = log.value ? score : -1
+			return {
+					'data'			: [
+						question.questions[0]['text'],
+						log.text,
+						get_ss_expected_answers(log, question)],
+					'data_style'    : ['question', 'response', 'answer'],
+					'score'         : logScore,
+					'feedback'      : feedback,
+					'type'          : log.is_end ? 'SCORE_FINAL_FROM_CLIENT' : 'SCORE_QUESTION_ANSWERED',
+					'style'         : get_detail_style(logScore),
+					'tag'           : 'div',
+					'symbol'        : '%',
+					'graphic'       : 'score',
+					'display_score' : logScore != -1
+			}
+		}
+	})
+
+	table = table.filter(deet => deet != null)
+
+	let details = [{
+		title: '',
+		header: [
+			"Question Score",
+			"The Question",
+			"Your Response",
+			"Correct Answer"
+		],
+		table: table
+	}]
+
+	let result = [{
+		overview,
+		details
+	}]
+
+	res.json(result)
 })
 
 app.listen(8118, function () {
