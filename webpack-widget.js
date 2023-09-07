@@ -73,7 +73,8 @@ const combineConfig = (extras = {}) => {
 		rules.loaderCompileCoffee,
 		rules.copyImages,
 		rules.loadHTMLAndReplaceMateriaScripts,
-		rules.loadAndPrefixSASS
+		rules.loadAndPrefixSASS,
+		rules.reactLoader
 	]
 
 	const pkgConfig = configFromPackage()
@@ -152,6 +153,13 @@ const getDefaultCopyList = () => {
 
 // Rules needed for common builds
 const getDefaultRules = () => ({
+	reactLoader: {
+		test: /\.js$/,
+		exclude: /node_modules/,
+		use: {
+			loader: 'babel-loader'
+		}
+	},
 	// process regular javascript files
 	// SKIPS the default webpack Javascript functionality
 	// that evaluates js code and processes module imports

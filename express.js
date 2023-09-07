@@ -39,6 +39,11 @@ var waitForWebpack = (app, next) => {
 	waitUntil(() => {
 		try {
 			getInstall()
+			// clean up
+			if (fs.existsSync(path.join(qsets, 'demo.instance.json'))) {
+				console.log("removing old demo instance")
+				fs.unlinkSync(path.join(qsets, 'demo.instance.json'))
+			}
 			const instance = createApiWidgetInstanceData('demo')[0];
 			instance.name = instance.name
 			instance.id = 'demo'
@@ -46,7 +51,6 @@ var waitForWebpack = (app, next) => {
 			return true
 		} catch(e) {
 			console.log("waiting for 'install.yaml' to be served by webpack")
-			console.log("waiting for 'demo' to be initiated by webpack")
 			return false
 		}
 	}, 10000, 250)
