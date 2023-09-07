@@ -31,6 +31,7 @@ var hasCompiled = false;
 // this will call next() once webpack is ready by trying to:
 // 1. talk to the middlware
 // 2. load the widget's install.yaml from webpack's in-memory files
+// 3. initiate the widget's demo.json from webpack's in-memory files into qsets
 var waitForWebpack = (app, next) => {
 	if(process.env.TEST_MWDK) return next(); // short circuit for tests
 	if(hasCompiled) return next(); // short circuit if ready
@@ -38,9 +39,14 @@ var waitForWebpack = (app, next) => {
 	waitUntil(() => {
 		try {
 			getInstall()
+			const instance = createApiWidgetInstanceData('demo')[0];
+			instance.name = instance.name
+			instance.id = 'demo'
+			fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify([instance]));
 			return true
 		} catch(e) {
 			console.log("waiting for 'install.yaml' to be served by webpack")
+			console.log("waiting for 'demo' to be initiated by webpack")
 			return false
 		}
 	}, 10000, 250)
@@ -108,7 +114,6 @@ var performQSetSubsitutions = (qset) => {
 
 // create a widget instance data structure
 var createApiWidgetInstanceData = id => {
-
 	// attempt to load a previously saved instance with the given ID
 	try {
 		return JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')).toString());
@@ -118,8 +123,17 @@ var createApiWidgetInstanceData = id => {
 	}
 
 	// generate a new instance with the given ID
-	let qset = getDemoQset()
+	let qset = {
+		'version': null,
+		'data': null
+	}
+
+	let demoQset = getDemoQset()
 	let widget = createApiWidgetData(id);
+
+	if (id == "demo") {
+		qset = demoQset.qset
+	}
 
 	return [{
 		'attempts': '-1',
@@ -131,14 +145,11 @@ var createApiWidgetInstanceData = id => {
 		'height': 0,
 		'id': '',
 		'is_draft': true,
-		'name': qset.name,
+		'name': demoQset.name,
 		'open_at': '-1',
 		'play_url': '',
 		'preview_url': '',
-		'qset': {
-			'version': null,
-			'data': null
-		},
+		'qset': qset,
 		'user_id': '1',
 		'widget': widget,
 		'width': 0
@@ -160,6 +171,9 @@ var createApiWidgetData = (id) => {
 	widget.dir = ''
 	widget.width = widget.general.width;
 	widget.height = widget.general.height;
+	if (widget.score.score_screen) {
+		widget.score_screen = widget.score.score_screen
+	}
 	return widget;
 };
 
@@ -311,8 +325,6 @@ app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
 app.use('/mwdk/mwdk-assets/css', express.static(path.join(clientAssetsPath, 'css')))
 app.use('/mwdk/mwdk-assets', express.static(path.join(clientAssetsPath, 'js')))
 app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
-// app.use('/fonts', express.static(path.join(outputPath, 'assets', 'fonts')))
-console.log(path.join(outputPath, 'assets', 'fonts'))
 
 // insert the port into the res.locals
 app.use( (req, res, next) => {
@@ -436,11 +448,12 @@ app.get(['/preview/:id?'], (req, res) => {
 	res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo'})
 	res.render(res.locals.template, { layout: false})
 });
-// Play Score page
-app.get('/mwdk/scores/preview/', (req, res) => {
+// Preview widget
+app.get('/mwdk/scores/preview/:id?', (req, res) => {
 	res.locals = Object.assign(res.locals, { template: 'score_mwdk'})
 	res.render(res.locals.template)
 })
+// Play widget
 app.get(['/mwdk/scores/'], (req, res) => {
 	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: 'false'})
 	res.render(res.locals.template)
@@ -834,8 +847,12 @@ function get_ss_expected_answers(log, question)
 
 app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], (req, res) => {
 	const initialValue = 0
-
-	const id = JSON.parse(req.body.data)[1];
+	let id = 'demo';
+	if (req.url.includes('guest_widget_instance_scores_get')) {
+		id = JSON.parse(req.body.data)[1]
+	} else {
+		id = JSON.parse(req.body.data)[0]
+	}
 	let logs = fs.readFileSync(path.join(qsets,'log.json')).toString()
 	logs = JSON.parse(logs)
 	let totalLength = 0
@@ -845,7 +862,11 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 			return accumulator + currentLog.value;
 		}
 		return accumulator
-	}, initialValue) / totalLength
+	}, initialValue)
+
+	if (score > 0 && totalLength > 0) score /= totalLength
+
+	console.log(score)
 
 	res.set('Content-Type', 'application/json')
 
@@ -856,7 +877,6 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 		qset = JSON.parse(qset)
 		questions = qset.data.items
 	} catch (e) {
-		console.log(e)
 		questions = getDemoQset().qset.data.items[0].items
 	}
 
@@ -878,7 +898,6 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 
 	let table = playLogs.map(log => {
 		let question = questions.find(q => ((q.options && q.options.id) ? q.options.id : q.id ) === log.item_id)
-		console.log(question)
 		if (question) {
 			let answer = null
 			if (question.answers) answer = question.answers.find(a => log.text == a.text)
