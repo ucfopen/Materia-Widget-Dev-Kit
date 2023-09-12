@@ -44,6 +44,10 @@ var waitForWebpack = (app, next) => {
 				console.log("removing old demo instance")
 				fs.unlinkSync(path.join(qsets, 'demo.instance.json'))
 			}
+			if (fs.existsSync(path.join(qsets, 'demo.json'))) {
+				console.log("removing old demo instance")
+				fs.unlinkSync(path.join(qsets, 'demo.json'))
+			}
 			const instance = createApiWidgetInstanceData('demo')[0];
 			instance.name = instance.name
 			instance.id = 'demo'
@@ -680,11 +684,14 @@ app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/
 	}
 
 	const id = data[0] || new Date().getTime();
-	fs.writeFileSync(path.join(qsets, id + '.json'), JSON.stringify(data[2]));
+	const qset = JSON.stringify(data[2]);
+	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
 
 	const instance = createApiWidgetInstanceData(data[0])[0];
 	instance.id = id;
 	instance.name = data[1];
+
+	instance.qset = JSON.parse(qset)
 
 	fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
 
@@ -851,12 +858,20 @@ function get_ss_expected_answers(log, question)
 
 app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], (req, res) => {
 	const initialValue = 0
+
+	const body = JSON.parse(req.body.data)
 	let id = 'demo';
-	if (req.url.includes('guest_widget_instance_scores_get')) {
-		id = JSON.parse(req.body.data)[1]
+	if (req.originalUrl.substring(req.originalUrl.lastIndexOf('/') + 1) == 'widget_instance_play_scores_get' && body[1] !== null) {
+		// preview inst id is not null
+		id = body[1]
 	} else {
-		id = JSON.parse(req.body.data)[0]
+		// use play id
+		id = body[0]
 	}
+	if (id == null) {
+		return res.json([])
+	}
+
 	let logs = fs.readFileSync(path.join(qsets,'log.json')).toString()
 	logs = JSON.parse(logs)
 	let totalLength = 0
@@ -870,7 +885,7 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 
 	if (score > 0 && totalLength > 0) score /= totalLength
 
-	console.log(score)
+	console.log("Score:" + score)
 
 	res.set('Content-Type', 'application/json')
 
@@ -881,7 +896,12 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 		qset = JSON.parse(qset)
 		questions = qset.data.items
 	} catch (e) {
-		questions = getDemoQset().qset.data.items[0].items
+		demoqset=getDemoQset()
+		questions = demoqset.qset.data.items
+		if (questions[0] && Object.hasOwn(questions[0], 'items')) {
+			// legacy qsets
+			questions = questions[0].items
+		}
 	}
 
 	overview_items = [
