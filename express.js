@@ -330,12 +330,13 @@ app.use(cors({
 	allowedHeaders: ['Origin, X-Requested-With, Content-Type, Accept']
 }));
 
-// serve the static files from devmateria
-// let clientAssetsPath = require('materia-server-client-assets/path')
-let clientAssetsPath = require('materia-widget-dependencies/path')
+// MWDK static assets
 app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 app.use('/mwdk/assets/', express.static(path.join(__dirname, 'assets')))
 app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
+
+// Materia assets
+let clientAssetsPath = require('materia-widget-dependencies/path')
 app.use('/mwdk/mwdk-assets/css', express.static(path.join(clientAssetsPath, 'css')))
 app.use('/mwdk/mwdk-assets', express.static(path.join(clientAssetsPath, 'js')))
 app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
