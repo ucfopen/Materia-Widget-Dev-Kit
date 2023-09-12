@@ -485,3 +485,8 @@ header.logged-in {
 #creatorPublishBtn, #saveHistoryLink, #returnLink {
 	display: none;
 }
+
+#warning {
+	max-width: 1000px;
+	padding: 0 2em;
+}

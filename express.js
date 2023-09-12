@@ -40,24 +40,28 @@ var waitForWebpack = (app, next) => {
 		try {
 			getInstall()
 			// clean up
-			if (fs.existsSync(path.join(qsets, 'demo.instance.json'))) {
-				console.log("removing old demo instance")
-				fs.unlinkSync(path.join(qsets, 'demo.instance.json'))
-			}
-			if (fs.existsSync(path.join(qsets, 'demo.json'))) {
-				console.log("removing old demo instance")
-				fs.unlinkSync(path.join(qsets, 'demo.json'))
-			}
+			fs.readdir(qsets, (err, files) => {
+				if (err) throw err;
+				for (const file of files) {
+					console.log("Removing file: " + file.name)
+					fs.unlink(path.join(qsets, file), (err) => {
+						if (err) throw err;
+					});
+				}
+			});
+
+			console.log("creating demo instance")
 			const instance = createApiWidgetInstanceData('demo')[0];
 			instance.name = instance.name
 			instance.id = 'demo'
 			fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify([instance]));
+
 			return true
 		} catch(e) {
 			console.log("waiting for 'install.yaml' to be served by webpack")
 			return false
 		}
-	}, 10000, 250)
+	}, 15000, 250)
 	.then(() => {
 		hasCompiled = true // so we don't check again
 		return next();
@@ -179,9 +183,11 @@ var createApiWidgetData = (id) => {
 	widget.dir = ''
 	widget.width = widget.general.width;
 	widget.height = widget.general.height;
-	if (widget.score.score_screen) {
-		widget.score_screen = widget.score.score_screen
-	}
+	widget.href = '/preview/' + id
+	// Custom scorescreens not supported
+	// if (widget.score.score_screen) {
+	// 	widget.score_screen = widget.score.score_screen
+	// }
 	return widget;
 };
 
@@ -826,34 +832,32 @@ function get_detail_style(score)
 
 function get_ss_expected_answers(log, question)
 {
-	// switch (question.type)
-	// {
-	// 	case 'MC':
-	// 		max_value   = 0;
-	// 		max_answers = [];
+	switch (question.type)
+	{
+		case 'MC':
+			max_value = 0;
+			max_answers = [];
 
-	// 		// find the correct answer(s)
-	// 		foreach (question.answers as answer)
-	// 		{
-	// 			if ((int)answer['value'] > max_value)
-	// 			{
-	// 				max_value     = (int)answer['value'];
-	// 				max_answers   = [];
-	// 				max_answers[] = answer['text'];
-	// 			}
-	// 			elseif ((int)answer['value'] == max_value)
-	// 			{
-	// 				max_answers[] = answer['text'];
-	// 			}
-	// 		}
+			// find the correct answer(s)
+			question.answers.forEach(answer =>
+			{
+				if (answer.value > max_value)
+				{
+					max_value = answer.value;
+					max_answers.push(answer.text);
+				}
+			})
 
-	// 		// display all of the correct answers
-	// 		return implode(' or ', max_answers);
+			// display all of the correct answers
+			if (max_answers.length > 0)
+				if (max_answers.length > 1)
+					return max_answers.join(" or ")
+				return max_answers[0]
 
-	// 	case 'QA':
-	// 	default:
-	// 		return question.answers[0]['text'];
-	// }
+		case 'QA':
+		default:
+			return question.answers[0].text;
+	}
 }
 
 app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], (req, res) => {
@@ -874,9 +878,12 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 
 	let logs = fs.readFileSync(path.join(qsets,'log.json')).toString()
 	logs = JSON.parse(logs)
+
+	// if score data can be retrieved from log value, use that to calculate the score
+	// otherwise we'll just make score 0
 	let totalLength = 0
 	score = logs.reduce((accumulator, currentLog) => {
-		if (currentLog.value) {
+		if (currentLog.value && typeof currentLog.value == 'number') {
 			totalLength += 1;
 			return accumulator + currentLog.value;
 		}
@@ -896,7 +903,7 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 		qset = JSON.parse(qset)
 		questions = qset.data.items
 	} catch (e) {
-		demoqset=getDemoQset()
+		demoqset = getDemoQset()
 		questions = demoqset.qset.data.items
 		if (questions[0] && Object.hasOwn(questions[0], 'items')) {
 			// legacy qsets
@@ -920,11 +927,15 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 
 	let playLogs = logs.filter(log => !log.is_end)
 
-	let table = playLogs.map(log => {
-		let question = questions.find(q => ((q.options && q.options.id) ? q.options.id : q.id ) === log.item_id)
+	let table = playLogs.map((log, index) => {
+		// this doesn't work because id's are null or 0
+		// let question = questions.find(q => ((q.options && q.options.id) ? q.options.id : q.id ) === log.item_id)
+
+		let question = questions[index]
 		if (question) {
 			let answer = null
-			if (question.answers) answer = question.answers.find(a => log.text == a.text)
+			if (question.answers) answer = question.answers.find(a => log.text == a.text || log.value == a.text)
+			// get the feedback
 			let feedback = null
 			if (answer && answer.options && answer.options.feedback) {
 				feedback = answer.options.feedback
@@ -933,7 +944,7 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 			return {
 					'data'			: [
 						question.questions[0]['text'],
-						log.text,
+						log.text || log.value, // some widgets' qsets store response in log.value
 						get_ss_expected_answers(log, question)],
 					'data_style'    : ['question', 'response', 'answer'],
 					'score'         : logScore,
