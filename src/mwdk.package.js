@@ -81,6 +81,10 @@ Namespace('MWDK').Package = (() => {
 		document.getElementById('modalbg').classList.remove('visible');
 	};
 
+	var toggleJSONInstructions = () => {
+		document.querySelector(".json-instructions").classList.toggle("show-dropdown")
+	}
+
 	var build = (url) => {
 		window.location.href = url;
 		closeDialog();
@@ -103,6 +107,7 @@ Namespace('MWDK').Package = (() => {
 		showDemoCreator: showDemoCreator,
 		uploadScoreData: uploadScoreData,
 		removeScoreData: removeScoreData,
-		removePlayLogs: removePlayLogs
+		removePlayLogs: removePlayLogs,
+		toggleJSONInstructions: toggleJSONInstructions
 	};
 })();

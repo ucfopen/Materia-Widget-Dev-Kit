@@ -494,3 +494,24 @@ header.logged-in {
 #message {
 	color: red;
 }
+
+#how-do-i {
+	font-style: italic;
+}
+
+#how-do-i:hover {
+
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.json-instructions {
+	display: none;
+	padding: 1em;
+	background-color:rgba(256, 256, 256, 0.75);
+	border-radius: 5px;
+}
+
+.show-dropdown {
+	display: block;
+}
