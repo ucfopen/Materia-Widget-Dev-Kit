@@ -490,3 +490,7 @@ header.logged-in {
 	max-width: 1000px;
 	padding: 0 2em;
 }
+
+#message {
+	color: red;
+}

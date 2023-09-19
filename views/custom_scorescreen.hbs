@@ -27,25 +27,14 @@
 <div id="topbar">
 	<a class="logo" href="/">Materia Widget Developer Kit</a>
 	<div class="tools">
-		<button class="edit_button orange" onclick="MWDK.Package.showCreator();">Creator</button>
+		<button class="edit_button orange" onclick="MWDK.Package.showDemoCreator();">Creator</button>
 		<button id="downloadLink" class="edit_button orange" onclick="MWDK.Package.showPackageDownload();">Download Package</button>
 	</div>
 </div>
 
 <div id="warning">
     <h2>MWDK DISCLAIMER</h2>
-    <p>There is no support for <code>score_module</code> in the Materia Widget Development Kit, so scoring will not be accurate. Please install the widget in Materia to test the score_module.</p>
-    <p>Alternatively, you may upload a JSON file containing sample play score data to design your custom <code>scorescreen.html</code>.</p>
-	<label for="fileUpload">JSON File</label>
-	<input id="fileUpload" type="file"/>
-	<button onclick="MWDK.Package.uploadScoreData();">Upload</button>
-	</br>
-	<label for="fileUpload">Remove sample play score data</label>
-	<button onclick="MWDK.Package.removeScoreData();">Remove Sample Play Score Data</button>
-	</br>
-	<label for="fileUpload">Remove play logs</label>
-	<button onclick="MWDK.Package.removePlayLogs();">Remove Play Logs</button>
-	<p id="message"></p>
+    <p>There is no support for <code>score_module</code> or custom scorescreens in the Materia Widget Development Kit, so scoring may not be accurate. Please install the widget in Materia to test scoring.</p>
 </div>
 
 <div id="app"></div>

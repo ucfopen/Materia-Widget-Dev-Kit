@@ -10,8 +10,58 @@ Namespace('MWDK').Package = (() => {
 		document.getElementById('modalbg').classList.add('visible');
 	};
 
+	var uploadScoreData = () => {
+		let fileUpload = document.getElementById("fileUpload").files[0];
+		let fileReader = new FileReader();
+		fileReader.readAsText(fileUpload);
+        fileReader.onload = function() {
+		  var xhr = new XMLHttpRequest();
+		  xhr.open("POST", '/mwdk/upload_score_data', true);
+		  xhr.setRequestHeader('Content-Type', 'application/json');
+		  xhr.send(JSON.stringify({
+			  value: fileReader.result
+		  }));
+          alert(fileReader.result);
+		  window.location.reload();
+        };
+        fileReader.onerror = function() {
+          alert(fileReader.error);
+        };
+	}
+
+	var removeScoreData = () => {
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", '/mwdk/remove_score_data', true);
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState === XMLHttpRequest.DONE) {
+				if (xhr.status === 200) {
+					window.location.reload();
+				} else {
+					_dom("message", "Score data does not exist or there was an error removing it.")
+				}
+			}
+		}
+		xhr.send();
+
+	}
+
+	var removePlayLogs = () => {
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", '/mwdk/remove_play_logs', true);
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState === XMLHttpRequest.DONE) {
+				if (xhr.status === 200) {
+					window.location.pathname='/mwdk/scores/preview/demo';
+				} else {
+					_dom("message", "Play logs do not exist or there was an error removing them.")
+				}
+			}
+		}
+		xhr.send();
+	}
+
 	var showDemoPreview = () => {
-		window.location.pathname='/preview';
+		window.location.pathname='/preview/demo';
 	}
 
 	var showDemoCreator = () => {
@@ -19,7 +69,9 @@ Namespace('MWDK').Package = (() => {
 	}
 
 	var showCreator = () => {
-		window.location.href='/mwdk/widgets/1-mwdk/create#1';
+		const pathnames = window.location.pathname.split('/')
+		const id = window.location.hash || pathnames[pathnames.length - 1] || 'demo'
+		window.location.href='/mwdk/widgets/1-mwdk/create#' + id;
 	}
 
 	var closeDialog = () => {
@@ -38,12 +90,19 @@ Namespace('MWDK').Package = (() => {
 		closeDialog();
 	};
 
+	var _dom = (id, msg) => {
+		document.getElementById(id).innerHTML = msg;
+	}
+
 	return {
 		build: build,
 		cancel: cancel,
 		showPackageDownload: showPackageDownload,
 		showDemoPreview: showDemoPreview,
 		showCreator: showCreator,
-		showDemoCreator: showDemoCreator
+		showDemoCreator: showDemoCreator,
+		uploadScoreData: uploadScoreData,
+		removeScoreData: removeScoreData,
+		removePlayLogs: removePlayLogs
 	};
 })();

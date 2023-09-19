@@ -9,12 +9,12 @@ fetch('mwdk/saved_qsets')
     let name = data[id]
     let newOption = document.createElement("option")
     newOption.text = name
-    newOption.value = id
+    newOption.value = (id.length > 0 ? id : "demo")
     qsets.add(newOption)
   }
 
   qsets.onchange = (e) => {
-    document.getElementById('player_button').setAttribute('href', "/player/" + e.target.value)
+    document.getElementById('player_button').setAttribute('href', "/preview/" + e.target.value)
     document.getElementById('creator_button').setAttribute('href', "/mwdk/widgets/1-mwdk/create#" + e.target.value)
   }
 })
