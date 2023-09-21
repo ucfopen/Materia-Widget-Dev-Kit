@@ -53,11 +53,12 @@ const waitForWebpack = (app, next) => {
 				}
 
 				console.log("creating demo instance")
-				const instance = createApiWidgetInstanceData('demo')[0];
+				const instance = createApiWidgetInstanceData('demo', true)[0];
 				instance.name = instance.name
 				instance.id = 'demo'
 
 				fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify([instance]));
+				fs.writeFileSync(path.join(qsets, 'demo.json'), JSON.stringify(instance.qset)); // must use instance.qset so IDs match
 			});
 			return true
 		} catch(e) {
@@ -100,17 +101,23 @@ const getDemoQset = () => {
 	// generate a new instance with the given ID
 	let qset
 	try {
-		if(process.env.TEST_MWDK){
-			console.log("getting sample-demo.json")
-			qset = fs.readFileSync(path.resolve('views', 'sample-demo.json'))
-		}
-		else{
-			console.log("getting demo.json")
-			qset = getFileFromWebpack('demo.json')
-		}
+		// see if demo has been initialized
+		qset = fs.readFileSync(path.join(qsets, 'demo.json'))
 	} catch (e) {
-		console.log(e);
-		throw "Couldn't find demo.json file for qset data"
+		console.log("demo.json file not initialized")
+		try {
+			if(process.env.TEST_MWDK){
+				console.log("getting sample-demo.json")
+				qset = fs.readFileSync(path.resolve('views', 'sample-demo.json'))
+			}
+			else{
+				console.log("getting demo.json")
+				qset = getFileFromWebpack('demo.json')
+			}
+		} catch (err) {
+			console.log("error getting demo.json")
+			console.log(err)
+		}
 	}
 
 	return performQSetSubsitutions(qset.toString())
@@ -122,13 +129,13 @@ const performQSetSubsitutions = (qset) => {
 	qset = qset.replace(/"<%MEDIA='(.+?)'%>"/g, '"__$1__"')
 
 	// look for "id": null or "id": 0 or "id": "" and build a mock id
-	// qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuidv4()}"`)
+	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuidv4()}"`)
 
 	return JSON.parse(qset)
 }
 
 // create a widget instance data structure
-const createApiWidgetInstanceData = id => {
+const createApiWidgetInstanceData = (id) => {
 	// attempt to load a previously saved instance with the given ID
 	try {
 		let savedInstance = JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')))[0]
@@ -712,7 +719,7 @@ app.get('/preview_blocked/:instance?', (req, res) => {
 // API endpoint for getting the widget instance data
 app.use('/api/json/widget_instances_get', (req, res) => {
 	const id = JSON.parse(req.body.data)[0];
-	res.json(createApiWidgetInstanceData(id));
+	res.json(createApiWidgetInstanceData(id, false));
 });
 
 app.use('/api/json/widget_publish_perms_verify', (req, res) => {
@@ -735,11 +742,11 @@ app.use('/api/json/question_set_get', (req, res) => {
 	try {
 		const id = JSON.parse(req.body.data)[0];
 		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
-		qset = performQSetSubsitutions(qset)
+		qset = performQSetSubsitutions(qset, false)
 		qset = JSON.stringify(qset)
 		res.send(qset.toString());
 	} catch (e) {
-		res.json(getDemoQset().qset);
+		res.json(getDemoQset(false).qset);
 	}
 });
 
@@ -794,7 +801,7 @@ app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/
 	const qset = JSON.stringify(data[2]);
 	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
 
-	const instance = createApiWidgetInstanceData(data[0])[0];
+	const instance = createApiWidgetInstanceData(data[0], true)[0];
 	instance.id = id;
 	instance.name = data[1];
 
@@ -933,6 +940,7 @@ function get_detail_style(score)
 
 function get_ss_expected_answers(log, question)
 {
+	console.log(question)
 	switch (question.type)
 	{
 		case 'MC':
@@ -959,6 +967,29 @@ function get_ss_expected_answers(log, question)
 		default:
 			return question.answers[0].text;
 	}
+}
+
+const findQuestion = (q, id) => {
+	if (id == null) return null
+
+	if (q.options && q.options.id) {
+		if (q.options.id == id) {
+			return q
+		}
+	} else if (q.id == id) {
+		return q
+	}
+
+	// recursively look through array to find a question object
+	if (Array.isArray(q)) {
+		for (let qItem of q) {
+			let result = findQuestion(qItem, id)
+			if (result) {
+				return result
+			}
+		}
+	}
+	return null
 }
 
 app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], (req, res) => {
@@ -998,12 +1029,13 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 		qset = JSON.parse(qset)
 		questions = qset.data.items
 	} catch (e) {
-		demoqset = getDemoQset()
+		demoqset = getDemoQset(false)
 		questions = demoqset.qset.data.items
-		if (questions[0] && Object.hasOwn(questions[0], 'items')) {
-			// legacy qsets
-			questions = questions[0].items
-		}
+	}
+
+	if (questions[0] && Object.hasOwn(questions[0], 'items')) {
+		// legacy qsets
+		questions = questions[0].items
 	}
 
 	// get sample play scores to model data off of
@@ -1032,9 +1064,8 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 
 	let totalScore = 0, totalLength = 0;
 	let table = playLogs.map((log, index) => {
-		// this doesn't work because id's are null or 0
-		// let question = questions.find(q => ((q.options && q.options.id) ? q.options.id : q.id ) === log.item_id)
-		let question = questions[index]
+		let question = findQuestion(questions, log.item_id)
+		// let question = questions[index]
 		if (question) {
 			let answer = null
 			// find the answer for the log in the qset
@@ -1049,25 +1080,31 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 			if (sample_score_data != null) {
 				data = []
 				let samplelogIndex = index
+				// if there are more logs than there is sample data, use first sample element
 				if (index >= sample_score_data[0].details[0].table.length)
 					samplelogIndex = 0
+				// store location of response and answer for scoring
 				let responseIndex = -1;
 				let answerIndex = -1;
+				// create the data
 				sample_score_data[0].details[0].table[samplelogIndex].data_style.forEach((type, i) => {
 					switch (type) {
 						case 'question':
 							data.push(question.questions[0]['text'])
 							break;
-						case 'question_id':
-							data.push(sample_score_data[0].details[0].table[samplelogIndex].data[i])
-							break;
 						case 'response':
-							data.push(log.text || log.value) // some widgets' qsets store response in log.value
+							if (log.text && log.text.slice(0, 8) != 'mwdk-mock')
+								data.push(log.text)
+							else if (log.value && log.value.slice(0, 8) != 'mwdk-mock')
+								data.push(log.value) // some widgets' qsets store response in log.value
 							responseIndex = i
 							break;
 						case 'answer':
 							data.push(get_ss_expected_answers(log, question))
 							answerIndex = i
+							break;
+						default:
+							data.push(sample_score_data[0].details[0].table[samplelogIndex].data[i])
 					}
 				})
 
@@ -1092,7 +1129,14 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 				}
 			}
 
-			let responseData = log.text || log.value
+			// find which log field is the response
+			// is not foolproof or comprehensive
+			let responseData = ''
+			if (log.text && log.text.slice(0, 9) != 'mwdk-mock')
+				responseData = log.text
+			else if (log.value && log.value.slice(0, 9) != 'mwdk-mock')
+				responseData = log.value // some widgets' qsets store response in log.value
+
 			let answerData = get_ss_expected_answers(log, question)
 
 			logScore = typeof(log.value) == 'number' ? log.value : (responseData == answerData ? 100 : 0);
