@@ -1093,9 +1093,9 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 							data.push(question.questions[0]['text'])
 							break;
 						case 'response':
-							if (log.text && log.text.slice(0, 8) != 'mwdk-mock')
+							if (log.text != undefined && log.text != null && log.text.slice(0, 8) != 'mwdk-mock')
 								data.push(log.text)
-							else if (log.value && log.value.slice(0, 8) != 'mwdk-mock')
+							else if (log.value != undefined && log.value != null  && log.value.slice(0, 8) != 'mwdk-mock')
 								data.push(log.value) // some widgets' qsets store response in log.value
 							responseIndex = i
 							break;
