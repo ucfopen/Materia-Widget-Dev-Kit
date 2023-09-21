@@ -49,10 +49,14 @@ const materiaJSReplacements = [
 // webpack entries
 const getDefaultEntries = () => ({
 	'creator': [
-		`${srcPath}creator.coffee`
+		`${srcPath}creator.html`,
+		`${srcPath}creator.js`,
+		`${srcPath}creator.scss`
 	],
 	'player': [
-		`${srcPath}player.coffee`
+		`${srcPath}player.html`,
+		`${srcPath}player.js`,
+		`${srcPath}player.scss`
 	]
 })
 
