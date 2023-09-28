@@ -11,7 +11,7 @@ converter = new showdown.Converter()
 // To do so rather than hard-coding the actual location of those files
 // the build process will replace those references with the current relative paths to those files
 const packagedJSPath = 'src="../../../js/$3"'
-const devServerJSPath = 'src="/mwdk/mwdk-assets/$3"'
+const devServerJSPath = 'src="/materia-assets/js/$3"'
 const isRunningDevServer = process.env.NODE_ENV !== "production";
 console.log("Mode: " + process.env.NODE_ENV);
 const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
