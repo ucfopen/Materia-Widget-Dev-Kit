@@ -555,7 +555,7 @@ app.get(['/mwdk/scores/:id?'], (req, res) => {
 // The create page frame that loads the widget creator
 // Must have hash '1' to work
 app.get('/mwdk/widgets/1-mwdk/create', (req, res) => {
-	res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.hash || '1'})
+	res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.hash || generateInstanceID() })
 	res.render(res.locals.template, { layout: false})
 });
 
@@ -567,7 +567,7 @@ app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
 		hasPlayerGuide: true,
 		hasCreatorGuide: true,
 		docPath: '/guides/creator.html',
-		instance: req.params.hash || '1'
+		instance: req.params.hash || 'demo'
 	})
 	res.render(res.locals.template, { layout: false})
 })
@@ -580,10 +580,19 @@ app.get('/mwdk/widgets/1-mwdk/players-guide', (req, res) => {
 		hasPlayerGuide: true,
 		hasCreatorGuide: true,
 		docPath: '/guides/player.html',
-		instance: req.params.hash || '1'
+		instance: req.params.hash || 'demo'
 	})
 	res.render(res.locals.template, { layout: false})
 })
+
+function generateInstanceID() {
+	let str = ""
+	for (let i = 0; i < 5; i++) {
+		let c = Math.floor(Math.random() * (("Z").charCodeAt(0) - ("A").charCodeAt(0) + 1) + ("A").charCodeAt(0));
+		str += String.fromCharCode(c);
+	}
+	return str;
+}
 
 // Show the package options
 app.get('/mwdk/package', (req, res) => {
@@ -611,7 +620,7 @@ app.get('/mwdk/install', (req, res) => {
 	// 2. filter for materia-web image and named xxxx_phpfpm_1 name
 	// 3. pick the first line
 	// 4. pick the container name
-	let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia:.* docker_app_.*" | head -n 1 | cut -d" " -f2');
+	let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia:.* docker[-_]app[-_].*" | head -n 1 | cut -d" " -f2');
 	if(!targetImage){
 		throw "MWDK Couldn't find a docker container using a 'materia-phpfpm' image named 'phpfpm'."
 	}
@@ -774,7 +783,6 @@ app.use('/api/json/play_logs_save', (req, res) => {
 app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/api/json/widget_instance_save'], (req, res) => {
 	const data = JSON.parse(req.body.data);
 
-
 	// sweep through the qset items and make sure there aren't any nonstandard question properties
 	const standard_props = [
 		'materiaType',
@@ -801,7 +809,7 @@ app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/
 		}
 	}
 
-	const id = data[0] || new Date().getTime();
+	const id = (data[0].match(/([A-Za-z]{5})+/g) ? data[0] : generateInstanceID());
 	const qset = JSON.stringify(data[2]);
 	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
 

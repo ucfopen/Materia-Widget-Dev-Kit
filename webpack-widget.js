@@ -96,12 +96,10 @@ const combineConfig = (extras = {}) => {
 const getDefaultCopyList = () => {
 	const copyList = [
 		{
-			//flatten: true,
 			from: `${srcPath}demo.json`,
 			to: `${outputPath}demo.json`,
 		},
 		{
-			//flatten: true,
 			from: `${srcPath}install.yaml`,
 			to: outputPath,
 		},
@@ -111,7 +109,6 @@ const getDefaultCopyList = () => {
 			toType: 'dir'
 		},
 		{
-			//flatten: true,
 			from: `${srcPath}_score`,
 			to: `${outputPath}_score-modules`,
 			toType: 'dir'
@@ -135,20 +132,6 @@ const getDefaultCopyList = () => {
 			from: assetsPath,
 			to: `${outputPath}assets`,
 			toType: 'dir'
-		})
-	}
-
-	// optionally use demo_dev.json to replace demo.json
-	// when running the dev server
-	const devDemo = 'demo_dev.json'
-	const devDemoPath = `${srcPath}${devDemo}`
-	if (isRunningDevServer && fs.existsSync(devDemoPath)) {
-		console.log(`===== USING ${devDemo} ====`)
-		copyList.push({
-			// flatten: true,
-			from: devDemoPath,
-			to: `${outputPath}demo.json`,
-			force: true
 		})
 	}
 
