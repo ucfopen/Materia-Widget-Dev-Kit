@@ -622,9 +622,11 @@ app.get('/mwdk/install', (req, res) => {
 	// 4. pick the container name
 	let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia:.* docker[-_]app[-_].*" | head -n 1 | cut -d" " -f2');
 	if(!targetImage){
-		throw "MWDK Couldn't find a docker container using a 'materia-phpfpm' image named 'phpfpm'."
+		console.log(`Couldn't find docker container`)
+		throw "MWDK Couldn't find a docker container."
 	}
 	targetImage = targetImage.toString().trim();
+	console.log(`Using Docker image '${targetImage}' to install widgets`)
 	res.write(`> Using Docker image '${targetImage}' to install widgets<br/>`);
 
 	// get the image information
@@ -634,6 +636,7 @@ app.get('/mwdk/install', (req, res) => {
 	// Find mounted volume that will tell us where materia is on the host system
 	let found = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
 	if(!found){
+		console.error('MWDK Couldnt find the Materia mount on the host system')
 		res.write(`</pre><h1>Cant Find Materia</h1>`);
 		throw `MWDK Couldn't find the Materia mount on the host system'`
 	}
@@ -641,15 +644,19 @@ app.get('/mwdk/install', (req, res) => {
 	let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
 
 	// make sure the dir exists
+	console.log(`Checking if ${materiaPath}/fuel/app/tmp/widget_packages exists`)
 	if(!fs.existsSync(serverWidgetPath)){
+		console.log(`Making directory ${materiaPath}/fuel/app/tmp/widget_packages`)
 		fs.mkdirSync(serverWidgetPath);
 	}
 
 	// Build!
+	console.log('Building widget')
 	res.write(`> Building widget<br/>`);
 	let { widgetPath, widgetData } = buildWidget()
 
 	// create a file name with a timestamp in it
+	console.log(`Creating ${widgetData.clean_name}-${new Date().getTime()}.wigt`)
 	const filename = `${widgetData.clean_name}-${new Date().getTime()}.wigt`;
 
 	// get the widget I just built
@@ -657,29 +664,45 @@ app.get('/mwdk/install', (req, res) => {
 
 	// write the built widget to that path
 	let target = path.join(serverWidgetPath, filename)
+	console.log(`> Writing to ${target}<br/>`)
 	res.write(`> Writing to ${target}<br/>`);
 	fs.writeFileSync(target, widgetPacket);
 
 	// run the install command
-	res.write(`> Running run_widgets_install.sh script<br/>`);
-	let installResult = execSync(`cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
-	installResult = installResult.toString();
-	res.write(installResult.replace("\n", "<br/>"));
-	console.log(installResult);
+	console.log(`Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`)
+	res.write(`Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
 
-	// search for success in the output
-	const match = installResult.match(/Widget installed\:\ ([A-Za-z0-9\-\/]+)/);
+	try {
+		let run = require('child_process').spawn(`./run_widgets_install.sh`, [`${filename}`], {cwd: `${materiaPath}/docker/`})
 
-	res.write("</pre>");
-	if(match && match[1]) {
-		res.write("<h2>SUCCESS!<h2/>");
+		run.stdout.on('data', function(data) {
+			console.log('stdout: ' + data.toString());
+			res.write(data.toString());
+		})
+		run.stderr.on('data', function(data) {
+			console.error('stderr: ' + data.toString());
+			res.write(data.toString());
+		})
+		run.on('close', function(code) {
+			if (code == 0) {
+				res.write("<h2>SUCCESS!<h2/>");
+			} else {
+				res.write("<h2>Something failed!<h2/>");
+			}
+			res.write('child process exited with code ' + code.toString());
+			console.log(`ps process exited with code ${code}`);
+
+			res.write('<br><a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
+			res.end()
+		})
 	}
-	else{
+	catch (err) {
+		throw err;
 		res.write("<h2>Something failed!<h2/>");
-	}
 
-	res.write('<a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
-	res.end()
+		res.write('<a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
+		res.end()
+	}
 });
 
 // ============= MATERIA-SPECIFIC ROUTES =============

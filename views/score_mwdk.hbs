@@ -52,7 +52,7 @@
 	<div class="file-upload">
 		<label for="fileUpload">Sample Play Score Data</label>
 		<input id="fileUpload" type="file" accept=".json" onchange="MWDK.Package.showUploadButton();"/>
-		<button class="upload-button" disabled onclick="MWDK.Package.uploadScoreData();">Upload</button>
+		<button id="upload-button" disabled="true" onclick="MWDK.Package.uploadScoreData();">Upload</button>
 		<button  class="edit_button orange" onclick="MWDK.Package.removeScoreData();">Remove Sample Play Score Data</button>
 		</br>
 	</div>

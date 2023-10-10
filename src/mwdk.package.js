@@ -11,7 +11,7 @@ Namespace('MWDK').Package = (() => {
 	};
 
 	var showUploadButton = () => {
-		document.getElementById('.helper-button').removeAttribute('disabled')
+		document.getElementById('upload-button').removeAttribute('disabled')
 	}
 
 	var uploadScoreData = () => {
@@ -64,14 +64,6 @@ Namespace('MWDK').Package = (() => {
 		xhr.send();
 	}
 
-	var showDemoPreview = () => {
-		window.location.pathname='/preview/demo';
-	}
-
-	var showDemoCreator = () => {
-		window.location.href='/mwdk/widgets/1-mwdk/create#demo';
-	}
-
 	var showCreator = () => {
 		const pathnames = window.location.pathname.split('/')
 		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z]{5})+/g) ? pathnames[pathnames.length - 1] : 'demo')
@@ -114,10 +106,8 @@ Namespace('MWDK').Package = (() => {
 		cancel: cancel,
 		showPackageDownload: showPackageDownload,
 		showUploadButton: showUploadButton,
-		showDemoPreview: showDemoPreview,
 		showCreator: showCreator,
 		showPlayer: showPlayer,
-		showDemoCreator: showDemoCreator,
 		uploadScoreData: uploadScoreData,
 		removeScoreData: removeScoreData,
 		removePlayLogs: removePlayLogs,
