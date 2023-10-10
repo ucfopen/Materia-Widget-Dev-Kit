@@ -37,6 +37,7 @@
     <h2>SCORESCREEN INSTRUCTIONS</h2>
     <p>If you have finished the score_module, you may upload a JSON file containing sample play score data to design your custom <code>scorescreen.html</code>. <i id="how-do-i" onclick="MWDK.Package.toggleJSONInstructions();">How do I find the score data?</i></p>
 	<div class="json-instructions">
+		<p>The score data is returned by Materia in the <code>widget_instance_play_scores_get</code> request after processing and scoring the play logs using score_module.php. For how to retrieve this score data, use this guide: </p>
 		<ol>
 			<li>Install and run <a href="https://github.com/ucfopen/Materia">Materia</a>.</li>
 			<li>Click <strong>Download Package</strong> and <strong>Install to Docker Materia</strong></li>
@@ -60,7 +61,7 @@
 		<button class="edit_button orange" onclick="MWDK.Package.removePlayLogs();">Clear Play Logs</button>
 		<p>This will remove any leftover play logs from this session. Do this if you're experiencing issues displaying the sample score data.</p>
 	</div>
-    <p><strong>Disclaimer</strong>: There is currently no support for scoring play sessions with <code>score_module.php</code> in the Materia Widget Development Kit, so scoring will not be accurate. This is purely for designing how the data is displayed. Please install the widget in Materia to test the score_module.</p>
+    <p><strong>Disclaimer</strong>: There is currently no support for scoring play sessions with <code>score_module.php</code> in the Materia Widget Development Kit, so scoring may not be accurate, especially for widgets with custom scorescreens. Use this tool only for designing how the data is displayed: you must install the widget in Materia to test the score_module.php.</p>
 	<p id="message"></p>
 </div>
 

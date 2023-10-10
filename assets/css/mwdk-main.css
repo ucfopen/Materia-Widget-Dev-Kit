@@ -489,8 +489,12 @@ header.logged-in {
 /** Scorescreen **/
 
 #warning {
-	max-width: 1000px;
 	padding: 0 2em;
+	max-width: 800px;
+	background-color: rgba(256, 256, 256, 0.75);
+	border-radius: 5px;
+	border: 1px solid #0093e7;
+	margin: auto;
 }
 
 #message {
@@ -509,7 +513,6 @@ header.logged-in {
 
 .json-instructions {
 	display: none;
-	padding: 1em;
 	background-color:rgba(256, 256, 256, 0.75);
 	border-radius: 5px;
 }

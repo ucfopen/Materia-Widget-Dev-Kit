@@ -73,7 +73,7 @@ Namespace('MWDK').Package = (() => {
 
 	var showPlayer = () => {
 		const pathnames = window.location.pathname.split('/')
-		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z]{5})+/g) ? pathnames[pathnames.length - 1] : 'demo')
+		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z]{5})+/g) && pathnames[pathnames.length - 1] != "create" ? pathnames[pathnames.length - 1] : 'demo')
 		window.location.href='/preview/' + id;
 	}
 
