@@ -10,6 +10,10 @@ Namespace('MWDK').Package = (() => {
 		document.getElementById('modalbg').classList.add('visible');
 	};
 
+	var showUploadButton = () => {
+		document.getElementById('.helper-button').removeAttribute('disabled')
+	}
+
 	var uploadScoreData = () => {
 		let fileUpload = document.getElementById("fileUpload").files[0];
 		let fileReader = new FileReader();
@@ -102,6 +106,7 @@ Namespace('MWDK').Package = (() => {
 		build: build,
 		cancel: cancel,
 		showPackageDownload: showPackageDownload,
+		showUploadButton: showUploadButton,
 		showDemoPreview: showDemoPreview,
 		showCreator: showCreator,
 		showDemoCreator: showDemoCreator,

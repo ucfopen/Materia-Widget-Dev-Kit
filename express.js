@@ -36,7 +36,6 @@ let hasPlayLogs = false;
 // 2. load the widget's install.yaml from webpack's in-memory files
 // 3. initiate the widget's demo.json from webpack's in-memory files into qsets
 const waitForWebpack = (app, next) => {
-	if(process.env.TEST_MWDK) return next(); // short circuit for tests
 	if(hasCompiled) return next(); // short circuit if ready
 
 	waitUntil(() => {
@@ -57,8 +56,13 @@ const waitForWebpack = (app, next) => {
 				instance.name = instance.name
 				instance.id = 'demo'
 
-				fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify([instance]));
-				fs.writeFileSync(path.join(qsets, 'demo.json'), JSON.stringify(instance.qset)); // must use instance.qset so IDs match
+				if (process.env.TEST_MWDK) {
+					fs.copyFileSync('sample-demo.json', path.join(qsets, 'demo.json'));
+				} else {
+					fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify([instance]));
+					fs.writeFileSync(path.join(qsets, 'demo.json'), JSON.stringify(instance.qset)); // must use instance.qset so IDs match
+				}
+
 			});
 			return true
 		} catch(e) {
@@ -108,7 +112,7 @@ const getDemoQset = () => {
 		try {
 			if(process.env.TEST_MWDK){
 				console.log("getting sample-demo.json")
-				qset = fs.readFileSync(path.resolve('views', 'sample-demo.json'))
+				qset = fs.readFileSync('sample-demo.json')
 			}
 			else{
 				console.log("getting demo.json")
@@ -250,7 +254,7 @@ const buildWidget = () => {
 
 const getInstall = () => {
 	try {
-		if(process.env.TEST_MWDK) return fs.readFileSync(path.resolve('views', 'sample-install.yaml')); // short circuit for tests
+		if(process.env.TEST_MWDK) return fs.readFileSync('sample-install.yaml'); // short circuit for tests
 		return getFileFromWebpack('install.yaml', true);
 	} catch(e) {
 		console.error(e)

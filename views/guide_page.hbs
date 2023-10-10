@@ -5,6 +5,11 @@
 <link rel='stylesheet' href='/mwdk/assets/css/mwdk-main.css' type='text/css' />
 <link rel='stylesheet' href='/materia-assets/css/guides.css' type='text/css' />
 
+<script src="/materia-assets/js/materia.creatorcore.js"></script>
+<script src="/materia-assets/js/materia.enginecore.js"></script>
+
+<script src="/mwdk/mwdk-assets/js/mwdk-package.js"></script>
+
 <script >
 	var WIDGET_HEIGHT = '600';
 	var WIDGET_WIDTH = '800';
@@ -24,12 +29,13 @@
 <div id="topbar">
 	<a class="logo" href="/">Materia Widget Developer Kit</a>
 	<div class="tools">
-		<button class="edit_button orange" onclick="location.href='/preview';">Player (Demo)</button>
+		<button class="edit_button orange" onclick="MWDK.Package.showDemoPreview();">Player (Demo)</button>
 		<button id="downloadLink" class="edit_button orange" onclick="MWDK.Package.showPackageDownload();">Download Package</button>
 	</div>
 </div>
 
 <div id="app">
 </div>
+<div id='modalbg'></div>
 
 <script type="text/javascript" src="/materia-assets/js/guides.js"></script>
