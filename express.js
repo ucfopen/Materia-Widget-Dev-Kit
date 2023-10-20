@@ -45,6 +45,7 @@ const waitForWebpack = (app, next) => {
 			fs.readdir(qsets, async (err, files) => {
 				if (err) throw err;
 				for (const file of files) {
+					if (file == '.gitkeep') continue
 					console.log("removing file: " + file)
 					await fs.promises.unlink(path.join(qsets, file), (err) => {
 						if (err) throw err;
