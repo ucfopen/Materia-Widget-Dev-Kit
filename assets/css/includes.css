@@ -1,0 +1,102 @@
+/* includes.css */
+
+body {
+	padding: 0px;
+	margin: 0px;
+
+	background: #fff;
+	font-family: 'Lato', sans-serif;
+}
+
+.logo {
+	width: 150px;
+	padding-left: 60px;
+	margin-left: 5px;
+	font-size: 26px;
+	font-family: 'Lato';
+	font-weight: 300;
+	background: url(./../img/materia-logo.svg);
+	background-repeat: no-repeat;
+	color: #000;
+	text-decoration: none;
+}
+
+h1 {
+	font-weight: 300;
+	font-size: 30px;
+}
+
+h2 {
+	font-weight: 300;
+}
+
+h5 {
+	margin:20px 0 0 0;
+}
+
+.edit_button, .action_button {
+	position: relative;
+	display: inline-block;
+	margin: 10px 0 0 6px;
+	padding: 7px 13px 8px 13px;
+	border: 0;
+	outline: 0;
+	border-radius: 6px;
+	font-weight: 700;
+	color: #333;
+	font-size: 15px;
+	cursor: pointer;
+}
+
+.action_button {
+	margin: 10px 0 0 6px;
+	padding: 7px 13px 8px 13px;
+	background-color: #ffd439;
+
+	font-size: 15px;
+
+	transition: all 0.4s ease-in-out;
+
+	cursor: pointer;
+	user-select: none;
+}
+
+.action_button.smaller {
+	font-size: 15px !important;
+}
+
+.action_button.bigger {
+	font-size: 18px;
+}
+
+.action_button:hover {
+	background-color: #ffc904;
+	color: #000;
+	box-shadow: 0px 1px 3px #979696;
+	text-decoration: none;
+}
+
+.helper-button button {
+	margin: 10px 0 0 6px;
+	padding: 7px 13px 8px 13px;
+	background-color: #c4dd61;
+
+	font-size: 15px;
+
+	transition: all 0.4s ease-in-out;
+
+	cursor: pointer;
+	user-select: none;
+}
+
+.helper-button button:hover {
+	color: #000;
+	box-shadow: 0px 1px 3px #979696;
+	text-decoration: none;
+}
+
+.cancel_button {
+	color: #000;
+	font-weight: 300;
+	text-decoration: underline;
+}

@@ -1,3 +1,5 @@
+@import url('./includes.css');
+
 body#download {
 	background: #ffffff;
 }
@@ -17,12 +19,6 @@ body#download .disclaimer {
 
 body#download hr {
 	margin: 15px 50px 0;
-}
-
-body#download #cancel-button{
-	color: #555;
-	text-decoration: none;
-	margin: 0;
 }
 
 body#download #build-commands{

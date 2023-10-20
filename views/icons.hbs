@@ -26,7 +26,7 @@
 </p>
 
 <p>
-	<a href="/mwdk/auto-icon/all/"><button class='orange edit_button'>Generate All</button></a>
+	<a href="/mwdk/auto-icon/all/"><button class='action_button edit_button'>Generate All</button></a>
 </p>
 
 <section id='sets'>
@@ -37,7 +37,7 @@
 				<h3>
 					{{ x2 }} x {{ x2 }}
 					{{#canGenerateLarge}}
-					<a href='/mwdk/auto-icon/{{size}}/double'><button class='orange edit_button'>Generate</button></a>
+					<a href='/mwdk/auto-icon/{{size}}/double'><button class='action_button edit_button'>Generate</button></a>
 					{{/canGenerateLarge}}
 				</h3>
 				<img class='size_{{size}} large' src='/img/icon-{{size}}@2x.png?cachebuster={{timestamp}}' />
@@ -47,7 +47,7 @@
 				<h3>
 					{{ size }} x {{ size }}
 					{{#canGenerateSmall}}
-					<a href='/mwdk/auto-icon/{{size}}'><button class='orange edit_button'>Generate</button></a>
+					<a href='/mwdk/auto-icon/{{size}}'><button class='action_button edit_button'>Generate</button></a>
 					{{/canGenerateSmall}}
 				</h3>
 				<img src='/img/icon-{{size}}.png?cachebuster={{timestamp}}' />

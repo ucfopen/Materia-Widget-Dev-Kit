@@ -27,9 +27,9 @@
 <div id="topbar">
 	<a class="logo" href="/">Materia Widget Developer Kit</a>
 	<div class="tools">
-		<button class="edit_button orange" onclick="MWDK.Package.showCreator();">Creator</button>
-		<button class="edit_button orange" onclick="MWDK.Package.showPlayer();">Player</button>
-		<button id="downloadLink" class="edit_button orange" onclick="MWDK.Package.showPackageDownload();">Download Package</button>
+		<button class="edit_button action_button smaller" onclick="MWDK.Package.showCreator();">Creator</button>
+		<button class="edit_button action_button smaller" onclick="MWDK.Package.showPlayer();">Player</button>
+		<button id="downloadLink" class="edit_button action_button smaller" onclick="MWDK.Package.showPackageDownload();">Download Package</button>
 	</div>
 </div>
 
@@ -54,11 +54,11 @@
 		<label for="fileUpload">Sample Play Score Data</label>
 		<input id="fileUpload" type="file" accept=".json" onchange="MWDK.Package.showUploadButton();"/>
 		<button id="upload-button" disabled="true" onclick="MWDK.Package.uploadScoreData();">Upload</button>
-		<button  class="edit_button orange" onclick="MWDK.Package.removeScoreData();">Remove Sample Play Score Data</button>
+		<button  class="edit_button action_button smaller" onclick="MWDK.Package.removeScoreData();">Remove Sample Play Score Data</button>
 		</br>
 	</div>
 	<div class="remove-logs">
-		<button class="edit_button orange" onclick="MWDK.Package.removePlayLogs();">Clear Play Logs</button>
+		<button class="edit_button action_button smaller" onclick="MWDK.Package.removePlayLogs();">Clear Play Logs</button>
 		<p>This will remove any leftover play logs from this session. Do this if you're experiencing issues displaying the sample score data.</p>
 	</div>
     <p><strong>Disclaimer</strong>: There is currently no support for scoring play sessions with <code>score_module.php</code> in the Materia Widget Development Kit, so scoring may not be accurate, especially for widgets with custom scorescreens. Use this tool only for designing how the data is displayed: you must install the widget in Materia to test the score_module.php.</p>
