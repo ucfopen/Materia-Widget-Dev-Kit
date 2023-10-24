@@ -1,16 +1,21 @@
 # Materia Widget Development Kit (MWDK)
 
-Materia Widget Development Kit (MWDK) is a local dev environment for quickly building Materia Widgets.
+The Materia Widget Development Kit (MWDK) is designed to facilitate the rapid development of widgets for use in [Materia](https://github.com/ucfopen/Materia). It is a required dependency of all widgets, and in addition to providing in-situ player and creator interfaces, the MWDK enables quick installation to a local Materia instance and compiling the widget for production use.
+
+For more information about developing Materia widgets, visit [our docs site](https://ucfopen.github.io/Materia-Docs/develop/widget-developer-guide.html)
 
 ## Features
 
-* Supports player and creator html files
+* Supports rapid development of player, creator, and score screen* interfaces
 * Live reloading
+* Helpful utilies including icon generators and screenshot annotation
 * Uses the same javascript as the production Materia Server
-* Utility for easy wigt package building
+* Quick installation to a local Materia instance and utilities for widget package compiling
 * Materia API mocking
+
+*\*experimental feature*  
 
 ## Setup
 
-* Require as a dependency for any Materia widget
+Visit the [MWDK wiki](https://github.com/ucfopen/Materia-Widget-Dev-Kit/wiki) for instructions related to installation, use, upgrading from prior versions, and more.
 
