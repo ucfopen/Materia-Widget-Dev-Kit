@@ -16,7 +16,7 @@ Namespace('MWDK').Helpers = (() => {
 	let dragBoxDelta = { x: 0, y: 0}
 
 	let increment = 0
-	
+
 	let annotations = []
 	let boxes = []
 
@@ -118,7 +118,7 @@ Namespace('MWDK').Helpers = (() => {
 		}
 		else {
 			selectedImage = document.getElementsByClassName("img-selection")[index-1].childNodes[0]
-		}        
+		}
 
 		canvas.width = selectedImage.width
 		canvas.height = selectedImage.height
@@ -213,7 +213,7 @@ Namespace('MWDK').Helpers = (() => {
 		for (let i = 0; i < boxes.length; i++) {
 			let box = boxes[i]
 			if (x > box.startX && x < box.endX && y > box.startY && y < box.endY) {
-			   
+
 				if (deleteModeActive) {  // delete if modifier key is held
 					boxes.splice(i, 1)
 					return
@@ -244,7 +244,7 @@ Namespace('MWDK').Helpers = (() => {
 			if (y < boxes[index].startY + 10) boxes[index].endY = boxes[index].startY + 10
 			else boxes[index].endY = y
 		}
-		
+
 		// dragging an already drawn box
 		else if (drawBoxMode == MODE_DRAGGING) {
 			const dx = x - dragBoxDelta.x
@@ -310,7 +310,7 @@ Namespace('MWDK').Helpers = (() => {
 	document.addEventListener("keydown", handleKeyDown)
 
 	document.addEventListener("keyup", handleKeyUp)
-	
+
 	// listener for file upload button
 	document.getElementById("local-upload-button").addEventListener("change", uploadImage)
 
@@ -333,5 +333,5 @@ Namespace('MWDK').Helpers = (() => {
 		handleKeyDown : handleKeyDown,
 		handleKeyUp : handleKeyUp
 	};
-	
+
 })();

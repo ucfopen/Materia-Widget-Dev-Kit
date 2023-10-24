@@ -1,3 +1,5 @@
+@import url('./includes.css');
+
 body#download {
 	background: #ffffff;
 }
@@ -19,15 +21,36 @@ body#download hr {
 	margin: 15px 50px 0;
 }
 
-body#download #cancel-button{
-	color: #555;
-	text-decoration: underline;
-}
-
 body#download #build-commands{
 	margin: 47px;
 }
 
 body#download #download_button{
 	margin-right:20px;
+}
+
+.hide {
+	display: none;
+}
+
+#progress-container {
+	padding: 30px;
+}
+
+#progressbar {
+	width: 100%;
+	height: 20px;
+	margin: 20px auto;
+
+	background: #b2aeb7;
+	border-radius: 11px;
+}
+
+#progressbar #fill {
+	width: 0;
+	height: 100%;
+
+	background: #1da4cd;
+	border-radius: 11px;
+	/* transition: width 0.3s ease; */
 }

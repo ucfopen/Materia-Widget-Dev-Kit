@@ -1,9 +1,0 @@
-{
-  "name": "Sample Widget",
-  "qset": {
-    "version": 1,
-    "data": {
-      "sampledata": true
-    }
-  }
-}

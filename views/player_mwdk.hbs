@@ -1,0 +1,34 @@
+<link rel="stylesheet" href="/mwdk/assets/css/mwdk-player.css" type="text/css" />
+<link rel="stylesheet" href="/mwdk/assets/css/mwdk-download.css" type="text/css" />
+<link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel='stylesheet' href='/mwdk/assets/css/mwdk-main.css' type='text/css' />
+<link rel="stylesheet" href="/materia-assets/css/player-page.css" type="text/css" />
+
+<script type="text/javascript" src="/materia-assets/js/materia.enginecore.js"></script>
+<script type="text/javascript" src="/materia-assets/js/materia.scorecore.js"></script>
+<script src="/mwdk/mwdk-assets/js/mwdk-package.js"></script>
+
+<script >
+	var PLAY_ID = '{{ instance }}';
+	var DEMO_ID = 'demo';
+	var WIDGET_HEIGHT = '{{ widgetHeight }}';
+	var WIDGET_WIDTH = '{{ widgetWidth }}';
+	var BASE_URL = '/mwdk/'
+	var API_LINK = '/api/json/'
+	var WIDGET_URL = '/'
+	var MEDIA_URL = '/mwdk/media'
+	var STATIC_CROSSDOMAIN = 'http://localhost:{{ port }}/'
+</script>
+
+<div id="topbar">
+	<a class="logo" href="/">Materia Widget Developer Kit</a>
+	<div class="tools">
+		<button class="edit_button action_button smaller" onclick="MWDK.Package.showCreator();">Creator</button>
+		<button id="downloadLink" class="edit_button action_button smaller" onclick="MWDK.Package.showPackageDownload();">Download Package</button>
+	</div>
+</div>
+
+<div id="app"></div>
+<div id='modalbg'></div>
+
+<script src="/materia-assets/js/player-page.js"></script>

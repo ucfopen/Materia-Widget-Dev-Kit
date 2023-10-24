@@ -1,0 +1,22 @@
+{
+  "name": "Sample Widget",
+  "qset": {
+    "version": 1,
+    "data": {
+      "sampledata": true,
+      "items": {
+        "sampleitem": {
+          "materiaType": "question",
+          "id": null,
+          "question": {
+            "text": "What's the airspeed velocity of an unladen swallow?"
+          },
+          "answer": {
+            "text": "Yes",
+            "value": 0
+          }
+        }
+      }
+    }
+  }
+}

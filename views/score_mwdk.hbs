@@ -1,0 +1,71 @@
+<link rel="stylesheet" href="/mwdk/assets/css/mwdk-download.css" type="text/css" />
+<link href='//fonts.googleapis.com/css?family=Lato:300,400,700|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel='stylesheet' href='/mwdk/assets/css/mwdk-main.css' type='text/css' />
+<link rel='stylesheet' href='/mwdk/assets/css/mwdk-scorescreen.css' type='text/css' />
+<link rel="stylesheet" href="/materia-assets/css/scores.css" type="text/css" />
+
+<script type="text/javascript" src="/materia-assets/js/materia.enginecore.js"></script>
+<script type="text/javascript" src="/materia-assets/js/materia.scorecore.js"></script>
+<script src="/mwdk/mwdk-assets/js/mwdk-package.js"></script>
+
+<script >
+	var PLAY_ID = '{{ instance }}';
+	var DEMO_ID = 'demo';
+	var WIDGET_HEIGHT = '600';
+	var WIDGET_WIDTH = '800';
+    var WIDGET_URL = 'http://localhost:{{ port }}/'
+	var BASE_URL = '/mwdk/'
+	var API_LINK = '/api/json/'
+	var WIDGET_URL = '/'
+	var MEDIA_URL = '/mwdk/media'
+	var STATIC_CROSSDOMAIN = 'http://localhost:{{ port }}/'
+    var LAUNCH_TOKEN = '{{ instance }}'
+    var IS_EMBEDDED = 'false'
+    var IS_PREVIEW = '{{ IS_PREVIEW }}'
+</script>
+
+<div id="topbar">
+	<a class="logo" href="/">Materia Widget Developer Kit</a>
+	<div class="tools">
+		<button class="edit_button action_button smaller" onclick="MWDK.Package.showCreator();">Creator</button>
+		<button class="edit_button action_button smaller" onclick="MWDK.Package.showPlayer();">Player</button>
+		<button id="downloadLink" class="edit_button action_button smaller" onclick="MWDK.Package.showPackageDownload();">Download Package</button>
+	</div>
+</div>
+
+<div id="warning">
+    <h2>SCORESCREEN INSTRUCTIONS</h2>
+    <p>If you have finished the score_module, you may upload a JSON file containing sample play score data to design your custom <code>scorescreen.html</code>. <i id="how-do-i" onclick="MWDK.Package.toggleJSONInstructions();">How do I find the score data?</i></p>
+	<div class="json-instructions">
+		<p>The score data is returned by Materia in the <code>widget_instance_play_scores_get</code> request after processing and scoring the play logs using score_module.php. For how to retrieve this score data, use this guide: </p>
+		<ol>
+			<li>Install and run <a href="https://github.com/ucfopen/Materia">Materia</a>.</li>
+			<li>Click <strong>Download Package</strong> and <strong>Install to Docker Materia</strong></li>
+			<li>Open your widget in Materia.</li>
+			<li>Open your browser's developer tools (<code>Command + Option + i</code> on Mac, <code>Ctrl + Shift + i</code> on Windows) and go to the Network tab.</li>
+			<li>Play the widget until you reach the scorescreen.</li>
+			<li>Once you've reached the scorescreen, look for a request to <code>widget_instance_play_scores_get</code> and click it.</li>
+			<li>Go to the Response tab, right click on the JSON object, and click <code>Copy All</code>. Alternatively, right click on the request and click Copy Value -> Copy Response.</li>
+			<li>Create a JSON file on your computer and paste the response data.</li>
+			<li>Upload the file here.</li>
+		</ol>
+	</div>
+	<div class="file-upload">
+		<label for="fileUpload">Sample Play Score Data</label>
+		<input id="fileUpload" type="file" accept=".json" onchange="MWDK.Package.showUploadButton();"/>
+		<button id="upload-button" disabled="true" onclick="MWDK.Package.uploadScoreData();">Upload</button>
+		<button  class="edit_button action_button smaller" onclick="MWDK.Package.removeScoreData();">Remove Sample Play Score Data</button>
+		</br>
+	</div>
+	<div class="remove-logs">
+		<button class="edit_button action_button smaller" onclick="MWDK.Package.removePlayLogs();">Clear Play Logs</button>
+		<p>This will remove any leftover play logs from this session. Do this if you're experiencing issues displaying the sample score data.</p>
+	</div>
+    <p><strong>Disclaimer</strong>: There is currently no support for scoring play sessions with <code>score_module.php</code> in the Materia Widget Development Kit, so scoring may not be accurate, especially for widgets with custom scorescreens. Use this tool only for designing how the data is displayed: you must install the widget in Materia to test the score_module.php.</p>
+	<p id="message"></p>
+</div>
+
+<div id="app"></div>
+<div id='modalbg'></div>
+
+<script src="/materia-assets/js/scores.js"></script>

@@ -31,3 +31,7 @@
 #body.player_mwdk #rebuild button {
 	margin-left: 10px;
 }
+
+#app {
+	position: static !important;
+}
