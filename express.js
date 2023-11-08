@@ -1,24 +1,24 @@
-const path            	= require('path');
-const fs              	= require('fs');
-const express         	= require('express')
-const qsets           	= path.join(__dirname, 'qsets');
-const yaml            	= require('yamljs');
-const { execSync }    	= require('child_process');
-const waitUntil       	= require('wait-until-promise').default
-const { v4: uuidv4 }    = require('uuid')
-const sharp           	= require('sharp')
-const util				= require('util');
-const cors 				= require('cors')
-const hbs				= require('hbs');
+const path                 = require('path');
+const fs                   = require('fs');
+const express              = require('express')
+const qsets                = path.join(__dirname, 'qsets');
+const yaml                 = require('yamljs');
+const { execSync }         = require('child_process');
+const waitUntil            = require('wait-until-promise').default
+const { v4: uuidv4 }       = require('uuid')
+const sharp                = require('sharp')
+const util                 = require('util');
+const cors                 = require('cors')
+const hbs                  = require('hbs');
 
 // common paths used here
-const srcPath 				= path.join(process.cwd(), 'src') + path.sep
-const outputPath 			= path.join(process.cwd(), 'build') + path.sep
+const srcPath              = path.join(process.cwd(), 'src') + path.sep
+const outputPath           = path.join(process.cwd(), 'build') + path.sep
 
 // Webpack middleware setup
-const webpack 							= require('webpack');
-const webpackDevMiddleware 	= require('webpack-dev-middleware');
-const config 								= require(path.resolve(process.cwd(), './webpack.config.js'));
+const webpack              = require('webpack');
+const webpackDevMiddleware = require('webpack-dev-middleware');
+const config               = require(path.resolve(process.cwd(), './webpack.config.js'));
 const compiler = webpack(config);
 
 
@@ -475,7 +475,7 @@ app.get('/mwdk/media/:id', (req, res) => {
 })
 
 app.post('/mwdk/upload_score_data', (req, res) => {
-    const jsonObject = JSON.parse(req.body.value);
+	const jsonObject = JSON.parse(req.body.value);
 	res.set({'Content-Type': 'application/json'})
 	let msg = ''
 	let error = false
