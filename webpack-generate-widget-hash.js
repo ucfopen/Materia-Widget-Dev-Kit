@@ -37,10 +37,10 @@ class GenerateWidgetHash {
 
 				// get some build environment information
 				var date = new Date()
-				var gitCommit = 'unkown'
-				var email = 'unkown'
-				var user = 'unkown'
-				var gitRemote = 'unkown'
+				var gitCommit = 'unknown'
+				var email = 'unknown'
+				var user = 'unknown'
+				var gitRemote = 'unknown'
 
 				try {
 					gitCommit = execSync('git rev-parse HEAD').toString()
