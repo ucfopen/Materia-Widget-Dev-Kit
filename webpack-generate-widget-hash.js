@@ -9,19 +9,25 @@ class GenerateWidgetHash {
 		this.output = options.output;
 	}
 	apply(compiler) {
-		compiler.hooks.emit.tapAsync('GenerateWidgetHash', (compilation, callback) => {
+		const { webpack } = compiler;
+		const { Compilation } = webpack;
+		const { RawSource } = webpack.sources;
+
+		compiler.hooks.thisCompilation.tap('GenerateWidgetHash', (compilation) => {
 			// if widget isnt in options or it isnt in the output, just warn and exit
-			if (typeof this.widget == 'undefined' || typeof compilation.assets[this.widget] == 'undefined') {
-				console.warn('Widget Hash generator couldnt locate ' + this.options.widget)
-				callback()
-				return
-			}
-			compilation.hooks.processAssets.tap({
+			compilation.hooks.processAssets.tapAsync({
 				name: 'GenerateWidgetHash',
-				stage: compilation.PROCESS_ASSETS_STAGE_ADDITIONAL, // see below for more stages
-				additionalAssets: true
+				stage: Compilation.PROCESS_ASSETS_STAGE_REPORT, // see below for more stages
 			},
-			(assets) => {
+			(assets, callback) => {
+				if (typeof this.widget == 'undefined' || typeof assets[this.widget] == 'undefined') {
+					console.warn('Widget Hash generator couldnt locate ' + this.widget)
+					return
+				}
+				// console.log('Assets:')
+				// Object.entries(assets).forEach(([pathname, source]) => {
+				// 	console.log(`— ${pathname}: ${source.size()} bytes`);
+				// });
 				const wigtData = assets[this.widget].source()
 
 				// calculate hashes based on the wigt file
@@ -31,10 +37,10 @@ class GenerateWidgetHash {
 
 				// get some build environment information
 				var date = new Date()
-				var gitCommit = 'unkown'
-				var email = 'unkown'
-				var user = 'unkown'
-				var gitRemote = 'unkown'
+				var gitCommit = 'unknown'
+				var email = 'unknown'
+				var user = 'unknown'
+				var gitRemote = 'unknown'
 
 				try {
 					gitCommit = execSync('git rev-parse HEAD').toString()
@@ -69,9 +75,9 @@ class GenerateWidgetHash {
 					this.output,
 					new RawSource(checksumYAML)
 				)
-			})
 
-			callback()
+				callback()
+			})
 		})
 	}
 }
