@@ -4457,10 +4457,10 @@ make-fetch-happen@^11.0.0, make-fetch-happen@^11.0.1, make-fetch-happen@^11.0.3,
     socks-proxy-agent "^7.0.0"
     ssri "^10.0.0"
 
-materia-widget-dependencies@0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/materia-widget-dependencies/-/materia-widget-dependencies-0.2.0.tgz#ebec53a9c10991bacf8b8ea9d6dfba5cd40ed912"
-  integrity sha512-eqab8DdPD0tzEicJWfgc/BJko/MSZarECmXENNwt4NUr757HCQJl7M+q70eXYO84Ssk3kHySTELgOTLES/FODg==
+materia-widget-dependencies@0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/materia-widget-dependencies/-/materia-widget-dependencies-0.3.0.tgz#b95b8b99f48118f599bc034f6d4ddeb5e75af722"
+  integrity sha512-+atVBgczOu3/mcn7pDYaS0AlDkBZ3ttDLi5vXxpAOGi9U6n7RPTxxrZGv5yqkcRJC+b3j+mXlwxPY96hazSIIg==
 
 mdn-data@2.0.28:
   version "2.0.28"
