@@ -10,15 +10,22 @@ Namespace('MWDK').Helpers = (() => {
 	const MODE_PENDING = "box_pending"
 	const MODE_DRAWING = "box_drawing"
 	const MODE_DRAGGING = "box_dragging"
+	const MODE_DRAGGING_START = "box_dragging_start"
+	const MODE_DRAGGING_END = "box_dragging_end"
 
 	let drawBoxMode = MODE_NONE
 	let dragBoxTarget = -1
 	let dragBoxDelta = { x: 0, y: 0}
 
+	let drawArrowMode = MODE_NONE
+	let dragArrowTarget = -1
+	let dragArrowDelta = { x: 0, y: 0}
+
 	let increment = 0
 
 	let annotations = []
 	let boxes = []
+	let arrows = []
 
 	let selectedImage = null
 
@@ -44,6 +51,14 @@ Namespace('MWDK').Helpers = (() => {
 		this.stroke = "#4e88ef"
 	}
 
+	function Arrow(x, y) {
+		this.startX = x
+		this.startY = y
+		this.endX = x + 5
+		this.endY = y + 5
+		this.stroke = "#4e88ef"
+	}
+
 	const drawCanvas = () => {
 		if (!shouldRefresh) return
 		// clear canvas first
@@ -55,6 +70,10 @@ Namespace('MWDK').Helpers = (() => {
 		// draw boxes first
 		for (box of boxes) {
 			drawBox(context, box.startX, box.startY, box.endX, box.endY)
+		}
+
+		for (arrow of arrows) {
+			drawArrow(context, arrow.startX, arrow.startY, arrow.endX, arrow.endY)
 		}
 
 		// then draw annotations
@@ -108,6 +127,32 @@ Namespace('MWDK').Helpers = (() => {
 		context.stroke()
 	}
 
+	function drawArrow(context, fromx, fromy, tox, toy) {
+		var headlen = 15; // length of head in pixels
+		var dx = tox - fromx;
+		var dy = toy - fromy;
+		var angle = Math.atan2(dy, dx);
+		context.lineWidth = 3
+		context.strokeStyle = "#4e88ef"
+		context.fillStyle = "#4e88ef"
+
+		// draw line
+		context.beginPath()
+		context.moveTo(fromx, fromy);
+		context.lineTo(tox, toy);
+		context.stroke()
+		context.closePath()
+
+		// draw triangle
+		context.beginPath()
+		context.moveTo(tox, toy);
+		context.lineTo(tox - headlen * Math.cos(angle - Math.PI / 6), toy - headlen * Math.sin(angle - Math.PI / 6));
+		context.lineTo(tox - headlen * Math.cos(angle + Math.PI / 6), toy - headlen * Math.sin(angle + Math.PI / 6));
+		context.lineTo(tox, toy);
+		context.fill()
+		context.stroke()
+	  }
+
 	// upload = local image upload
 	// index = index of screenshot (if selected from screenshot selection)
 	const selectImage = (upload, index) => {
@@ -135,6 +180,15 @@ Namespace('MWDK').Helpers = (() => {
 		}
 		drawBoxMode = MODE_PENDING
 		tip("Click and drag (left-to-right) to start drawing a box.")
+	}
+
+	const placeArrow = () => {
+		if (selectedImage == null) {
+			tip("You need to select an image first!")
+			return
+		}
+		drawArrowMode = MODE_PENDING
+		tip("Click and drag (left-to-right) to start drawing an arrow.")
 	}
 
 	const placeNumberAnnotation = () => {
@@ -191,6 +245,12 @@ Namespace('MWDK').Helpers = (() => {
 			drawBoxMode = MODE_DRAWING
 		}
 
+		if (drawArrowMode == MODE_PENDING) {
+			let arrow = new Arrow(x, y)
+			arrows.push(arrow)
+			drawArrowMode = MODE_DRAWING
+		}
+
 		// annotations have selection priority over boxes
 		// loop through all annotations and check if click coords exist within the annotation's bounding box
 		for (let j = 0; j < annotations.length; j++) {
@@ -227,6 +287,45 @@ Namespace('MWDK').Helpers = (() => {
 				}
 			}
 		}
+
+		// loop through all arrows and check if click coords are within one of the arrows
+		for (let i = 0; i < arrows.length; i++) {
+			let arrow = arrows[i]
+			if (x > arrow.startX && x < arrow.endX && y > arrow.startY && y < arrow.endY) {
+				if (deleteModeActive) {  // delete if modifier key is held
+					arrows.splice(i, 1)
+
+					return
+				}
+			}
+			else if (x > arrow.startX - 15 && x < arrow.startX + 15 && y > arrow.startY - 15 && y < arrow.startY + 15) {
+				if (deleteModeActive) {  // delete if modifier key is held
+					arrows.splice(i, 1)
+					return
+				}
+				else if (drawArrowMode == MODE_NONE) { // start dragging
+					drawArrowMode = MODE_DRAGGING_START
+					dragArrowTarget = i
+					dragArrowDelta.x = x
+					dragArrowDelta.y = y
+					return
+				}
+			}
+			else if (x > arrow.endX - 15 && x < arrow.endX + 15 && y > arrow.endY - 15 && y < arrow.endY + 15) {
+
+				if (deleteModeActive) {  // delete if modifier key is held
+					arrows.splice(i, 1)
+					return
+				}
+				else if (drawArrowMode == MODE_NONE) { // start dragging
+					drawArrowMode = MODE_DRAGGING_END
+					dragArrowTarget = i
+					dragArrowDelta.x = x
+					dragArrowDelta.y = y
+					return
+				}
+			}
+		}
 	}
 
 	const handleMouseMove = (event) => {
@@ -259,6 +358,33 @@ Namespace('MWDK').Helpers = (() => {
 			dragBoxDelta.y = y
 		}
 
+		// drawing an arrow
+		else if (drawArrowMode == MODE_DRAWING) {
+			let index = arrows.length - 1
+			arrows[index].endX = x
+			arrows[index].endY = y
+		}
+		else if (drawArrowMode == MODE_DRAGGING_START) {
+			const dx = x - dragArrowDelta.x
+			const dy = y - dragArrowDelta.y
+
+			arrows[dragArrowTarget].startX += dx
+			arrows[dragArrowTarget].startY += dy
+
+			dragArrowDelta.x = x
+			dragArrowDelta.y = y
+		}
+		else if (drawArrowMode == MODE_DRAGGING_END) {
+			const dx = x - dragArrowDelta.x
+			const dy = y - dragArrowDelta.y
+
+			arrows[dragArrowTarget].endX += dx
+			arrows[dragArrowTarget].endY += dy
+
+			dragArrowDelta.x = x
+			dragArrowDelta.y = y
+		}
+
 		// dragging an annotation
 		else if (dragAnnotationTarget != -1) {
 			annotations[dragAnnotationTarget].x = x
@@ -276,12 +402,18 @@ Namespace('MWDK').Helpers = (() => {
 		else if (drawBoxMode == MODE_DRAGGING) {
 			drawBoxMode = MODE_NONE
 		}
+		else if (drawArrowMode == MODE_DRAWING || drawArrowMode == MODE_PENDING) {
+			tip("")
+			drawArrowMode = MODE_NONE
+		} else if (drawArrowMode == MODE_DRAGGING_START || drawArrowMode == MODE_DRAGGING_END) {
+			drawArrowMode = MODE_NONE
+		}
 		else if (dragAnnotationTarget != -1) dragAnnotationTarget = -1
 	}
 
 	const handleKeyDown = (event) => {
 		// 91 = left CMD, 93 = right CMD. Only compatible with webkit browsers (!)
-		if (event.keyCode == 91 || event.keyCode == 93) {
+		if (event.key == "Meta" || event.key == "Command") {
 			tip("With CMD pressed, click a box or annotation to delete it.")
 			deleteModeActive = true
 			event.preventDefault()
@@ -290,7 +422,7 @@ Namespace('MWDK').Helpers = (() => {
 
 	const handleKeyUp = (event) => {
 		// 91 = left CMD, 93 = right CMD. Only compatible with webkit browsers (!)
-		if ((event.keyCode == 91 || event.keyCode == 93) && deleteModeActive == true) {
+		if ((event.key == "Meta" || event.key == "Command") && deleteModeActive == true) {
 			tip("")
 			deleteModeActive = false
 			event.preventDefault()
@@ -328,6 +460,7 @@ Namespace('MWDK').Helpers = (() => {
 		selectImage : selectImage,
 		placeNumberAnnotation : placeNumberAnnotation,
 		placeBox : placeBox,
+		placeArrow : placeArrow,
 		saveAsImage : saveAsImage,
 		tip : tip,
 		handleKeyDown : handleKeyDown,
