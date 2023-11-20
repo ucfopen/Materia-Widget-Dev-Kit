@@ -46,7 +46,7 @@
     "hbs": "^4.2.0",
     "html-loader": "^4.2.0",
     "html-webpack-plugin": "^5.5.3",
-    "materia-widget-dependencies": "0.2.0",
+    "materia-widget-dependencies": "0.3.0",
     "mini-css-extract-plugin": "^2.7.2",
     "npm-check-updates": "^16.10.9",
     "path": "^0.12.7",
