@@ -13,9 +13,12 @@ For more information about developing Materia widgets, visit [our docs site](htt
 * Quick installation to a local Materia instance and utilities for widget package compiling
 * Materia API mocking
 
-*\*experimental feature*  
+*\*experimental feature*
 
 ## Setup
 
 Visit the [MWDK wiki](https://github.com/ucfopen/Materia-Widget-Dev-Kit/wiki) for instructions related to installation, use, upgrading from prior versions, and more.
 
+## Contributing
+
+For more information on contributing, visit the [MWDK wiki](https://github.com/ucfopen/Materia-Widget-Dev-Kit/wiki/Contributing).
