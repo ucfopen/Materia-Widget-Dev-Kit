@@ -141,10 +141,16 @@ const getDefaultCopyList = () => {
 // Rules needed for common builds
 const getDefaultRules = () => ({
 	reactLoader: {
-		test: /\.js$/,
+		test: /\.(js|jsx)$/,
 		exclude: /node_modules/,
 		use: {
-			loader: 'babel-loader'
+			loader: 'babel-loader',
+			options: {
+				presets: [
+					'@babel/preset-env',
+					'@babel/preset-react'
+				]
+			}
 		}
 	},
 	// process regular javascript files
@@ -179,7 +185,7 @@ const getDefaultRules = () => ({
 	// in the src of the html files, this will tell webpack
 	// how to deal with those files
 	copyImages: {
-		test: /\.(jpe?g|png|gif|svg)$/i,
+		test: /\.(jpe?g|png|gif|svg|ico|ttf|eot|woff|woff2)$/i,
 		exclude: /node_modules/,
 		type: 'asset/resource',
 		generator: {
