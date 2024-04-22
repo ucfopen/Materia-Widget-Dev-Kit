@@ -140,18 +140,21 @@ const getDefaultCopyList = () => {
 
 // Rules needed for common builds
 const getDefaultRules = () => ({
+	// process react files (.js and .jsx)
 	reactLoader: {
-		test: /\.(js|jsx)$/,
+		test: /\.(js|jsx)$/i,
 		exclude: /node_modules/,
-		use: {
-			loader: 'babel-loader',
-			options: {
-				presets: [
-					'@babel/preset-env',
-					'@babel/preset-react'
-				]
+		use: [
+			{
+				loader: 'babel-loader',
+				options: {
+					presets: [
+						'@babel/preset-react', // transform jsx into js
+						'@babel/preset-env' // enable latest JS features
+					]
+				}
 			}
-		}
+		]
 	},
 	// process regular javascript files
 	// SKIPS the default webpack Javascript functionality
