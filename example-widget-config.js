@@ -44,9 +44,4 @@ const options = {
 
 const buildConfig = widgetWebpack.getLegacyWidgetBuildConfig(options)
 
-buildConfig.externals = {
-	"react": "React",
-	"react-dom": "ReactDOM"
-}
-
 module.exports = buildConfig
