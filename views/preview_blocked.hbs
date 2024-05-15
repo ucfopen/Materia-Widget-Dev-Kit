@@ -1,16 +1,20 @@
-<h1 class='centered'>Preview Blocked</h1>
-<div class='centered'>
+<!DOCTYPE html>
+
+<script type="text/javascript" src="/materia-assets/js/materia.enginecore.js"></script>
+<script type="text/javascript" src="/materia-assets/js/materia.scorecore.js"></script>
+<script src="/mwdk/mwdk-assets/js/mwdk-package.js"></script>
+<link rel='stylesheet' href='/mwdk/assets/css/mwdk-main.css' type='text/css' />
+
+<h1 class='center centered'>Preview Blocked</h1>
+<div class='center centered'>
 	<p>
-		<a href='/player/{{instance}}' target='_blank'>Try Again</a>
-	</p>
-	<p>
-		<a id='close-button' href='#'>Close</a>
+		<a id='try-again-button' class='action_button' target='_blank'>Try Again</a>
 	</p>
 </div>
 
 <script type="text/javascript">
-	document.getElementById('close-button').onclick = (e) => {
-		window.parent.MWDK.Creator.onQuestionImportComplete();
+	document.getElementById('try-again-button').onclick = (e) => {
+		MWDK.Package.showPlayer();
 		return false
 	}
 </script>

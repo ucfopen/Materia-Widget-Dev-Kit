@@ -557,10 +557,10 @@ app.get('/mwdk/widgets/1-mwdk/create', (req, res) => {
 	res.render(res.locals.template, { layout: false})
 });
 
-// redirect to the creator page
+// old url
+// redirect to home page since we can't set hash here
 app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
-	res.params.hash = req.params.instance || generateInstanceID()
-	res.redirect('/mwdk/widgets/1-mwdk/create')
+	res.redirect('/')
 })
 
 app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
@@ -736,13 +736,9 @@ app.get('/mwdk/player/:instance?', (req, res) => {
 	if (!req.params.instance) {
 		res.redirect('/mwdk/player/demo')
 	}
-	else res.redirect('/player/' + (req.params.instance ? req.params.instance : ''))
+	else res.redirect('/preview/' + (req.params.instance ? req.params.instance : ''))
 })
 
-// The play page frame that loads the widget player in an iframe
-app.get('/player/:id?', (req, res) => {
-	res.redirect('/preview/' + (req.params.id ? req.params.id : ''))
-})
 app.get(['/preview/:id?'], (req, res) => {
 	let widget = yaml.parse(getInstall().toString());
 	res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo', widgetWidth: widget.general.width, widgetHeight: widget.general.height })
