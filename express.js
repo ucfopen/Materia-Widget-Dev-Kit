@@ -12,7 +12,6 @@ const cors                 = require('cors')
 const hbs                  = require('hbs');
 
 // common paths used here
-const srcPath              = path.join(process.cwd(), 'src') + path.sep
 const outputPath           = path.join(process.cwd(), 'build') + path.sep
 
 // Webpack middleware setup
@@ -29,7 +28,6 @@ const webpackMiddleware = webpackDevMiddleware(compiler, {
 let hasCompiled = false;
 let hasSampleScoreData = false;
 let customScoreScreen = null;
-let hasPlayLogs = false;
 
 // this will call next() once webpack is ready by trying to:
 // 1. talk to the middlware
@@ -343,6 +341,7 @@ const resizeImage = (size, double) => {
 }
 // ============= ASSETS and SETUP =======================
 const app = express();
+const port = process.env.PORT || 8118;
 // ============= ASSETS and SETUP =======================
 
 hbs.registerPartials(__dirname + 'views/partials', function(err) {});
@@ -384,8 +383,7 @@ app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
 
 // insert the port into the res.locals
 app.use( (req, res, next) => {
-	// console.log(`request to ${req.url}`)
-	res.locals.port = process.env.PORT || 8118
+	res.locals.port = port
 	next()
 })
 
@@ -538,7 +536,6 @@ app.post('/mwdk/remove_play_logs', async (req, res) => {
 		error = true
 		res.status(204)
 	}
-	hasPlayLogs = false;
 	return res.json({ error: error, msg: msg})
 })
 
@@ -559,6 +556,12 @@ app.get('/mwdk/widgets/1-mwdk/create', (req, res) => {
 	res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.hash || generateInstanceID() })
 	res.render(res.locals.template, { layout: false})
 });
+
+// old url
+// redirect to home page since we can't set hash here
+app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
+	res.redirect('/')
+})
 
 app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
 	res.locals = Object.assign(res.locals, {
@@ -728,10 +731,14 @@ app.use(['/qsets/import', '/mwdk/saved_qsets'], (req, res) => {
 	res.json(saved_qsets);
 });
 
-// The play page frame that loads the widget player in an iframe
-app.get('/player/:id?', (req, res) => {
-	res.redirect('/preview/' + (req.params.id ? req.params.id : ''))
+// redirect to the player page
+app.get('/mwdk/player/:instance?', (req, res) => {
+	if (!req.params.instance) {
+		res.redirect('/mwdk/player/demo')
+	}
+	else res.redirect('/preview/' + (req.params.instance ? req.params.instance : ''))
 })
+
 app.get(['/preview/:id?'], (req, res) => {
 	let widget = yaml.parse(getInstall().toString());
 	res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo', widgetWidth: widget.general.width, widgetHeight: widget.general.height })
@@ -793,7 +800,6 @@ app.use('/api/json/play_logs_save', (req, res) => {
 	const logs = JSON.parse(req.body.data)[1];
 	try {
 		fs.writeFileSync(path.join(qsets, 'log.json'), JSON.stringify(logs));
-		hasPlayLogs = true;
 		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================");
 		res.json(true);
 	} catch(err) {
@@ -1243,6 +1249,6 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 	res.json(result)
 })
 
-app.listen(8118, function () {
-	console.log('Listening on port 8118');
+app.listen(port, function () {
+	console.log(`Listening on port ${port}`);
 })
