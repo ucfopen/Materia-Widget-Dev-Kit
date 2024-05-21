@@ -557,12 +557,6 @@ app.get('/mwdk/widgets/1-mwdk/create', (req, res) => {
 	res.render(res.locals.template, { layout: false})
 });
 
-// old url
-// redirect to home page since we can't set hash here
-app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
-	res.redirect('/')
-})
-
 app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
 	res.locals = Object.assign(res.locals, {
 		template: 'guide_page',
@@ -587,6 +581,12 @@ app.get('/mwdk/widgets/1-mwdk/players-guide', (req, res) => {
 		instance: req.params.hash || 'demo'
 	})
 	res.render(res.locals.template, { layout: false})
+})
+
+// old url
+// redirect to home page since we can't set hash here
+app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
+	res.redirect('/')
 })
 
 function generateInstanceID() {
