@@ -137,6 +137,42 @@ const performQSetSubsitutions = (qset) => {
 	return JSON.parse(qset)
 }
 
+// enforce qsets to have the same structure as they would in production materia
+const standardizeObject = (obj, standardKeys) => {
+	const existingValidKeys = Object.keys(obj).filter((key) => {
+		return standardKeys.includes(key)
+	})
+
+	const standardizedObj = {}
+	existingValidKeys.forEach((key) => standardizedObj[key] = obj[key])
+	return standardizedObj
+}
+
+const performQSetQuestionValidation = (qset) => {
+	// Data on what a question should contain is taken from Materia's question.php
+	qset.data.items = qset.data.items.map((item) => {
+		// Enforce question structures for each item
+		const standardQuestionProperties = ['text', 'assets']
+		item.questions = item.questions.map((question) => {
+			return standardizeObject(question, standardQuestionProperties)
+		})
+
+		// Enforce answer structures for each item
+		const standardAnswerProperties = ['id', 'text', 'value', 'options', 'assets']
+		item.answers = item.answers.map((answer) => {
+			return standardizeObject(answer, standardAnswerProperties)
+		})
+
+		// Construct and return new validated item object
+		const standardItemProperties = ['materiaType', 'id', 'type', 'createdAt', 'questions', 'answers', 'options', 'assets']
+		const standardizedItem = standardizeObject(item, standardItemProperties)
+
+		return standardizedItem
+	})
+
+	return qset
+}
+
 // create a widget instance data structure
 const createApiWidgetInstanceData = (id) => {
 	// attempt to load a previously saved instance with the given ID
@@ -787,6 +823,7 @@ app.use('/api/json/question_set_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0];
 		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
 		qset = performQSetSubsitutions(qset, false)
+		qset = performQSetQuestionValidation(qset)
 		qset = JSON.stringify(qset)
 		res.send(qset.toString());
 	} catch (e) {
