@@ -17,7 +17,7 @@ const outputPath           = path.join(process.cwd(), 'build') + path.sep
 // Webpack middleware setup
 const webpack              = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const config               = require(path.resolve(process.cwd(), './webpack.config.js'));
+const config               = require(path.resolve(process.cwd(), './webpack.config.cjs'));
 const compiler = webpack(config);
 
 

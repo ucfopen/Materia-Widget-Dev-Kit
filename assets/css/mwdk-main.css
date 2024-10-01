@@ -374,7 +374,7 @@ header.logged-in {
 
 /* Hide login timeout */
 .alert-wrapper {
-	display: none;
+	/*display: none;*/
 }
 
 .dot {
