@@ -14,10 +14,15 @@ const hbs                  = require('hbs');
 // common paths used here
 const outputPath           = path.join(process.cwd(), 'build') + path.sep
 
+// Determine if webpack.config.cjs is present, and if so, use that instead of .js
+const wpConfJsLocation 		 = path.resolve(process.cwd(), './webpack.config.js');
+const wpConfCjsLocation 	 = path.resolve(process.cwd(), './webpack.config.cjs');
+const webpackConfLocation  = fs.existsSync(wpConfCjsLocation) ? wpConfCjsLocation : wpConfJsLocation;
+
 // Webpack middleware setup
 const webpack              = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const config               = require(path.resolve(process.cwd(), './webpack.config.cjs'));
+const config               = require(webpackConfLocation);
 const compiler = webpack(config);
 
 
