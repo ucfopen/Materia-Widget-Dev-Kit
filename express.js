@@ -143,9 +143,10 @@ const performQSetSubsitutions = (qset) => {
 }
 
 // enforce qsets to have the same structure as they would in production materia
-const standardizeObject = (obj, standardKeys) => {
+const standardizeObject = (obj, standardKeys, type = "qset") => {
 	const existingValidKeys = Object.keys(obj).filter((key) => {
-		return standardKeys.includes(key)
+		if (standardKeys.includes(key)) return true
+		console.log(`Found invalid key in ${type}: ${key}`)
 	})
 
 	const standardizedObj = {}
@@ -173,18 +174,18 @@ const performQsetQuestionStandardization = (questionItem) => {
 	// Enforce question structures for each item
 	const standardQuestionProperties = ['text', 'assets']
 	questionItem.questions = questionItem.questions.map((question) => {
-		return standardizeObject(question, standardQuestionProperties)
+		return standardizeObject(question, standardQuestionProperties, "question object")
 	})
 
 	// Enforce answer structures for each item
 	const standardAnswerProperties = ['id', 'text', 'value', 'options', 'assets']
 	questionItem.answers = questionItem.answers.map((answer) => {
-		return standardizeObject(answer, standardAnswerProperties)
+		return standardizeObject(answer, standardAnswerProperties, "answer object")
 	})
 
 	// Construct and return new validated item object
 	const standardItemProperties = ['materiaType', 'id', 'type', 'createdAt', 'questions', 'answers', 'options', 'assets']
-	const standardizedItem = standardizeObject(questionItem, standardItemProperties)
+	const standardizedItem = standardizeObject(questionItem, standardItemProperties, "question item object")
 
 	return standardizedItem
 }
