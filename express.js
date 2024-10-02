@@ -153,29 +153,56 @@ const standardizeObject = (obj, standardKeys) => {
 	return standardizedObj
 }
 
-const performQSetQuestionValidation = (qset) => {
+const isQuestion = (potentialQ) => {
+	// A copy of instance.php's is_question
+	if (!potentialQ) return false // Do not process if null/undefined
+	if (!potentialQ.id || !potentialQ.type || !potentialQ.questions || !potentialQ.answers)
+		return false;
+
+	if (typeof potentialQ.questions !== 'object' || typeof potentialQ.answers !== 'object')
+		return false
+
+	if (potentialQ.questions.length === 0 || potentialQ.answers.length === 0)
+		return false
+
+	return true
+}
+
+const performQsetQuestionStandardization = (questionItem) => {
 	// Data on what a question should contain is taken from Materia's question.php
-	qset.data.items = qset.data.items.map((item) => {
-		// Enforce question structures for each item
-		const standardQuestionProperties = ['text', 'assets']
-		item.questions = item.questions.map((question) => {
-			return standardizeObject(question, standardQuestionProperties)
-		})
-
-		// Enforce answer structures for each item
-		const standardAnswerProperties = ['id', 'text', 'value', 'options', 'assets']
-		item.answers = item.answers.map((answer) => {
-			return standardizeObject(answer, standardAnswerProperties)
-		})
-
-		// Construct and return new validated item object
-		const standardItemProperties = ['materiaType', 'id', 'type', 'createdAt', 'questions', 'answers', 'options', 'assets']
-		const standardizedItem = standardizeObject(item, standardItemProperties)
-
-		return standardizedItem
+	// Enforce question structures for each item
+	const standardQuestionProperties = ['text', 'assets']
+	questionItem.questions = questionItem.questions.map((question) => {
+		return standardizeObject(question, standardQuestionProperties)
 	})
 
-	return qset
+	// Enforce answer structures for each item
+	const standardAnswerProperties = ['id', 'text', 'value', 'options', 'assets']
+	questionItem.answers = questionItem.answers.map((answer) => {
+		return standardizeObject(answer, standardAnswerProperties)
+	})
+
+	// Construct and return new validated item object
+	const standardItemProperties = ['materiaType', 'id', 'type', 'createdAt', 'questions', 'answers', 'options', 'assets']
+	const standardizedItem = standardizeObject(questionItem, standardItemProperties)
+
+	return standardizedItem
+}
+
+const findAndStandardizeQuestions = (potentialQ) => {
+	// A copy of instance.php's find_question
+	if (!potentialQ || typeof potentialQ !== 'object') return
+
+	// go through each item in the array/object
+	Object.entries(potentialQ).forEach(([key, value]) => {
+		if (isQuestion(value)) {
+			// standardize the question item object
+			potentialQ[key] = performQsetQuestionStandardization(value)
+		} else if (value && typeof value === 'object') {
+			// inception!!!
+			findAndStandardizeQuestions(value)
+		}
+	})
 }
 
 // create a widget instance data structure
@@ -828,7 +855,7 @@ app.use('/api/json/question_set_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0];
 		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
 		qset = performQSetSubsitutions(qset, false)
-		qset = performQSetQuestionValidation(qset)
+		findAndStandardizeQuestions(qset)
 		qset = JSON.stringify(qset)
 		res.send(qset.toString());
 	} catch (e) {
