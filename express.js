@@ -336,9 +336,34 @@ const resizeImage = (size, double) => {
 
 	const readBuffer = fs.readFileSync('./src/_icons/icon-394@2x.png');
 	return sharp(readBuffer)
-	.resize(size, size)
-	.toFile(writePath);
+		.resize(size, size)
+		.toFile(writePath);
 }
+
+const INSTALL_TYPE_NUMBER = 'number'
+const INSTALL_TYPE_BOOLEAN = 'boolean'
+const INSTALL_TYPE_STRING = 'string'
+const INSTALL_TYPE_ARRAY = 'object'
+
+const verifyInstallProp = (prop, desiredType) => {
+	const propType = typeof prop
+	if(propType === 'undefined' || propType === 'null') return false
+	if(desiredType === INSTALL_TYPE_BOOLEAN) {
+		//yaml parser interprets all valid YAML boolean values as strings
+		if(propType !== 'string') return false
+		//if we want a boolean, make sure the string we got is one of the accepted YAML boolean strings
+		const match = prop.match(/^(y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF){1}$/)
+		if(!match) return false
+	}
+	if(desiredType === INSTALL_TYPE_STRING && propType !== 'string') return false
+	if(desiredType === INSTALL_TYPE_NUMBER && propType !== 'number') return false
+	if(desiredType === INSTALL_TYPE_ARRAY) {
+		if(propType !== 'object') return false
+		if(prop.length < 1) return false
+	}
+	return true
+}
+
 // ============= ASSETS and SETUP =======================
 const app = express();
 const port = process.env.PORT || 8118;
@@ -598,11 +623,360 @@ function generateInstanceID() {
 	return str;
 }
 
-// Show the package options
-app.get('/mwdk/package', (req, res) => {
-	res.locals = Object.assign(res.locals, {template: 'download'})
-	res.render(res.locals.template)
-})
+	// Show the package options
+	app.get('/mwdk/package', (req, res) => {
+		let status = {
+			demo: 'unknown',
+			install: 'unknown',
+			screenshot: 'unknown',
+			icon: 'unknown',
+			scoreModule: 'unknown',
+			creatorCallback: 'unknown',
+			playerCallback: 'unknown',
+			scoreScreenCallback: 'unknown'
+		}
+		let action = {
+			demo: '',
+			install: '',
+			screenshot: '',
+			icon: '',
+			scoreModule: '',
+			creatorCallback: '',
+			playerCallback: '',
+			scoreScreenCallback: ''
+		}
+		let allGood = true
+		//check demo.json
+		try {
+			const demo = JSON.parse(getFileFromWebpack('demo.json').toString())
+
+			if(!demo.name) {
+				status.demo = 'fail'
+				action.demo = "'name' property missing"
+			} else if(!demo.qset) {
+				status.demo = 'fail'
+				action.demo = "'qset' property missing"
+			} else if(!demo.qset.version) {
+				status.demo = 'fail'
+				action.demo = "'qset' 'version' property missing"
+			} else if(!demo.qset.data) {
+				status.demo = 'fail'
+				action.demo = "'qset' 'data' property missing"
+			} else {
+				status.demo = 'pass'
+			}
+		} catch(error) {
+			//TODO: use the error object to determine why there was a failure
+			// maybe move the failure contextualization from the try to the catch
+			status.demo = 'fail'
+			action.demo = "demo.json missing or can't be parsed"
+		}
+
+		//check install.yaml
+		//scope this so we can use it for other checks later
+		let install = null
+		try {
+			install = yaml.parse(getInstall().toString())
+			if(!install.general) {
+				status.install = 'fail'
+				action.install = "'general' property missing"
+			} else if(!verifyInstallProp(install.general.name, INSTALL_TYPE_STRING)) {
+				status.install = 'fail'
+				action.install = "'general' 'name' property missing or not a string"
+			} else if(!verifyInstallProp(install.general.group, INSTALL_TYPE_STRING)) {
+				status.install = 'fail'
+				action.install = "'general' 'group' property missing or not a string"
+			} else if(!verifyInstallProp(install.general.height, INSTALL_TYPE_NUMBER)) {
+				status.install = 'fail'
+				action.install = "'general' 'height' property missing or not a number"
+			} else if(!verifyInstallProp(install.general.width, INSTALL_TYPE_NUMBER)) {
+				status.install = 'fail'
+				action.install = "'general' 'width' property missing or not a number"
+			} else if(!verifyInstallProp(install.general.in_catalog, INSTALL_TYPE_BOOLEAN)) {
+				status.install = 'fail'
+				action.install = "'general' 'in_catalog' property missing or not a boolean"
+			} else if(!verifyInstallProp(install.general.is_editable, INSTALL_TYPE_BOOLEAN)) {
+				status.install = 'fail'
+				action.install = "'general' 'is_editable' property missing or not a boolean"
+			} else if(!verifyInstallProp(install.general.is_playable, INSTALL_TYPE_BOOLEAN)) {
+				status.install = 'fail'
+				action.install = "'general' 'is_playable' property missing or not a boolean"
+			} else if(!verifyInstallProp(install.general.is_qset_encrypted, INSTALL_TYPE_BOOLEAN)) {
+				status.install = 'fail'
+				action.install = "'general' 'is_qset_encrypted' property missing or not a boolean"
+			} else if(!verifyInstallProp(install.general.api_version, INSTALL_TYPE_NUMBER)) {
+				status.install = 'fail'
+				action.install = "'general' 'api_version' property missing or not a number"
+			} else if(!install.files) {
+				status.install = 'fail'
+				action.install = "'files' property missing"
+			} else if(!verifyInstallProp(install.files.creator, INSTALL_TYPE_STRING)) {
+				status.install = 'fail'
+				action.install = "'files' 'creator' property missing or not a string"
+			} else if(!verifyInstallProp(install.files.player, INSTALL_TYPE_STRING)) {
+				status.install = 'fail'
+				action.install = "'files' 'player' property missing or not a string"
+			} else if(!verifyInstallProp(install.files.flash_version, INSTALL_TYPE_NUMBER)) {
+				status.install = 'fail'
+				action.install = "'files' 'flash_version' property missing or not a number"
+			} else if(!install.score) {
+				status.install = 'fail'
+				action.install = "'score' property missing"
+			} else if(!verifyInstallProp(install.score.is_scorable, INSTALL_TYPE_BOOLEAN)) {
+				status.install = 'fail'
+				action.install = "'score' 'is_scorable' property missing or not a boolean"
+			} else if(!verifyInstallProp(install.score.score_module, INSTALL_TYPE_STRING)) {
+				status.install = 'fail'
+				action.install = "'score' 'score_module' property missing or not a string"
+			} else if(install.score.score_screen && !verifyInstallProp(install.score.score_screen, INSTALL_TYPE_STRING)) {
+				//custom score screens are optional
+				status.install = 'fail'
+				action.install = "'score' 'score_screen' property not a string"
+			} else if(!install.meta_data) {
+				status.install = 'fail'
+				action.install = "'meta_data' property missing"
+			} else if(!verifyInstallProp(install.meta_data.features, INSTALL_TYPE_ARRAY)) {
+				status.install = 'fail'
+				action.install = "'meta_data' 'features' property missing, not an array, or empty"
+			} else if(!verifyInstallProp(install.meta_data.supported_data, INSTALL_TYPE_ARRAY)) {
+				status.install = 'fail'
+				action.install = "'meta_data' 'supported_data' property missing, not an array, or empty"
+			} else if(!verifyInstallProp(install.meta_data.about, INSTALL_TYPE_STRING)) {
+				status.install = 'fail'
+				action.install = "'meta_data' 'about' property missing or not a string"
+			} else if(!verifyInstallProp(install.meta_data.excerpt, INSTALL_TYPE_STRING)) {
+				status.install = 'fail'
+				action.install = "'meta_data' 'excerpt' property missing or not a string"
+			} else {
+				status.install = 'pass'
+			}
+		} catch(error) {
+			status.install = 'fail'
+			action.install = "install.yaml missing or can't be parsed"
+		}
+
+		status.screenshot = 'pass'
+		//check screenshots
+		for(let i = 1; i <= 3; i++) {
+			try {
+				getFileFromWebpack(path.join('img','screen-shots',`${i}.png`))
+			} catch(error) {
+				status.screenshot = 'fail'
+				action.screenshot = `file 'src/_screen-shots/${i}.png' missing`
+			}
+			try {
+				getFileFromWebpack(path.join('img','screen-shots',`${i}-thumb.png`))
+			} catch(error) {
+				status.screenshot = 'fail'
+				action.screenshot = `file 'src/_screen-shots/${i}-thumb.png' missing`
+			}
+		}
+
+		//check icons
+		const iconSizes = [60,92,275,394]
+		status.icon = 'pass'
+		iconSizes.forEach(size => {
+			try {
+				getFileFromWebpack(path.join('img',`icon-${size}.png`))
+			} catch(error) {
+				status.icon = 'fail'
+				action.icon = `file 'src/_icons/icon-${size}.png' missing`
+			}
+			try {
+				getFileFromWebpack(path.join('img',`icon-${size}@2x.png`))
+			} catch(error) {
+				status.icon = 'fail'
+				action.icon = `file 'src/_icons/icon-${size}@2x.png' missing`
+			}
+		})
+
+		//check score module
+		if(install && install.score.score_module) {
+			try {
+				//running regular expressions on a string representation of the score module should be good enough
+				const scoreModule = getFileFromWebpack(path.join('_score-modules', 'score_module.php')).toString()
+
+				const phpOpenMatch = scoreModule.match(/^<\?php$/gm)
+				const namespaceMatch = scoreModule.match(/^namespace Materia;$/gm)
+				//get the name of the score module this widget uses from install.yaml
+				const classCheck = new RegExp(`^class Score_Modules_${install.score.score_module} extends Score_Module$`, 'gm')
+				const classMatch = scoreModule.match(classCheck)
+				const functionMatch = scoreModule.match(/^\t{1}public function check_answer\(\$(\w)+\)$/gm)
+				if(!phpOpenMatch || phpOpenMatch.length > 1) {
+					status.scoreModule = 'fail'
+					action.scoreModule = "'<?php' missing or used more than once"
+				} else if(!namespaceMatch || namespaceMatch.length > 1) {
+					status.scoreModule = 'fail'
+					action.scoreModule = "'namespace Materia;' missing or used more than once"
+				} else if(!classMatch || classMatch.length > 1) {
+					status.scoreModule = 'fail'
+					action.scoreModule = `score module class 'Score_Modules_${install.score.score_module}' was not defined or defined more than once`
+				} else if(!functionMatch || functionMatch > 1) {
+					status.scoreModule = 'fail'
+					action.scoreModule = "'check_answer' function was not defined or defined more than once"
+				} else {
+					status.scoreModule = 'pass'
+				}
+
+			} catch(error) {
+				status.scoreModule = 'fail'
+				action.scoreModule = "score module missing or can't be parsed"
+			}
+		} else {
+			//if we can't get the name of the score module we need, we can't check validity
+			//this shouldn't ever happen if the whole install.yaml check block passes
+			action.scoreModule = "can't verify score module name from install.yaml"
+		}
+
+		//check creator callbacks
+		if(install.files.creator != 'default') {
+			try {
+				const creator = getFileFromWebpack('creator.js').toString()
+				let missingCreatorCalls = []
+				const neededCreatorCallbacks = [
+					'initNewWidget',
+					'initExistingWidget',
+					'onMediaImportComplete',
+					'onQuestionImportComplete',
+					'onSaveClicked',
+					'onSaveComplete'
+				]
+				neededCreatorCallbacks.forEach(callback => {
+					const callbackCheck = new RegExp(`(function ${callback}){1}|(${callback} = function){1}`, 'g')
+					const callbackMatch = creator.match(callbackCheck)
+					if(!callbackMatch || callbackMatch.length > 1) {
+						status.creatorCallback = 'fail'
+						action.creatorCallback = `'${callback}' method missing or defined more than once`
+						missingCreatorCalls.push(callback)
+					}
+				})
+				const neededCreatorCoreCalls = [
+					'save',
+					// 'cancelSave',
+					'start'
+				]
+				neededCreatorCoreCalls.forEach(coreCall => {
+					const coreCallCheck = new RegExp(`Materia.CreatorCore.${coreCall}`, 'g')
+					const coreCallMatch = creator.match(coreCallCheck)
+					if(!coreCallMatch || coreCallMatch.length > 1) {
+						status.creatorCallback = 'fail'
+						action.creatorCallback = `CreatorCore '${coreCall}' method never called`
+						missingCreatorCalls.push(coreCall)
+					}
+				})
+				if(missingCreatorCalls.length == 0) status.creatorCallback = 'pass'
+			} catch(error) {
+				status.creatorCallback = 'fail'
+				action.creatorCallback = "creator source code missing or can't be parsed"
+			}
+		} else {
+			status.creatorCallback = 'pass'
+			action.creatorCallback = 'widget using default creator'
+		}
+
+		//check player callbacks
+		try {
+			const player = getFileFromWebpack('player.js').toString()
+			const playerSaveMatch = player.match(/Materia.Engine.start/g)
+			if(!playerSaveMatch || playerSaveMatch > 1) {
+				status.playerCallback = 'fail'
+				action.playerCallback = "EngineCore 'start' method missing or called more than once"
+			} else {
+				status.playerCallback = 'pass'
+			}
+		} catch(error) {
+			status.playerCallback = 'fail'
+			action.playerCallback = "player source code missing or can't be parsed"
+		}
+
+		//check score screen callbacks
+		if(install.score.score_screen) {
+			const scoreScreen = getFileFromWebpack('scorescreen.js').toString()
+			let missingScoreScreenCalls = []
+			const neededScoreScreenCallbacks = [
+				'start',
+				'update'
+			]
+			neededScoreScreenCallbacks.forEach(callback => {
+				const callbackCheck = new RegExp(`(function ${callback}){1}|(${callback} = function){1}`, 'g')
+				const callbackMatch = scoreScreen.match(callbackCheck)
+				if(!callbackMatch || callbackMatch.length > 1) {
+					status.scoreScreenCallback = 'fail'
+					action.scoreScreenCallback = `'${callback}' method missing or defined more than once`
+					missingScoreScreenCalls.push(callback)
+				}
+			})
+			const neededScoreCoreCalls = [
+				// 'hideScoresOverview',
+				// 'hideResultsTable',
+				'start'
+			]
+			neededScoreCoreCalls.forEach(coreCall => {
+				const coreCallCheck = new RegExp(`Materia.ScoreCore.${coreCall}`, 'g')
+				const coreCallMatch = scoreScreen.match(coreCallCheck)
+				if(!coreCallMatch || coreCallMatch.length > 1) {
+					status.scoreScreenCallback = 'fail'
+					action.scoreScreenCallback = `ScoreCore '${coreCall}' method never called`
+					missingScoreScreenCalls.push(coreCall)
+				}
+			})
+			if(missingScoreScreenCalls.length == 0) status.scoreScreenCallback = 'pass'
+		} else {
+			status.scoreScreenCallback = 'pass'
+			action.scoreScreenCallback = 'widget not using custom score screen'
+		}
+
+		const checklist = [
+			{
+				status: status.demo,
+				text: 'demo.json found and valid',
+				action: action.demo,
+			},
+			{
+				status: status.install,
+				text: 'install.yaml found and valid',
+				action: action.install,
+			},
+			{
+				status: status.screenshot,
+				text: 'screenshots found',
+				action: action.screenshot,
+			},
+			{
+				status: status.icon,
+				text: 'icons files found',
+				action: action.icon,
+			},
+			{
+				status: status.scoreModule,
+				text: 'score module found and valid',
+				action: action.scoreModule,
+			},
+			{
+				status: status.creatorCallback,
+				text: 'creator callbacks registered',
+				action: action.creatorCallback,
+			},
+			{
+				status: status.playerCallback,
+				text: 'player callbacks registered',
+				action: action.playerCallback,
+			},
+			{
+				status: status.scoreScreenCallback,
+				text: 'score screen callbacks registered',
+				action: action.scoreScreenCallback,
+			},
+		]
+
+		//do one more pass over the whole checklist - if there are any failures, prevent build/install
+		checklist.forEach(item => {
+			if(item.status == 'fail') allGood = false
+		})
+
+		res.locals = Object.assign(res.locals, {template: 'download', checklist: checklist, allGood: allGood})
+		res.render(res.locals.template)
+	})
 
 // Build and download the widget file
 app.get('/mwdk/download', (req, res) => {
