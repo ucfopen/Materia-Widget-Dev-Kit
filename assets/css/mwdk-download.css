@@ -18,52 +18,75 @@ body#download .disclaimer {
 }
 
 body#download hr {
-	margin: 15px 50px 0;
+	margin: 15px 25px 0;
 }
 
 body#download #build-commands{
-	margin: 47px;
+	margin: 10px;
 }
 
 body#download #download_button{
 	margin-right:20px;
 }
 
-body#download #preflight-checklist-container{
-	display: block;
-	text-align: center;
+body#download #preflight-checklist-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	margin: 0 25px 25px 25px;
 }
 
 body#download #preflight-checklist{
-	display: inline-flex;
-	flex-direction: column;
-	align-items: flex-start;
-	margin: 0 auto;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	row-gap: 0.5rem;
+	column-gap: 1rem;
 }
 
-body#download #preflight-checklist > span.action{
-	display: block;
-	margin-left: 20px;
+.preflight-item {
+	display: flex;
+	gap: 0.5rem;
+	align-items: center;
+}
+
+.preflight-item-text {
+	display: flex;
+	flex-direction: column;
+}
+
+.preflight-item .pass {
+	background-image: url("/mwdk/assets/img/valid.svg");
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+	min-width: 20px;
+	width: 20px;
+	height: 100%;
+}
+
+.preflight-item .fail {
+	background-image: url("/mwdk/assets/img/invalid.svg");
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+	min-width: 20px;
+	width: 20px;
+	height: 100%;
+}
+
+.preflight-item .unknown {
+	content: "?";
+	color: orange;
+}
+
+.preflight-item .action{
 	font-size: 12px;
 }
 
-body#download #preflight-checklist > span:before{
-	display: inline-block;
-	text-align: left;
-	width: 20px;
-}
-
-body#download #preflight-checklist > span:not(.action).pass:before{
-	content: "✔";
-	color: green;
-}
-body#download #preflight-checklist > span:not(.action).fail:before{
-	content: "X";
-	color: red;
-}
-body#download #preflight-checklist > span:not(.action).unknown:before{
-	content: "?";
-	color: orange;
+.preflight-check-warning-text {
+	width: 100%;
+	text-align: center;
+	font-style: italic;
 }
 
 .hide {
