@@ -14,10 +14,15 @@ const hbs                  = require('hbs');
 // common paths used here
 const outputPath           = path.join(process.cwd(), 'build') + path.sep
 
+// Determine if webpack.config.cjs is present, and if so, use that instead of .js
+const wpConfJsLocation 		 = path.resolve(process.cwd(), './webpack.config.js');
+const wpConfCjsLocation 	 = path.resolve(process.cwd(), './webpack.config.cjs');
+const webpackConfLocation  = fs.existsSync(wpConfCjsLocation) ? wpConfCjsLocation : wpConfJsLocation;
+
 // Webpack middleware setup
 const webpack              = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const config               = require(path.resolve(process.cwd(), './webpack.config.cjs')); // TODO revert
+const config               = require(webpackConfLocation);
 const compiler = webpack(config);
 
 
@@ -135,6 +140,70 @@ const performQSetSubsitutions = (qset) => {
 	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuidv4()}"`)
 
 	return JSON.parse(qset)
+}
+
+// enforce qsets to have the same structure as they would in production materia
+const standardizeObject = (obj, standardKeys, type = "qset") => {
+	const existingValidKeys = Object.keys(obj).filter((key) => {
+		if (standardKeys.includes(key)) return true
+		console.log(`Found invalid key in ${type}: ${key}`)
+	})
+
+	const standardizedObj = {}
+	existingValidKeys.forEach((key) => standardizedObj[key] = obj[key])
+	return standardizedObj
+}
+
+const isQuestion = (potentialQ) => {
+	// A copy of instance.php's is_question
+	if (!potentialQ) return false // Do not process if null/undefined
+	if (!potentialQ.id || !potentialQ.type || !potentialQ.questions || !potentialQ.answers)
+		return false;
+
+	if (typeof potentialQ.questions !== 'object' || typeof potentialQ.answers !== 'object')
+		return false
+
+	if (potentialQ.questions.length === 0 || potentialQ.answers.length === 0)
+		return false
+
+	return true
+}
+
+const performQsetQuestionStandardization = (questionItem) => {
+	// Data on what a question should contain is taken from Materia's question.php
+	// Enforce question structures for each item
+	const standardQuestionProperties = ['text', 'assets']
+	questionItem.questions = questionItem.questions.map((question) => {
+		return standardizeObject(question, standardQuestionProperties, "question object")
+	})
+
+	// Enforce answer structures for each item
+	const standardAnswerProperties = ['id', 'text', 'value', 'options', 'assets']
+	questionItem.answers = questionItem.answers.map((answer) => {
+		return standardizeObject(answer, standardAnswerProperties, "answer object")
+	})
+
+	// Construct and return new validated item object
+	const standardItemProperties = ['materiaType', 'id', 'type', 'createdAt', 'questions', 'answers', 'options', 'assets']
+	const standardizedItem = standardizeObject(questionItem, standardItemProperties, "question item object")
+
+	return standardizedItem
+}
+
+const findAndStandardizeQuestions = (potentialQ) => {
+	// A copy of instance.php's find_question
+	if (!potentialQ || typeof potentialQ !== 'object') return
+
+	// go through each item in the array/object
+	Object.entries(potentialQ).forEach(([key, value]) => {
+		if (isQuestion(value)) {
+			// standardize the question item object
+			potentialQ[key] = performQsetQuestionStandardization(value)
+		} else if (value && typeof value === 'object') {
+			// inception!!!
+			findAndStandardizeQuestions(value)
+		}
+	})
 }
 
 // create a widget instance data structure
@@ -1178,6 +1247,7 @@ app.use('/api/json/question_set_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0];
 		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
 		qset = performQSetSubsitutions(qset, false)
+		findAndStandardizeQuestions(qset)
 		qset = JSON.stringify(qset)
 		res.send(qset.toString());
 	} catch (e) {
@@ -1643,3 +1713,4 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 app.listen(port, function () {
 	console.log(`Listening on port ${port}`);
 })
+
