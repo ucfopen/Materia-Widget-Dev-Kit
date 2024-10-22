@@ -154,10 +154,10 @@ const standardizeObject = (obj, standardKeys, type = "qset") => {
 	return standardizedObj
 }
 
-const isQuestion = (potentialQ) => {
+const isQuestion = (potentialQ, ignoreId = false) => {
 	// A copy of instance.php's is_question
 	if (!potentialQ) return false // Do not process if null/undefined
-	if (!potentialQ.id || !potentialQ.type || !potentialQ.questions || !potentialQ.answers)
+	if ((!ignoreId && !potentialQ.id) || !potentialQ.type || !potentialQ.questions || !potentialQ.answers)
 		return false;
 
 	if (typeof potentialQ.questions !== 'object' || typeof potentialQ.answers !== 'object')
@@ -190,20 +190,27 @@ const performQsetQuestionStandardization = (questionItem) => {
 	return standardizedItem
 }
 
-const findAndStandardizeQuestions = (potentialQ) => {
+const findQuestions = (potentialQ, ignoreId = false) => {
 	// A copy of instance.php's find_question
-	if (!potentialQ || typeof potentialQ !== 'object') return
+	if (!potentialQ || typeof potentialQ !== 'object') return []
+	let results = []
 
 	// go through each item in the array/object
-	Object.entries(potentialQ).forEach(([key, value]) => {
-		if (isQuestion(value)) {
+	Object.entries(potentialQ).forEach(([_, value]) => {
+		if (isQuestion(value, ignoreId)) {
 			// standardize the question item object
-			potentialQ[key] = performQsetQuestionStandardization(value)
+			results.push(value)
 		} else if (value && typeof value === 'object') {
 			// inception!!!
-			findAndStandardizeQuestions(value)
+			results = [...results, ...findQuestions(value, ignoreId)]
 		}
 	})
+
+	return results
+}
+
+const findAndStandardizeQuestions = (potentialQ) => {
+	findQuestions(potentialQ).forEach(performQsetQuestionStandardization)
 }
 
 // create a widget instance data structure
@@ -780,6 +787,14 @@ app.get('/mwdk/package', (req, res) => {
 	action.demo.status = 'pass'
 	try {
 		const demo = JSON.parse(getFileFromWebpack('demo.json').toString())
+
+		// Check for existence of a question structure
+		const questions = findQuestions(demo.qset?.data, true)
+		if (questions.length === 0) {
+			action.demo.status = 'custom_fail'
+			action.demo.msg = 'Does not contain any valid question structures'
+		}
+
 		if (!demo.name) {
 			action.demo.status = 'missing_properties'
 			action.demo.missing.push('name')
