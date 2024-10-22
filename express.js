@@ -631,71 +631,70 @@ function processStatus(actionObj) {
 }
 
 function processAction(actionObj, name) {
-	if (actionObj.status === 'unknown') {
-		return 'Unknown'
-	} else if (actionObj.status === 'pass') {
-		if (actionObj.msg) return `All good - ${actionObj.msg}`
-		return 'All good'
-	} else if (actionObj.status === 'syntax_error') {
-		console.error(`Preflight check for ${name} failed: Syntax error`)
-		return 'Syntax error'
-	} else if (actionObj.status === 'file_error') {
-		console.error(`Preflight check for ${name} failed: Failed to open file\n- Is the file name correct?\n- Is the file corrupted?`)
-		return 'Failed to open file; could be missing or corrupted'
-	} else if (actionObj.status === 'custom_fail') {
-		console.error(`Preflight check for ${name} failed: ${actionObj.msg}`)
-		return actionObj.msg
-	} else if (actionObj.status === 'missing_files') {
-		let result = `Missing file '${actionObj.missing[0]}'`
-		if (actionObj.missing.length > 1) {
-			result += ` and ${actionObj.missing.length - 1} more`
+	switch (actionObj.status) {
+		case 'unknown': {
+			return 'Unknown'
 		}
-		let log = `Preflight check for ${name} failed: Missing files:\n`
-		actionObj.missing.forEach((file) => {
-			if (typeof log === 'string')
-				log += ` - ${file}\n`
-			else
-				log += ` - ${file[0]} (${file[1]}\n`
-		})
-		console.error(log)
-		return result
-	} else if (actionObj.status === 'missing_properties') {
-		let result = ''
-		if (typeof actionObj.missing[0] === 'object') {
-			result = `Missing property '${actionObj.missing[0][0]}' (${actionObj.missing[0][1]})`
-		} else {
-			result = `Missing property '${actionObj.missing[0]}`
+		case 'pass': {
+			if (actionObj.msg) return `All good - ${actionObj.msg}`
+			return 'All good'
 		}
-		if (actionObj.missing.length > 1) {
-			result += ` and ${actionObj.missing.length - 1} more`
+		case 'syntax_error': {
+			console.error(`Preflight check for ${name} failed: Syntax error`)
+			return 'Syntax error'
 		}
-		let log = `Preflight check for ${name} failed: Missing properties:\n`
-		actionObj.missing.forEach((prop) => {
-			if (typeof log === 'string')
-				log += ` - ${prop}\n`
-			else
-				log += ` - ${prop[0]} (${prop[1]}\n`
-		})
-		console.error(log)
-		return result
-	} else {
-		return 'Unknown'
+		case 'file_error': {
+			console.error(`Preflight check for ${name} failed: Failed to open file\n- Is the file name correct?\n- Is the file corrupted?`)
+			return 'Failed to open file; could be missing or corrupted'
+		}
+		case 'custom_fail': {
+			console.error(`Preflight check for ${name} failed: ${actionObj.msg}`)
+			return actionObj.msg
+		}
+		case 'missing_files': {
+			let result = `Missing file '${actionObj.missing[0]}'`
+			if (actionObj.missing.length > 1) {
+				result += ` and ${actionObj.missing.length - 1} more`
+			}
+			let log = `Preflight check for ${name} failed: Missing files:\n`
+			actionObj.missing.forEach((file) => {
+				if (typeof log === 'string')
+					log += ` - ${file}\n`
+				else
+					log += ` - ${file[0]} (${file[1]}\n`
+			})
+			console.error(log)
+			return result
+		}
+		case 'missing_properties': {
+			let result = ''
+			if (typeof actionObj.missing[0] === 'object') {
+				result = `Missing property '${actionObj.missing[0][0]}' (${actionObj.missing[0][1]})`
+			} else {
+				result = `Missing property '${actionObj.missing[0]}`
+			}
+			if (actionObj.missing.length > 1) {
+				result += ` and ${actionObj.missing.length - 1} more`
+			}
+			let log = `Preflight check for ${name} failed: Missing properties:\n`
+			actionObj.missing.forEach((prop) => {
+				if (typeof log === 'string')
+					log += ` - ${prop}\n`
+				else
+					log += ` - ${prop[0]} (${prop[1]}\n`
+			})
+			console.error(log)
+			return result
+		}
+		default: {
+			return 'Unknown'
+		}
 	}
 }
 
 // Show the package options
 app.get('/mwdk/package', (req, res) => {
 	// Perform preflight checks
-	let status = {
-		demo: 'unknown',
-		install: 'unknown',
-		screenshot: 'unknown',
-		icon: 'unknown',
-		player: 'unknown',
-		creator: 'unknown',
-		scoreScreen: 'unknown',
-		scoreModule: 'unknown',
-	}
 	let action = {
 		demo: { state: 'unknown', missing: [] },
 		install: { state: 'unknown', missing: [] },
@@ -712,7 +711,6 @@ app.get('/mwdk/package', (req, res) => {
 	action.demo.status = 'pass'
 	try {
 		const demo = JSON.parse(getFileFromWebpack('demo.json').toString())
-		status.demo = 'pass'
 		if (!demo.name) {
 			action.demo.status = 'missing_properties'
 			action.demo.missing.push('name')
@@ -943,7 +941,6 @@ app.get('/mwdk/package', (req, res) => {
 	} else {
 		action.scoreModule.status = 'custom_fail'
 		action.scoreModule.msg = 'Not specified in install.yaml'
-		// TODO
 	}
 
 	const checklist = [
@@ -969,17 +966,17 @@ app.get('/mwdk/package', (req, res) => {
 		},
 		{
 			status: processStatus(action.creator),
-			text: 'Creator source code',
+			text: 'Creator',
 			action: processAction(action.creator, 'Creator source code'),
 		},
 		{
 			status: processStatus(action.player),
-			text: 'Player source code',
+			text: 'Player',
 			action: processAction(action.player, 'Player source code'),
 		},
 		{
 			status: processStatus(action.scoreScreen),
-			text: 'Score screen source code',
+			text: 'Score screen',
 			action: processAction(action.scoreScreen, 'Score screen source code'),
 		},
 		{
