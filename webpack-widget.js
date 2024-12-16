@@ -204,7 +204,6 @@ const getDefaultRules = () => ({
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
 		exclude: /node_modules|_guides|guides/,
-		// type: 'asset/source',
 		use: [
 			{
 				loader: 'html-loader',
