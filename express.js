@@ -1008,8 +1008,15 @@ app.get('/mwdk/package', (req, res) => {
 		action.scoreScreen.status = 'pass'
 		action.scoreScreen.msg = 'Using default score screen'
 	} else {
-		action.scoreScreen.status = 'custom_fail'
-		action.scoreScreen.msg = 'Not specified in install.yaml'
+		// Score screen property not specified - check to see if a custom score screen file might be present
+		if (!!getFileFromWebpack('scoreScreen.html')) {
+			// A score screen file is present but not specified in the install.yaml
+			action.scoreScreen.status = 'custom_fail'
+			action.scoreScreen.msg = 'Custom scoreScreen.html found, but not set in install.yaml'
+		} else {
+			action.scoreScreen.status = 'pass'
+			action.scoreScreen.msg = 'Using default score screen'
+		}
 	}
 
 	//check score module
