@@ -94,8 +94,8 @@ const getFileFromWebpack = (file, quiet = false) => {
 			return compiler.outputFileSystem.readFileSync(path.join(outputPath, file));
 		}
 	} catch (e) {
-		if(!quiet) console.error(e)
-		throw `error trying to load ${file} from widget src, reload if you just started the server`
+		if (!quiet) throw `error trying to load ${file} from widget src, reload if you just started the server`
+		else console.error(e)
 	}
 }
 
@@ -996,7 +996,7 @@ app.get('/mwdk/package', (req, res) => {
 
 	//check score screen exists
 	const scoreScreenPath = install?.score?.score_screen
-	if (scoreScreenPath && scoreScreenPath !== 'default') {
+	if (scoreScreenPath != undefined && scoreScreenPath !== 'default') {
 		try {
 			if (!getFileFromWebpack(scoreScreenPath)) throw new Error()
 			action.scoreScreen.status = 'pass'
@@ -1009,7 +1009,7 @@ app.get('/mwdk/package', (req, res) => {
 		action.scoreScreen.msg = 'Using default score screen'
 	} else {
 		// Score screen property not specified - check to see if a custom score screen file might be present
-		if (!!getFileFromWebpack('scoreScreen.html')) {
+		if (!!getFileFromWebpack('scoreScreen.html', true)) {
 			// A score screen file is present but not specified in the install.yaml
 			action.scoreScreen.status = 'custom_fail'
 			action.scoreScreen.msg = 'Custom scoreScreen.html found, but not set in install.yaml'
