@@ -94,8 +94,8 @@ const getFileFromWebpack = (file, quiet = false) => {
 			return compiler.outputFileSystem.readFileSync(path.join(outputPath, file));
 		}
 	} catch (e) {
-		if (!quiet) throw `error trying to load ${file} from widget src, reload if you just started the server`
-		else console.error(e)
+		if (!quiet) console.warn(`requested file not available from webpack: ${file}`)
+		return false
 	}
 }
 
