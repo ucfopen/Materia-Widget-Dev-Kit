@@ -14,10 +14,15 @@ const hbs                  = require('hbs');
 // common paths used here
 const outputPath           = path.join(process.cwd(), 'build') + path.sep
 
+// Determine if webpack.config.cjs is present, and if so, use that instead of .js
+const wpConfJsLocation 		 = path.resolve(process.cwd(), './webpack.config.js');
+const wpConfCjsLocation 	 = path.resolve(process.cwd(), './webpack.config.cjs');
+const webpackConfLocation  = fs.existsSync(wpConfCjsLocation) ? wpConfCjsLocation : wpConfJsLocation;
+
 // Webpack middleware setup
 const webpack              = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
-const config               = require(path.resolve(process.cwd(), './webpack.config.js'));
+const config               = require(webpackConfLocation);
 const compiler = webpack(config);
 
 
@@ -89,8 +94,8 @@ const getFileFromWebpack = (file, quiet = false) => {
 			return compiler.outputFileSystem.readFileSync(path.join(outputPath, file));
 		}
 	} catch (e) {
-		if(!quiet) console.error(e)
-		throw `error trying to load ${file} from widget src, reload if you just started the server`
+		if (!quiet) throw `error trying to load ${file} from widget src, reload if you just started the server`
+		else console.error(e)
 	}
 }
 
@@ -135,6 +140,77 @@ const performQSetSubsitutions = (qset) => {
 	qset = qset.replace(/("id"\s?:\s?)(null|0|"")/g, () => `"id": "mwdk-mock-id-${uuidv4()}"`)
 
 	return JSON.parse(qset)
+}
+
+// enforce qsets to have the same structure as they would in production materia
+const standardizeObject = (obj, standardKeys, type = "qset") => {
+	const existingValidKeys = Object.keys(obj).filter((key) => {
+		if (standardKeys.includes(key)) return true
+		console.log(`Found invalid key in ${type}: ${key}`)
+	})
+
+	const standardizedObj = {}
+	existingValidKeys.forEach((key) => standardizedObj[key] = obj[key])
+	return standardizedObj
+}
+
+const isQuestion = (potentialQ, ignoreId = false) => {
+	// A copy of instance.php's is_question
+	if (!potentialQ) return false // Do not process if null/undefined
+	if ((!ignoreId && !potentialQ.id) || !potentialQ.type || !potentialQ.questions || !potentialQ.answers)
+		return false;
+
+	if (typeof potentialQ.questions !== 'object' || typeof potentialQ.answers !== 'object')
+		return false
+
+	if (potentialQ.questions.length === 0 || potentialQ.answers.length === 0)
+		return false
+
+	return true
+}
+
+const performQsetQuestionStandardization = (questionItem) => {
+	// Data on what a question should contain is taken from Materia's question.php
+	// Enforce question structures for each item
+	const standardQuestionProperties = ['text', 'assets']
+	questionItem.questions = questionItem.questions.map((question) => {
+		return standardizeObject(question, standardQuestionProperties, "question object")
+	})
+
+	// Enforce answer structures for each item
+	const standardAnswerProperties = ['id', 'text', 'value', 'options', 'assets']
+	questionItem.answers = questionItem.answers.map((answer) => {
+		return standardizeObject(answer, standardAnswerProperties, "answer object")
+	})
+
+	// Construct and return new validated item object
+	const standardItemProperties = ['materiaType', 'id', 'type', 'createdAt', 'questions', 'answers', 'options', 'assets']
+	const standardizedItem = standardizeObject(questionItem, standardItemProperties, "question item object")
+
+	return standardizedItem
+}
+
+const findQuestions = (potentialQ, ignoreId = false) => {
+	// A copy of instance.php's find_question
+	if (!potentialQ || typeof potentialQ !== 'object') return []
+	let results = []
+
+	// go through each item in the array/object
+	Object.entries(potentialQ).forEach(([_, value]) => {
+		if (isQuestion(value, ignoreId)) {
+			// standardize the question item object
+			results.push(value)
+		} else if (value && typeof value === 'object') {
+			// inception!!!
+			results = [...results, ...findQuestions(value, ignoreId)]
+		}
+	})
+
+	return results
+}
+
+const findAndStandardizeQuestions = (potentialQ) => {
+	findQuestions(potentialQ).forEach(performQsetQuestionStandardization)
 }
 
 // create a widget instance data structure
@@ -336,9 +412,34 @@ const resizeImage = (size, double) => {
 
 	const readBuffer = fs.readFileSync('./src/_icons/icon-394@2x.png');
 	return sharp(readBuffer)
-	.resize(size, size)
-	.toFile(writePath);
+		.resize(size, size)
+		.toFile(writePath);
 }
+
+const INSTALL_TYPE_NUMBER = 'number'
+const INSTALL_TYPE_BOOLEAN = 'boolean'
+const INSTALL_TYPE_STRING = 'string'
+const INSTALL_TYPE_ARRAY = 'object'
+
+const verifyInstallProp = (prop, desiredType) => {
+	const propType = typeof prop
+	if(propType === 'undefined' || propType === 'null') return false
+	if(desiredType === INSTALL_TYPE_BOOLEAN) {
+		//yaml parser interprets all valid YAML boolean values as strings
+		if(propType !== 'string') return false
+		//if we want a boolean, make sure the string we got is one of the accepted YAML boolean strings
+		const match = prop.match(/^(y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF){1}$/)
+		if(!match) return false
+	}
+	if(desiredType === INSTALL_TYPE_STRING && propType !== 'string') return false
+	if(desiredType === INSTALL_TYPE_NUMBER && propType !== 'number') return false
+	if(desiredType === INSTALL_TYPE_ARRAY) {
+		if(propType !== 'object') return false
+		if(prop.length < 1) return false
+	}
+	return true
+}
+
 // ============= ASSETS and SETUP =======================
 const app = express();
 const port = process.env.PORT || 8118;
@@ -377,6 +478,7 @@ app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
 
 // Assets from Materia widget dependencies
 let clientAssetsPath = require('materia-widget-dependencies/path')
+const creator = require('postcss-preset-env')
 app.use('/materia-assets/css', express.static(path.join(clientAssetsPath, 'css')))
 app.use('/materia-assets/js', express.static(path.join(clientAssetsPath, 'js')))
 app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
@@ -598,9 +700,389 @@ function generateInstanceID() {
 	return str;
 }
 
+function processStatus(actionObj) {
+	if (actionObj.status === 'pass') return 'pass'
+	if (actionObj.status === 'unknown') return 'unknown'
+	else return 'fail'
+}
+
+function processAction(actionObj, name) {
+	switch (actionObj.status) {
+		case 'unknown': {
+			return 'Unknown'
+		}
+		case 'pass': {
+			if (actionObj.msg) return `All good - ${actionObj.msg}`
+			return 'All good'
+		}
+		case 'syntax_error': {
+			console.error(`Preflight check for ${name} failed: Syntax error`)
+			return 'Syntax error'
+		}
+		case 'file_error': {
+			console.error(`Preflight check for ${name} failed: Failed to open file\n- Is the file name correct?\n- Is the file corrupted?`)
+			return 'Failed to open file; could be missing or corrupted'
+		}
+		case 'custom_fail': {
+			console.error(`Preflight check for ${name} failed: ${actionObj.msg}`)
+			return actionObj.msg
+		}
+		case 'missing_files': {
+			let result = `Missing file '${actionObj.missing[0]}'`
+			if (actionObj.missing.length > 1) {
+				result += ` and ${actionObj.missing.length - 1} more`
+			}
+			let log = `Preflight check for ${name} failed: Missing files:\n`
+			actionObj.missing.forEach((file) => {
+				if (typeof log === 'string')
+					log += ` - ${file}\n`
+				else
+					log += ` - ${file[0]} (${file[1]}\n`
+			})
+			console.error(log)
+			return result
+		}
+		case 'missing_properties': {
+			let result = ''
+			if (typeof actionObj.missing[0] === 'object') {
+				result = `Missing property '${actionObj.missing[0][0]}' (${actionObj.missing[0][1]})`
+			} else {
+				result = `Missing property '${actionObj.missing[0]}`
+			}
+			if (actionObj.missing.length > 1) {
+				result += ` and ${actionObj.missing.length - 1} more`
+			}
+			let log = `Preflight check for ${name} failed: Missing properties:\n`
+			actionObj.missing.forEach((prop) => {
+				if (typeof log === 'string')
+					log += ` - ${prop}\n`
+				else
+					log += ` - ${prop[0]} (${prop[1]}\n`
+			})
+			console.error(log)
+			return result
+		}
+		default: {
+			return 'Unknown'
+		}
+	}
+}
+
 // Show the package options
 app.get('/mwdk/package', (req, res) => {
-	res.locals = Object.assign(res.locals, {template: 'download'})
+	// Perform preflight checks
+	let action = {
+		demo: { state: 'unknown', missing: [] },
+		install: { state: 'unknown', missing: [] },
+		screenshot: { state: 'unknown', missing: [] },
+		icon: { state: 'unknown', missing: [] },
+		player: { state: 'unknown', missing: [] },
+		creator: { state: 'unknown', missing: [] },
+		scoreScreen: { state: 'unknown', missing: [] },
+		scoreModule: { state: 'unknown', missing: [] },
+	}
+	let allGood = true
+
+	//check demo.json
+	action.demo.status = 'pass'
+	try {
+		const demo = JSON.parse(getFileFromWebpack('demo.json').toString())
+
+		// Check for existence of a question structure
+		const questions = findQuestions(demo.qset?.data, true)
+		if (questions.length === 0) {
+			action.demo.status = 'custom_fail'
+			action.demo.msg = 'Does not contain any valid question structures'
+		}
+
+		if (!demo.name) {
+			action.demo.status = 'missing_properties'
+			action.demo.missing.push('name')
+		}
+		if (!demo.qset) {
+			action.demo.status = 'missing_properties'
+			action.demo.missing.push('qset')
+		}
+		if (!demo.qset?.version) {
+			action.demo.status = 'missing_properties'
+			action.demo.missing.push('qset.version')
+		}
+		if (!demo.qset?.data) {
+			action.demo.status = 'missing_properties'
+			action.demo.missing.push('qset.data')
+		}
+	} catch (error) {
+		if (error instanceof SyntaxError) {
+			action.demo.status = 'syntax_error'
+		} else {
+			action.demo.status = 'file_error'
+		}
+	}
+
+	// check install.yaml
+	// scope this so we can use it for other checks later
+	let install = null
+	action.install.status = 'pass'
+	try {
+		install = yaml.parse(getInstall().toString())
+		if (!install.general) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general', 'object'])
+		}
+		if (!verifyInstallProp(install.general?.name, INSTALL_TYPE_STRING)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.name', 'string'])
+		}
+		if (!verifyInstallProp(install.general?.group, INSTALL_TYPE_STRING)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.group', 'string'])
+		}
+		if (!verifyInstallProp(install.general?.height, INSTALL_TYPE_NUMBER)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.height', 'number'])
+		}
+		if (!verifyInstallProp(install.general?.width, INSTALL_TYPE_NUMBER)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.width', 'number'])
+		}
+		if (!verifyInstallProp(install.general?.in_catalog, INSTALL_TYPE_BOOLEAN)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.in_catalog', 'boolean'])
+		}
+		if (!verifyInstallProp(install.general?.is_editable, INSTALL_TYPE_BOOLEAN)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.is_editable', 'boolean'])
+		}
+		if (!verifyInstallProp(install.general?.is_playable, INSTALL_TYPE_BOOLEAN)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.is_playable', 'boolean'])
+		}
+		if (!verifyInstallProp(install.general?.is_qset_encrypted, INSTALL_TYPE_BOOLEAN)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.is_qset_encrypted', 'boolean'])
+		}
+		if (!verifyInstallProp(install.general?.api_version, INSTALL_TYPE_NUMBER)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['general.api_version', 'number'])
+		}
+		if (!install.files) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['files', 'object'])
+		}
+		if (!verifyInstallProp(install.files?.creator, INSTALL_TYPE_STRING)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['files.creator', 'string'])
+		}
+		if (!verifyInstallProp(install.files?.player, INSTALL_TYPE_STRING)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['files.player', 'string'])
+		}
+		if (!verifyInstallProp(install.files?.flash_version, INSTALL_TYPE_NUMBER)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['files.flash_version', 'number'])
+		}
+		if (!install.score) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['score', 'object'])
+		}
+		if (!verifyInstallProp(install.score?.is_scorable, INSTALL_TYPE_BOOLEAN)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['score.is_scorable', 'boolean'])
+		}
+		if (!verifyInstallProp(install.score?.score_module, INSTALL_TYPE_STRING)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['score.score_module', 'string'])
+		}
+		if (install.score?.score_screen && !verifyInstallProp(install.score?.score_screen, INSTALL_TYPE_STRING)) {
+			//custom score screens are optional
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['score.score_screen', 'string'])
+		}
+		if (!install.meta_data) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['meta_data', 'object'])
+		}
+		if (!verifyInstallProp(install.meta_data?.features, INSTALL_TYPE_ARRAY)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['meta_data.features', 'array'])
+		}
+		if (!verifyInstallProp(install.meta_data?.supported_data, INSTALL_TYPE_ARRAY)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['meta_data.supported_data', 'array'])
+		}
+		if (!verifyInstallProp(install.meta_data?.about, INSTALL_TYPE_STRING)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['meta_data.about', 'string'])
+		}
+		if (!verifyInstallProp(install.meta_data?.excerpt, INSTALL_TYPE_STRING)) {
+			action.install.status = 'missing_properties'
+			action.install.missing.push(['meta_data.excerpt', 'string'])
+		}
+	} catch (error) {
+		if (error instanceof SyntaxError) {
+			action.install.status = 'syntax_error'
+		} else  {
+			action.install.status = 'file_error'
+		}
+	}
+
+	// check screenshots
+	action.screenshot.status = 'pass'
+	for (let i = 1; i <= 3; i++) {
+		try {
+			if (!getFileFromWebpack(path.join('img', 'screen-shots', `${i}.png`))) throw new Error()
+		} catch (error) {
+			action.screenshot.status = 'missing_files'
+			action.screenshot.missing.push(`src/_screen-shots/${i}.png`)
+		}
+		try {
+			if (!getFileFromWebpack(path.join('img', 'screen-shots', `${i}-thumb.png`))) throw new Error()
+		} catch (error) {
+			action.screenshot.status= 'missing_files'
+			action.screenshot.missing.push(`src/_screen-shots/${i}-thumb.png`)
+		}
+	}
+
+	// check icons
+	const iconSizes = [60, 92, 275, 394]
+	action.icon.status = 'pass'
+	iconSizes.forEach(size => {
+		try {
+			if (!getFileFromWebpack(path.join('img', `icon-${size}.png`))) throw new Error()
+		} catch (error) {
+			action.icon.status = 'missing_files'
+			action.icon.missing.push(`src/_icons/icon-${size}.png`)
+		}
+		try {
+			if (!getFileFromWebpack(path.join('img', `icon-${size}@2x.png`))) throw new Error()
+		} catch (error) {
+			action.icon.status = 'missing_files'
+			action.icon.missing.push(`src/_icons/icon-${size}@2x.png`)
+		}
+	})
+
+	// check creator
+	const creatorPath = install?.files?.creator
+	if (creatorPath && creatorPath !== 'default') {
+		try {
+			if (!getFileFromWebpack(creatorPath)) throw new Error()
+			action.creator.status = 'pass'
+		} catch (error) {
+			action.creator.status = 'missing_files'
+			action.creator.missing.push(creatorPath)
+		}
+	} else if (creatorPath === 'default') {
+		action.creator.status = 'pass'
+		action.creator.msg = 'Using default creator'
+	} else {
+		action.creator.status = 'custom_fail'
+		action.creator.msg = 'Not specified in install.yaml'
+	}
+
+	// check player exists
+	const playerPath = install?.files?.player
+	if (playerPath) {
+		try {
+			if (!getFileFromWebpack(playerPath)) throw new Error()
+			action.player.status = 'pass'
+		} catch (error) {
+			action.player.status = 'missing_files'
+			action.player.missing.push(playerPath)
+		}
+	} else {
+		action.player.status = 'custom_fail'
+		action.player.msg = 'Not specified in install.yaml'
+	}
+
+	//check score screen exists
+	const scoreScreenPath = install?.score?.score_screen
+	if (scoreScreenPath != undefined && scoreScreenPath !== 'default') {
+		try {
+			if (!getFileFromWebpack(scoreScreenPath)) throw new Error()
+			action.scoreScreen.status = 'pass'
+		} catch (error) {
+			action.scoreScreen.status = 'missing_files'
+			action.scoreScreen.missing.push(scoreScreenPath)
+		}
+	} else if (scoreScreenPath === 'default') {
+		action.scoreScreen.status = 'pass'
+		action.scoreScreen.msg = 'Using default score screen'
+	} else {
+		// Score screen property not specified - check to see if a custom score screen file might be present
+		if (!!getFileFromWebpack('scoreScreen.html', true)) {
+			// A score screen file is present but not specified in the install.yaml
+			action.scoreScreen.status = 'custom_fail'
+			action.scoreScreen.msg = 'Custom scoreScreen.html found, but not set in install.yaml'
+		} else {
+			action.scoreScreen.status = 'pass'
+			action.scoreScreen.msg = 'Using default score screen'
+		}
+	}
+
+	//check score module
+	if (install?.score?.score_module) {
+		const scoreModulePath = path.join('_score-modules', 'score_module.php')
+		try {
+			getFileFromWebpack(path.join('_score-modules', 'score_module.php'))
+			action.scoreModule.status = 'pass'
+		} catch(error) {
+			action.scoreModule.status = 'missing_files'
+			action.scoreModule.missing.push(scoreModulePath)
+		}
+	} else {
+		action.scoreModule.status = 'custom_fail'
+		action.scoreModule.msg = 'Not specified in install.yaml'
+	}
+
+	const checklist = [
+		{
+			status: processStatus(action.demo),
+			text: 'demo.json',
+			action: processAction(action.demo, 'demo.json'),
+		},
+		{
+			status: processStatus(action.install),
+			text: 'install.yaml',
+			action: processAction(action.install, 'install.yaml'),
+		},
+		{
+			status: processStatus(action.screenshot),
+			text: 'Screenshots',
+			action: processAction(action.screenshot, 'Screenshots'),
+		},
+		{
+			status: processStatus(action.icon),
+			text: 'Icons',
+			action: processAction(action.icon, 'Icons'),
+		},
+		{
+			status: processStatus(action.creator),
+			text: 'Creator',
+			action: processAction(action.creator, 'Creator source code'),
+		},
+		{
+			status: processStatus(action.player),
+			text: 'Player',
+			action: processAction(action.player, 'Player source code'),
+		},
+		{
+			status: processStatus(action.scoreScreen),
+			text: 'Score screen',
+			action: processAction(action.scoreScreen, 'Score screen source code'),
+		},
+		{
+			status: processStatus(action.scoreModule),
+			text: 'Score module',
+			action: processAction(action.scoreModule, 'Score module'),
+		},
+	]
+
+	// do one more pass over the whole checklist - if there are any failures, prevent build/install
+	checklist.forEach(item => {
+		if (item.status == 'fail') allGood = false
+	})
+
+	res.locals = Object.assign(res.locals, {template: 'download', checklist: checklist, allGood: allGood})
 	res.render(res.locals.template)
 })
 
@@ -787,6 +1269,7 @@ app.use('/api/json/question_set_get', (req, res) => {
 		const id = JSON.parse(req.body.data)[0];
 		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
 		qset = performQSetSubsitutions(qset, false)
+		findAndStandardizeQuestions(qset)
 		qset = JSON.stringify(qset)
 		res.send(qset.toString());
 	} catch (e) {
@@ -1252,3 +1735,4 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 app.listen(port, function () {
 	console.log(`Listening on port ${port}`);
 })
+
