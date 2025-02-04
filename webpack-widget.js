@@ -365,10 +365,7 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		],
 		target: ['web', 'es5'],
 		optimization: {
-			moduleIds: 'deterministic',
-			splitChunks: {
-				chunks: 'all'
-			}
+			moduleIds: 'deterministic'
 		}
 	}
 
