@@ -421,9 +421,10 @@ const INSTALL_TYPE_BOOLEAN = 'boolean'
 const INSTALL_TYPE_STRING = 'string'
 const INSTALL_TYPE_ARRAY = 'object'
 
-const verifyInstallProp = (prop, desiredType) => {
+const verifyInstallProp = (prop, desiredType = null) => {
 	const propType = typeof prop
 	if(propType === 'undefined' || propType === 'null') return false
+	if (desiredType == null) return true // null is effectively a wildcard for any type of prop
 	if(desiredType === INSTALL_TYPE_BOOLEAN) {
 		//yaml parser interprets all valid YAML boolean values as strings
 		if(propType !== 'string') return false
@@ -762,6 +763,27 @@ function processAction(actionObj, name) {
 			console.error(log)
 			return result
 		}
+		case 'deprecated_values': {
+			let result = ''
+			if (typeof actionObj.missing[0] === 'object') {
+				result = `Deprecated property '${actionObj.missing[0][0]}' (${actionObj.missing[0][1]})`
+			} else {
+				result = `Deprecated property '${actionObj.missing[0]}`
+			}
+			if (actionObj.missing.length > 1) {
+				result += ` and ${actionObj.missing.length - 1} more`
+			}
+			let log = `Preflight check for ${name} failed: Deprecated values:\n`
+			actionObj.missing.forEach((prop) => {
+				if (typeof log === 'string')
+					log += ` - ${prop}\n`
+				else
+					log += ` - ${prop[0]} (${prop[1]}\n`
+			})
+			log += '\nThese values are no longer required by Materia and should be removed from the install.yaml file.\n'
+			console.warn(log)
+			return result
+		}
 		default: {
 			return 'Unknown'
 		}
@@ -833,8 +855,8 @@ app.get('/mwdk/package', (req, res) => {
 			action.install.status = 'missing_properties'
 			action.install.missing.push(['general.name', 'string'])
 		}
-		if (!verifyInstallProp(install.general?.group, INSTALL_TYPE_STRING)) {
-			action.install.status = 'missing_properties'
+		if (verifyInstallProp(install.general?.group)) {
+			action.install.status = 'deprecated_values'
 			action.install.missing.push(['general.group', 'string'])
 		}
 		if (!verifyInstallProp(install.general?.height, INSTALL_TYPE_NUMBER)) {
