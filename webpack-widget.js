@@ -205,16 +205,8 @@ const getDefaultRules = () => ({
 		test: /\.html$/i,
 		exclude: /node_modules|_guides|guides/,
 		use: [
-			{
-				loader: 'html-loader',
-				options: {
-					sources: false
-				}
-			},
-			{
-				loader: 'string-replace-loader',
-				options: { multiple: materiaJSReplacements }
-			},
+			// process the HTML and return it as a module
+			path.resolve(__dirname, 'materia-scripts-loader.js')
 		]
 	},
 	// Process SASS/SCSS/CSS Files
