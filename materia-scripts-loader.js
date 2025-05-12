@@ -12,7 +12,7 @@ module.exports = function(source) {
 	// Define replacement patterns
 	const packagedJSPath = 'src="../../../js/$3"'
 	const devServerJSPath = 'src="/materia-assets/js/$3"'
-	const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath;
+	const replaceTarget = isRunningDevServer ? devServerJSPath : packagedJSPath
 
 	// Perform replacements
 	let result = source
