@@ -204,12 +204,9 @@ const getDefaultRules = () => ({
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
 		exclude: /node_modules|_guides|guides/,
-		type: 'asset/source',
 		use: [
-			{
-				loader: 'string-replace-loader',
-				options: { multiple: materiaJSReplacements }
-			},
+			// process the HTML and return it as a module
+			path.resolve(__dirname, 'materia-scripts-loader.js')
 		]
 	},
 	// Process SASS/SCSS/CSS Files
@@ -357,7 +354,11 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				widget: `_output/${cfg.cleanName}.wigt`,
 				output: `_output/${cfg.cleanName}-build-info.yml`
 			})
-		]
+		],
+		target: ['web', 'es5'],
+		optimization: {
+			moduleIds: 'deterministic'
+		}
 	}
 
 	return build

@@ -4582,10 +4582,10 @@ make-fetch-happen@^11.0.0, make-fetch-happen@^11.0.1, make-fetch-happen@^11.0.3,
     socks-proxy-agent "^7.0.0"
     ssri "^10.0.0"
 
-materia-widget-dependencies@0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/materia-widget-dependencies/-/materia-widget-dependencies-0.3.0.tgz#b95b8b99f48118f599bc034f6d4ddeb5e75af722"
-  integrity sha512-+atVBgczOu3/mcn7pDYaS0AlDkBZ3ttDLi5vXxpAOGi9U6n7RPTxxrZGv5yqkcRJC+b3j+mXlwxPY96hazSIIg==
+materia-widget-dependencies@0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/materia-widget-dependencies/-/materia-widget-dependencies-0.4.1.tgz#6c4b43ae8f2dcca2fcd4227d6f81d08e87fd8395"
+  integrity sha512-y+B48d4bC4+zCYdzbSGLUAcirGEy7jLQ3IjTkSZackDf6jWaWftdjmrn+LdzWeHH7Mz6PqqLTsA9tMLAANCXFQ==
 
 math-intrinsics@^1.1.0:
   version "1.1.0"

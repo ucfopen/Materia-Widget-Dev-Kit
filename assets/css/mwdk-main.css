@@ -38,6 +38,11 @@
 	margin-bottom: 0.5em;
 }
 
+.tools {
+	margin-top: -12px;
+	float: right;
+}
+
 #leftbar {
 	width: 250px;
 	background: #333;
@@ -140,7 +145,7 @@
 	background: #fff;
 
 	width: 500px;
-	height: 280px;
+	height: 500px;
 
 	margin: 0 auto;
 }
@@ -374,7 +379,7 @@ header.logged-in {
 
 /* Hide login timeout */
 .alert-wrapper {
-	display: none;
+	/*display: none;*/
 }
 
 .dot {
