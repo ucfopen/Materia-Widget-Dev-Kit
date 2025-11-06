@@ -7,8 +7,7 @@ const ZipPlugin = require('zip-webpack-plugin')
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 const showdown = require('showdown')
 const webpack = require('webpack')
-// const { DefinePlugin } = require('webpack')
-const packageJson = require('./package.json')
+
 converter = new showdown.Converter()
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
