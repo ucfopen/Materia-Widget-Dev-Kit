@@ -2,10 +2,36 @@
 
 <h1 class='centered'>Download or Install:</h1>
 <hr/>
+
+<h2 class='centered'>Preflight Checks:</h2>
+
+<div id='preflight-checklist-container'>
+	<div id='preflight-checklist'>
+		{{#checklist}}
+		<div class='preflight-item'>
+			<div class={{status}}></div>
+			<div class='preflight-item-text'>
+				{{text}}
+				<span class='action'>
+					{{action}}
+				</span>
+			</div>
+		</div>
+		{{/checklist}}
+	</div>
+</div>
+
+{{#unless allGood}}
+<div class="preflight-check-warning-text">See dev console for more info</div>
+{{/unless}}
+
+<hr/>
+
 <div id='build-commands' class='centered'>
 	<a href="/mwdk/download"><button class='edit_button action_button' id='download_button'>Download .wigt</button></a>
 	<a href="/mwdk/install"><button class='edit_button action_button' id='install_button'>Install to Docker Materia</button></a>
 </div>
+
 <div id="progress-container" class="hide centered">
 	<span id="progress_status">Loading...</span>
 	<div id="progressbar">

@@ -6,6 +6,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const ZipPlugin = require('zip-webpack-plugin')
 const GenerateWidgetHash = require('./webpack-generate-widget-hash')
 const showdown = require('showdown')
+const webpack = require('webpack')
+
 converter = new showdown.Converter()
 // creators and players may reference materia core files directly
 // To do so rather than hard-coding the actual location of those files
@@ -204,12 +206,9 @@ const getDefaultRules = () => ({
 	loadHTMLAndReplaceMateriaScripts: {
 		test: /\.html$/i,
 		exclude: /node_modules|_guides|guides/,
-		type: 'asset/source',
 		use: [
-			{
-				loader: 'string-replace-loader',
-				options: { multiple: materiaJSReplacements }
-			},
+			// process the HTML and return it as a module
+			path.resolve(__dirname, 'materia-scripts-loader.js')
 		]
 	},
 	// Process SASS/SCSS/CSS Files
@@ -323,6 +322,50 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 		)
 	}
 
+	class VersionPlugin {
+		constructor(options = {}) {
+			this.options = {
+				filename: 'version.json',
+				packageJsonPath: './package.json',
+				...options
+			};
+		}
+		apply(compiler) {
+			// Use processAssets hook which runs after output has been cleaned but before ZipPlugin collects files
+			compiler.hooks.compilation.tap('VersionPlugin', (compilation) => {
+				// This runs during asset processing but before files are emitted
+				compilation.hooks.processAssets.tap(
+					{
+						name: 'VersionPlugin',
+						// Run in the ADDITIONAL stage - after initial asset processing but before other plugins
+						stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL
+					},
+					(assets) => {
+						try {
+							const packageJsonPath = path.resolve(this.options.packageJsonPath);
+							const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+						
+							const versionData = {
+								version: `v${packageJson.version}`
+							}
+						
+							// Create an asset that webpack will emit
+							const source = JSON.stringify(versionData, null, 2);
+							
+							// Add the asset directly to webpack's compilation
+							compilation.emitAsset(
+								this.options.filename, 
+								new webpack.sources.RawSource(source)
+							)
+						} catch (error) {
+							compilation.errors.push(error);
+						}
+					}
+				)
+			})
+		}
+	}
+
 	let build = {
 		mode: process.env.NODE_ENV == 'production' ? 'production' : 'development',
 		stats: {children: false},
@@ -342,6 +385,10 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 			new CopyPlugin({
 				patterns: cfg.copyList,
 			}),
+			new VersionPlugin({
+				filename: 'version.json',
+				packageJsonPath: './package.json'
+			}),
 			...htmlWebpackPlugins,
 			// extract css from the webpack output
 			new MiniCssExtractPlugin({
@@ -357,7 +404,11 @@ const getLegacyWidgetBuildConfig = (config = {}) => {
 				widget: `_output/${cfg.cleanName}.wigt`,
 				output: `_output/${cfg.cleanName}-build-info.yml`
 			})
-		]
+		],
+		target: ['web', 'es5'],
+		optimization: {
+			moduleIds: 'deterministic'
+		}
 	}
 
 	return build
