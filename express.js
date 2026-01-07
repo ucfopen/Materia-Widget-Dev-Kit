@@ -1123,12 +1123,12 @@ app.get('/mwdk/helper/annotations', (req, res) => {
 
 app.get('/mwdk/install', (req, res) => {
 	res.write('<html><body id="result"><pre>');
-	// Find the docker-compose container for materia-web
+	// Find the docker-compose container for materia-django-python
 	// 1. lists all containers
-	// 2. filter for materia-web image and named xxxx_phpfpm_1 name
+	// 2. filter for materia python image, named "materia-django-python-x"
 	// 3. pick the first line
 	// 4. pick the container name
-	let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia:.* docker[-_]app[-_].*" | head -n 1 | cut -d" " -f2');
+	let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e "materia-django[-_]python materia-django[-_]python[-_]*" | head -n 1 | cut -d" " -f2');
 	if(!targetImage){
 		console.log(`Couldn't find docker container`)
 		throw "MWDK Couldn't find a docker container."
@@ -1142,19 +1142,29 @@ app.get('/mwdk/install', (req, res) => {
 	containerInfo = JSON.parse(containerInfo.toString());
 
 	// Find mounted volume that will tell us where materia is on the host system
-	let found = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
-	if(!found){
+	let foundMateria = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
+	if(!foundMateria){
 		console.error('MWDK Couldnt find the Materia mount on the host system')
 		res.write(`</pre><h1>Cant Find Materia</h1>`);
 		throw `MWDK Couldn't find the Materia mount on the host system'`
 	}
-	let materiaPath = found[0].Source.replace(/^\/host_mnt/, '') // depending on your Docker version, host_mnt may be prepended to the directory path
-	let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
+
+	// find mounted volume for the local widget storage
+	let foundWidgets = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html/staticfiles/widget')
+	if(!foundWidgets){
+		console.error('MWDK Couldnt find the Materia Widget storage mount on the host system')
+		res.write(`</pre><h1>Cant Find Materia Widgets</h1>`);
+		throw `MWDK Couldnt find the Materia Widget storage mount on the host system'`
+	}
+
+	// depending on your Docker version, host_mnt may be prepended to the directory path
+	let materiaPath = foundMateria[0].Source.replace(/^\/host_mnt/, '') 
+	let serverWidgetPath = foundWidgets[0].Source.replace(/^\/host_mnt/, '')
 
 	// make sure the dir exists
-	console.log(`Checking if ${materiaPath}/fuel/app/tmp/widget_packages exists`)
+	console.log(`Checking if ${serverWidgetPath} exists`)
 	if(!fs.existsSync(serverWidgetPath)){
-		console.log(`Making directory ${materiaPath}/fuel/app/tmp/widget_packages`)
+		console.log(`Making directory ${serverWidgetPath}`)
 		fs.mkdirSync(serverWidgetPath);
 	}
 
@@ -1176,12 +1186,15 @@ app.get('/mwdk/install', (req, res) => {
 	res.write(`> Writing to ${target}<br/>`);
 	fs.writeFileSync(target, widgetPacket);
 
+	// in-container destination to install the widget at
+	let dest = path.join(foundWidgets[0].Destination, filename)
+
 	// run the install command
-	console.log(`Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`)
-	res.write(`Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
+	console.log(`Running > make install-widget-file file="${dest}"`)
+	res.write(`Running > make install-widget-file file="${dest}"`);
 
 	try {
-		let run = require('child_process').spawn(`./run_widgets_install.sh`, [`${filename}`], {cwd: `${materiaPath}/docker/`})
+		let run = require('child_process').spawn(`make`, [`install-widget-file`, `file="${dest}"`], {cwd: `${materiaPath}/..`})
 
 		run.stdout.on('data', function(data) {
 			console.log('stdout: ' + data.toString());
@@ -1757,4 +1770,3 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 app.listen(port, function () {
 	console.log(`Listening on port ${port}`);
 })
-
