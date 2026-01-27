@@ -97,7 +97,7 @@ declare namespace Materia {
 declare namespace Materia.CreatorCore {
 	interface MediaData {
 		name: string,
-		mine: string,
+		mime: string,
 		ext: string,
 		size: number,
 		src: any,
@@ -165,11 +165,13 @@ declare namespace Materia.CreatorCore {
 	 */
 	function alert(title: string, message: string): void
 
+	type ImporterMediaTypes = 'image' | 'audio' | 'video' | 'model'
+
 	/**
 	 * Display Materia’s media importer. The importer will allow the user to upload and choose media files to insert into the widget. To make use of this method, make sure you define a onMediaImportComplete callback with Materia.CreatorCore.start.
-	 * @param mediaTypes Array of types of media allowed.
+	 * @param mediaTypes Array of types of media allowed. Other types are accepted, but only for legacy reasons.
 	 */
-	function showMediaImporter(mediaTypes: ('jpg' | 'gif' | 'png' | 'mp3')[]): void
+	function showMediaImporter(mediaTypes: ImporterMediaTypes[]): void
 
 	/**
 	 * Convert a Materia asset id into a url.
