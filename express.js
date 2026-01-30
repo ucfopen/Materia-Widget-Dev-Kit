@@ -1043,9 +1043,9 @@ app.get('/mwdk/package', (req, res) => {
 
 	//check score module
 	if (install?.score?.score_module) {
-		const scoreModulePath = path.join('_score-modules', 'score_module.php')
+		const scoreModulePath = path.join('_score-modules', 'score_module.py')
 		try {
-			getFileFromWebpack(path.join('_score-modules', 'score_module.php'))
+			getFileFromWebpack(path.join('_score-modules', 'score_module.py'))
 			action.scoreModule.status = 'pass'
 		} catch(error) {
 			action.scoreModule.status = 'missing_files'
