@@ -479,7 +479,8 @@ app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
 
 // Assets from Materia widget dependencies
 let clientAssetsPath = require('materia-widget-dependencies/path')
-const creator = require('postcss-preset-env')
+const creator = require('postcss-preset-env');
+const e = require('express');
 app.use('/materia-assets/css', express.static(path.join(clientAssetsPath, 'css')))
 app.use('/materia-assets/js', express.static(path.join(clientAssetsPath, 'js')))
 app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
@@ -1045,8 +1046,17 @@ app.get('/mwdk/package', (req, res) => {
 	if (install?.score?.score_module) {
 		const scoreModulePath = path.join('_score-modules', 'score_module.py')
 		try {
-			getFileFromWebpack(path.join('_score-modules', 'score_module.py'))
-			action.scoreModule.status = 'pass'
+			if(getFileFromWebpack(path.join('_score-modules', 'score_module.py')))
+				action.scoreModule.status = 'pass'
+			else {
+				if(getFileFromWebpack(path.join('_score-modules', 'score_module.php'))) {
+					action.scoreModule.status = 'custom_fail'
+					action.scoreModule.msg = '.php module found, but no .py'
+				} else {
+					action.scoreModule.status = 'missing_files'
+					action.scoreModule.missing.push(scoreModulePath)			
+				}
+			}
 		} catch(error) {
 			action.scoreModule.status = 'missing_files'
 			action.scoreModule.missing.push(scoreModulePath)
