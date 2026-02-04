@@ -95,14 +95,6 @@ declare namespace Materia {
 }
 
 declare namespace Materia.CreatorCore {
-	interface MediaData {
-		name: string,
-		mime: string,
-		ext: string,
-		size: number,
-		src: any,
-	}
-
 	interface Callbacks {
 		/**
 		 * Callback for when a new instance is being created
@@ -181,9 +173,9 @@ declare namespace Materia.CreatorCore {
 
 	/**
 	 * Send media data directly to the media uploader. Use if the creator has its own file picker or generates media programatically.
-	 * @param mediaData Media data object.
+	 * @param media File object.
 	 */
-	function directUploadMedia(mediaData: MediaData): void
+	function directUploadMedia(media: File): void
 
 	/**
 	 * Used to inform the user that a save request cannot be fulfilled.
