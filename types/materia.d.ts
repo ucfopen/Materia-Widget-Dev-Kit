@@ -324,6 +324,12 @@ declare namespace Materia.Score {
 	function submitQuestionForScoring(questionId: string, userAnswer: string, value?: any): void
 
 	/**
+	 * A participation score submission This logs a participation grade for non-scorable widgets.
+	 * @param value The value isn’t by default used to determine the score of the question, however it can be used to pass an additional value to be used in scoring
+	 */
+	function submitScoreForParticipation(questionId: string, userAnswer: string, value?: any): void
+
+	/**
 	 * Adds a message/feedback to the overall score screen.
 	 * @param message Message to display on the score screen
 	 */
@@ -392,7 +398,7 @@ declare namespace Materia.ScoreCore {
 	/**
 	 * Gets an anonymous and unsorted array containing all completed scores for a widget for the current semester. Make sure you have the handleScoreDistribution callback registered.
 	 */
-	function requestScoreDistribution()
+	function requestScoreDistribution(): void
 
 	/**
 	 * Adjusts the height of the score screen in pixels.
