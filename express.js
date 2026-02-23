@@ -10,6 +10,7 @@ const sharp                = require('sharp')
 const util                 = require('util');
 const cors                 = require('cors')
 const hbs                  = require('hbs');
+const pyodide              = require('pyodide')
 
 // common paths used here
 const outputPath           = path.join(process.cwd(), 'build') + path.sep
@@ -47,13 +48,17 @@ const waitForWebpack = (app, next) => {
 			// clean up
 			fs.readdir(qsets, async (err, files) => {
 				if (err) throw err;
-				for (const file of files) {
-					if (file == '.gitkeep') continue
-					console.log("removing file: " + file)
-					await fs.promises.unlink(path.join(qsets, file), (err) => {
-						if (err) throw err;
-					});
-				}
+				// don't delete existing qset files on startup
+				//  consider reinstituting this after pyodide dev is done
+				// for (const file of files) {
+				// 	if (file == '.gitkeep') continue
+				// 	console.log("removing file: " + file)
+				// 	await fs.promises.unlink(path.join(qsets, file), (err) => {
+				// 		if (err) throw err;
+				// 	});
+				// }
+				fs.promises.unlink(path.join(qsets,'demo.json'))
+				fs.promises.unlink(path.join(qsets,'demo.instance.json'))
 
 				console.log("creating demo instance")
 				const instance = createApiWidgetInstanceData('demo', true)[0];
@@ -441,6 +446,54 @@ const verifyInstallProp = (prop, desiredType = null) => {
 	return true
 }
 
+// BEGIN PYODIDE CODE
+
+let py = null
+
+// initialize pyodide or, if we did that already, return it
+const getPyodide = async () => {
+	// we've already initialized pyodide, just pass it back
+	if (py) return py
+
+	py = await pyodide.loadPyodide()
+	py.setStdout({ batched: msg => console.log(msg) })
+	// mount our local python folder with Pyodide so the files are available
+	py.mountNodeFS("/python", path.resolve(__dirname, '_python'))
+	// also mount the qset directory we can access our qset and play log JSON files in Python
+	py.mountNodeFS("/qsets", path.resolve(__dirname, 'qsets'))
+	// mount the widget's score module as well
+	py.mountNodeFS("/score_module", path.join(process.cwd(), 'src', '_score'))
+
+	let pyResult = py.runPython(`
+import sys
+import importlib
+
+# Remove possibly cached modules
+for name in list(sys.modules):
+    if name.startswith("core") or name.startswith("scoring"):
+        del sys.modules[name]
+importlib.invalidate_caches()
+
+# make sure our mounted file system is available
+sys.path.append("/python")
+	`)
+
+	// despite datetime and zoneinfo being standard modules,
+	// zoneinfo relies on timezone data which pyodide does not
+	// have because it's not running in anything remotely close
+	// to a normal context
+	// if we install the tzdata library we can sidestep it
+	await py.loadPackage("micropip")
+	await py.runPythonAsync(`
+import micropip
+await micropip.install("tzdata")
+	`)
+
+	return py
+}
+
+// END PYODIDE CODE
+
 // ============= ASSETS and SETUP =======================
 const app = express();
 const port = process.env.PORT || 8118;
@@ -644,14 +697,17 @@ app.post('/mwdk/remove_play_logs', async (req, res) => {
 
 // Preview widget scores
 app.get('/mwdk/scores/preview/:id?', (req, res) => {
-	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: 'true'})
-	res.render(res.locals.template)
+	renderScoreScreen(req, res, true)
 })
 // Play widget scores
 app.get(['/mwdk/scores/:id?'], (req, res) => {
-	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: 'false'})
-	res.render(res.locals.template)
+	renderScoreScreen(req, res, false)
 })
+
+const renderScoreScreen = (req, res, isPreview) => {
+	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: isPreview ? 'true' : 'false'})
+	res.render(res.locals.template)
+}
 
 // The create page frame that loads the widget creator
 // Must have hash '1' to work
@@ -1345,7 +1401,8 @@ app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/
 	}
 
 	const id = (data[0].match(/([A-Za-z]{5})+/g) ? data[0] : generateInstanceID());
-	const qset = JSON.stringify(data[2]);
+	// add IDs to questions and answers that might be missing them
+	const qset = JSON.stringify(performQSetSubsitutions(JSON.stringify(data[2])));
 	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
 
 	const instance = createApiWidgetInstanceData(data[0], true)[0];
@@ -1539,7 +1596,7 @@ const findQuestion = (q, id) => {
 	return null
 }
 
-app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], (req, res) => {
+app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], async (req, res) => {
 	const initialValue = 0
 
 	res.set('Content-Type', 'application/json')
@@ -1556,6 +1613,42 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 	if (id == null) {
 		return res.json([])
 	}
+
+	const instId = req?.params?.id || 'demo'
+	// only bother with pyodide if we have a python score module for the widget we're developing
+	let scoreModule = getFileFromWebpack(path.join('_score-modules', 'score_module.py'))
+	if (!!scoreModule) {
+		install = yaml.parse(getInstall().toString())
+		const p = await getPyodide()
+		await p.runPythonAsync(`
+import json
+import logging
+from core.models import LogPlay, WidgetInstance, Widget
+from scoring.module_factory import ScoreModuleFactory
+
+logger = logging.getLogger(__name__)
+
+try:
+	inst = WidgetInstance("${id}")
+	play = LogPlay(inst)
+	sm = ScoreModuleFactory.create_score_module(instance=inst,play=play)
+	score_report = sm.get_score_report()
+	# this would ordinarily be handled mostly automatically by a serializer
+	score_report["qset"] = sm.qset
+	# easier here to just attach these values manually
+	score_report["qset"]["id"] = 0
+	score_report["qset"]["instance"] = "${id}"
+	score_report["qset"]["created_at"] = score_report["overview"]["created_at"]
+	output_val = json.dumps(score_report, default=str)
+except Exception :
+	logger.error('L', exc_info=True)`)
+		const output = p.globals.get('output_val')
+		console.log('final output from score report:',output)
+		res.json(JSON.parse(output))
+	} else {
+		res.json({})
+	}
+	return
 
 	// get play logs
 	let logs = null
@@ -1752,6 +1845,35 @@ app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_in
 	}]
 
 	res.json(result)
+})
+
+app.use('/api/session/verify/', (req, res) => {
+	res.json([{
+		isAuthenticated: true,
+		permLevel: 'basic_author'
+	}])
+})
+
+// this has to be defined first because we overload the api/instances endpoint like dummies
+app.use('/api/instances/create', (req, res) => {
+	res.json({})
+})
+app.use('/api/instances/create/lock', (req, res) => {
+	res.json({})
+})
+
+app.use('/api/instances/:instance/lock', (req, res) => {
+	res.json({
+		lock_obtained: true
+	})
+})
+
+app.use('/api/instances/:instance', (req, res) => {
+	const instId = req.params.instance
+
+	let instance = JSON.parse(fs.readFileSync(path.join(qsets, instId+'.instance.json')))[0]
+
+	res.json(instance)
 })
 
 app.listen(port, function () {
