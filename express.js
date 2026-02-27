@@ -1287,8 +1287,8 @@ app.get('/mwdk/install', (req, res) => {
 				res.write(`[DJANGO] Running > make install-widget-file file="${install.dest}"`);
 				run = require('child_process').spawn(`make`, [`install-widget-file`, `file="${install.dest}"`], {cwd: `${install.materiaPath}/..`})
 			} else {
-				console.log(`[PHP] Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`)
-				res.write(`[PHP] Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
+				console.log(`[PHP] Running > cd ${install.materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`)
+				res.write(`[PHP] Running > cd ${install.materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
 				run = require('child_process').spawn(`./run_widgets_install.sh`, [`${install.filename}`], {cwd: `${install.materiaPath}/docker/`})
 			}
 
