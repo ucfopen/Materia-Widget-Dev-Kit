@@ -1141,7 +1141,7 @@ app.get('/mwdk/install', (req, res) => {
 	// 4. pick the container name
 
 	// attempt to install on both versions of materia if they are found
-	let pyImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e "materia-django[-_]python materia-django[-_]python[-_]*" | head -n 1 | cut -d" " -f2');
+	let pyImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e "materia-django[-_]python[-_]*" | head -n 1 | cut -d" " -f2');
 	let phpImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia:.* docker[-_]app[-_].*" | head -n 1 | cut -d" " -f2');
 	if(pyImage.length == 0 && phpImage.length == 0){
 		console.log(`Couldn't find docker container`)
