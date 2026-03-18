@@ -35,3 +35,11 @@
 #app {
 	position: static !important;
 }
+
+.embedded section.widget {
+	position: relative !important;
+	top: auto !important;
+	right: auto !important;
+	bottom: auto !important;
+	left: auto !important;
+}

@@ -57,18 +57,21 @@ const waitForWebpack = (app, next) => {
 				// 		if (err) throw err;
 				// 	});
 				// }
-				fs.promises.unlink(path.join(qsets,'demo.json'))
-				fs.promises.unlink(path.join(qsets,'demo.instance.json'))
+				try {
+					fs.promises.unlink(path.join(qsets,'demo.json'))
+					fs.promises.unlink(path.join(qsets,'demo.instance.json'))
+				} catch(e) {
+					console.log('demo.json and demo.instance.json already did not exist')
+				}
 
 				console.log("creating demo instance")
-				const instance = createApiWidgetInstanceData('demo', true)[0];
-				instance.name = instance.name
+				const instance = createApiWidgetInstanceData('demo', true);
 				instance.id = 'demo'
 
 				if (process.env.TEST_MWDK) {
 					fs.copyFileSync('sample-demo.json', path.join(qsets, 'demo.json'));
 				} else {
-					fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify([instance]));
+					fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify(instance));
 					fs.writeFileSync(path.join(qsets, 'demo.json'), JSON.stringify(instance.qset)); // must use instance.qset so IDs match
 				}
 
@@ -222,7 +225,7 @@ const findAndStandardizeQuestions = (potentialQ) => {
 const createApiWidgetInstanceData = (id) => {
 	// attempt to load a previously saved instance with the given ID
 	try {
-		let savedInstance = JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')))[0]
+		let savedInstance = JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')))
 		// add id's to the qset questions
 		if (hasSampleScoreData) {
 			try {
@@ -249,7 +252,7 @@ const createApiWidgetInstanceData = (id) => {
 			savedInstance.widget.score_screen = customScoreScreen
 		}
 
-		return [savedInstance];
+		return savedInstance
 	} catch (e) {
 		console.log(`creating instance qset ${id}`)
 		// console.error(e)
@@ -268,7 +271,7 @@ const createApiWidgetInstanceData = (id) => {
 		qset = demoQset.qset
 	}
 
-	return [{
+	return {
 		'attempts': '-1',
 		'clean_name': '',
 		'close_at': '-1',
@@ -286,7 +289,7 @@ const createApiWidgetInstanceData = (id) => {
 		'user_id': '1',
 		'widget': widget,
 		'width': 0
-	}];
+	};
 };
 
 // Build a mock widget data structure
@@ -308,6 +311,12 @@ const createApiWidgetData = (id) => {
 	if (widget.score.score_screen) {
 		customScoreScreen = widget.score.score_screen;
 	}
+	// attach everything from 'general' directly to the widget object itself
+	for (const [genKey, genVal] of Object.entries(widget.general)) {
+		widget[genKey] = genVal
+	}
+	widget.id = 1
+
 	return widget;
 };
 
@@ -710,10 +719,25 @@ const renderScoreScreen = (req, res, isPreview) => {
 }
 
 // The create page frame that loads the widget creator
-// Must have hash '1' to work
-app.get('/mwdk/widgets/1-mwdk/create', (req, res) => {
-	res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.hash || generateInstanceID() })
+app.get([
+	'/mwdk/widgets/1-mwdk/create/',
+	'/mwdk/widgets/1-mwdk/embed/create/'
+], (req, res) => {
+	res.locals = Object.assign(res.locals, {template: 'creator_mwdk'})
 	res.render(res.locals.template, { layout: false})
+});
+app.get([
+	'/mwdk/widgets/1-mwdk/create/:instance/',
+	'/mwdk/widgets/1-mwdk/embed/create/:instance/'
+], (req, res) => {
+	let instId = req.params.instance
+	if ( instId == '0') {
+		instId = generateInstanceID()
+		res.redirect(`/mwdk/widgets/1-mwdk/embed/create/${instId}/`)
+	} else {
+		res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: instId })
+		res.render(res.locals.template, { layout: false})
+	}
 });
 
 app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
@@ -749,12 +773,30 @@ app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
 })
 
 function generateInstanceID() {
+	const allowedCharacters = []
 	let str = ""
-	for (let i = 0; i < 5; i++) {
-		let c = Math.floor(Math.random() * (("Z").charCodeAt(0) - ("A").charCodeAt(0) + 1) + ("A").charCodeAt(0));
-		str += String.fromCharCode(c);
+	let i
+	// digits
+	for(i = 48; i <= 57; i++) {
+		allowedCharacters.push(String.fromCharCode(i))
 	}
-	return str;
+	// uppercase
+	for(i = 65; i <= 90; i++) {
+		allowedCharacters.push(String.fromCharCode(i))
+	}
+	// lowercase
+	for(i = 97; i <= 122; i++) {
+		allowedCharacters.push(String.fromCharCode(i))
+	}
+	// for (let i = 0; i < 5; i++) {
+	// 	let c = Math.floor(Math.random() * (("Z").charCodeAt(0) - ("A").charCodeAt(0) + 1) + ("A").charCodeAt(0));
+	// 	str += String.fromCharCode(c);
+	// }
+	// instance ids are 10-character alphanumeric strings using any digit or letter in upper or lower case
+	for (i = 0; i <= 10; i++) {
+		str += allowedCharacters[Math.floor(Math.random() * allowedCharacters.length)]
+	}
+	return str
 }
 
 function processStatus(actionObj) {
@@ -1284,7 +1326,7 @@ app.use(['/qsets/import', '/mwdk/saved_qsets'], (req, res) => {
 		}
 
 		const actual_path = path.join(qsets, file);
-		const qset_data = JSON.parse(fs.readFileSync(actual_path).toString())[0];
+		const qset_data = JSON.parse(fs.readFileSync(actual_path).toString());
 		saved_qsets[qset_data.id] = qset_data.name;
 	}
 
@@ -1299,7 +1341,12 @@ app.get('/mwdk/player/:instance?', (req, res) => {
 	else res.redirect('/preview/' + (req.params.instance ? req.params.instance : ''))
 })
 
-app.get(['/preview/:id?'], (req, res) => {
+app.get([
+	'/preview/:id?',
+	'/preview-embed/:id?',
+	'/play/:id?',
+	'/embed/:id?',
+], (req, res) => {
 	let widget = yaml.parse(getInstall().toString());
 	res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo', widgetWidth: widget.general.width, widgetHeight: widget.general.height })
 	res.render(res.locals.template, { layout: false})
@@ -1371,7 +1418,11 @@ app.use('/api/json/play_logs_save', (req, res) => {
 
 // api mock for saving widget instances
 // creates files in our qset directory (probably should use a better thing)session
-app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/api/json/widget_instance_save'], (req, res) => {
+app.use([
+	'/api/json/widget_instance_new',
+	'/api/json/widget_instance_update',
+	'/api/json/widget_instance_save'], (req, res) => {
+	
 	const data = JSON.parse(req.body.data);
 
 	// sweep through the qset items and make sure there aren't any nonstandard question properties
@@ -1411,7 +1462,7 @@ app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/
 
 	instance.qset = JSON.parse(qset)
 
-	fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
+	fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify(instance));
 
 	// send a warning back to the creator if any nonstandard question properties were detected
 	if (nonstandard_props.length > 0) {
@@ -1854,27 +1905,119 @@ app.use('/api/session/verify/', (req, res) => {
 	}])
 })
 
-// this has to be defined first because we overload the api/instances endpoint like dummies
-app.use('/api/instances/create', (req, res) => {
-	res.json({})
-})
-app.use('/api/instances/create/lock', (req, res) => {
-	res.json({})
+app.get('/api/widgets/', (req, res) => {
+	let widgetData = createApiWidgetData();
+
+	return res.json([widgetData])
 })
 
-app.use('/api/instances/:instance/lock', (req, res) => {
-	res.json({
-		lock_obtained: true
+app.get('/api/widgets/:widget/publish_perms_verify/', (req, res) => {
+	return res.json({
+		publishPermsValid: true
 	})
 })
 
-app.use('/api/instances/:instance', (req, res) => {
+app.post('/api/instances/', (req, res) => {
+	const data = req.body
+
+	// sweep through the qset items and make sure there aren't any nonstandard question properties
+	// TODO: probably need to audit this list
+	const standard_props = [
+		'materiaType',
+		'id',
+		'type',
+		'created_at',
+		'questions',
+		'answers',
+		'options',
+		'assets',
+		'name',
+		'items' //some widgets double-nest 'items'
+	];
+
+	const nonstandard_props = [];
+
+	for (let index in data.qset.data.items) {
+		const item = data.qset.data.items[index];
+
+		for (let prop in item) {
+			if (!Array.from(standard_props).includes(prop)) {
+				nonstandard_props.push(`"${prop}"`);
+				console.log(`Nonstandard property found in qset: ${prop}`);
+			}
+		}
+	}
+
+	const id = generateInstanceID()
+	// add IDs to questions and answers that might be missing them
+	const qset = JSON.stringify(performQSetSubsitutions(JSON.stringify(data.qset)));
+	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
+
+	const instance = createApiWidgetInstanceData(id)
+	instance.id = id
+	instance.name = data.name
+
+	instance.qset = JSON.parse(qset)
+
+	fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify(instance));
+
+	// send a warning back to the creator if any nonstandard question properties were detected
+	if (nonstandard_props.length > 0) {
+		const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
+		console.log ('Warning: Nonstandard qset item ' +
+			plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
+			plurals[1]);
+	}
+
+	res.json(instance);
+})
+
+app.patch('/api/instances/:instance/', (req, res) => {
+	const id = req.params.instance
+	const data = req.body
+	// add IDs to questions and answers that might be missing them
+	const qset = JSON.stringify(performQSetSubsitutions(JSON.stringify(data.qset)));
+	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
+	
+	const instance = createApiWidgetInstanceData(id)
+	instance.id = id
+	instance.name = data.name
+
+	instance.qset = JSON.parse(qset)
+	
+	res.json(instance)
+})
+
+app.get('/api/instances/:instance/lock/', (req, res) => {
+	res.json({ lock_obtained: true })
+})
+
+app.get('/api/instances/:instance/question_sets/', (req, res) => {
+	res.set('Content-Type', 'application/json')
+	// load instance, fallback to demo
+	try {
+		const id = req.params.instance
+		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
+		qset = performQSetSubsitutions(qset, false)
+		findAndStandardizeQuestions(qset)
+		qset = JSON.stringify(qset)
+		res.send(qset.toString());
+	} catch (e) {
+		res.json(getDemoQset(false).qset);
+	}
+})
+
+app.get('/api/instances/:instance/', (req, res) => {
 	const instId = req.params.instance
 
-	let instance = JSON.parse(fs.readFileSync(path.join(qsets, instId+'.instance.json')))[0]
+	let instance = JSON.parse(fs.readFileSync(path.join(qsets, instId+'.instance.json')))
 
 	res.json(instance)
 })
+
+// app.put('/api/play-sessions/:instance/', (req, res) => {
+	// res.json()
+// })
 
 app.listen(port, function () {
 	console.log(`Listening on port ${port}`);

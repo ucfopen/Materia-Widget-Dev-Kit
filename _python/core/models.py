@@ -296,16 +296,6 @@ class WidgetInstance():
 
 class Widget():
     id=""
-    is_scorable=True
-    score_module=""
-
-    def __init__(self):
-        self.id=""
-        self.is_scorable=True
-        self.score_module=""
-
-class Widget():
-    id=""
     name=""
     created_at=""
     flash_version=""
