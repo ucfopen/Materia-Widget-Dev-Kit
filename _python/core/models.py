@@ -209,9 +209,9 @@ class LogPlay():
 
     def get_logs(self):
         logs = []
-        with open(f"/qsets/log.json", "r") as file:
+        with open(f"/qsets/{self.instance.id}-log.json", "r") as file:
             data = json.load(file)
-            for log in data:
+            for log in data["logs"]:
                 log_obj = Log(log)
                 logs.append(log_obj)
             return logs
@@ -277,7 +277,7 @@ class WidgetInstance():
 
         with open(f"/qsets/{id}.instance.json", "r") as file:
             # Use json.load() to convert the file content to a Python object
-            data = json.load(file)[0]
+            data = json.load(file)
             self.created_at=datetime.fromtimestamp(data["created_at"])
             self.name=data["name"]
             self.is_draft=data["is_draft"]

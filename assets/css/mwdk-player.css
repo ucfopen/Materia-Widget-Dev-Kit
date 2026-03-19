@@ -36,10 +36,19 @@
 	position: static !important;
 }
 
+/*
+overriding these rules so the devkit header remains visible
+a bit of a nasty hack but it does the job
+*/
 .embedded section.widget {
 	position: relative !important;
 	top: auto !important;
 	right: auto !important;
 	bottom: auto !important;
 	left: auto !important;
+}
+html, body {
+	height: 80vh !important;
+	min-height: 80vh !important;
+	max-height: 80vh !important;
 }
