@@ -39,7 +39,7 @@ let customScoreScreen = null;
 // 1. talk to the middlware
 // 2. load the widget's install.yaml from webpack's in-memory files
 // 3. initiate the widget's demo.json from webpack's in-memory files into qsets
-const waitForWebpack = (app, next) => {
+const waitForWebpack = async (app, next) => {
 	if(hasCompiled) return next(); // short circuit if ready
 
 	waitUntil(() => {
@@ -58,8 +58,8 @@ const waitForWebpack = (app, next) => {
 				// 	});
 				// }
 				try {
-					fs.promises.unlink(path.join(qsets,'demo.json'))
-					fs.promises.unlink(path.join(qsets,'demo.instance.json'))
+					await fs.promises.unlink(path.join(qsets,'demo.json'))
+					await fs.promises.unlink(path.join(qsets,'demo.instance.json'))
 				} catch(e) {
 					console.log('demo.json and demo.instance.json already did not exist')
 				}
@@ -725,15 +725,13 @@ const renderScoreScreen = (req, res, isPreview) => {
 
 // The create page frame that loads the widget creator
 app.get([
-	'/mwdk/widgets/1-mwdk/create/',
-	'/mwdk/widgets/1-mwdk/embed/create/'
+	'/mwdk/widgets/1-mwdk/create/'
 ], (req, res) => {
 	res.locals = Object.assign(res.locals, {template: 'creator_mwdk'})
 	res.render(res.locals.template, { layout: false})
 });
 app.get([
-	'/mwdk/widgets/1-mwdk/create/:instance/',
-	'/mwdk/widgets/1-mwdk/embed/create/:instance/'
+	'/mwdk/widgets/1-mwdk/create/:instance',
 ], (req, res) => {
 	let instId = req.params.instance
 	if ( instId == '0') {

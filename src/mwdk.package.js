@@ -66,9 +66,9 @@ Namespace('MWDK').Package = (() => {
 
 	var showCreator = () => {
 		const pathnames = window.location.pathname.split('/')
-		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z]{5})+/g) ? pathnames[pathnames.length - 1] : 'demo')
+		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z0-9]{10})+/g) ? pathnames[pathnames.length - 1] : 'demo')
 		window.location.hash = ''
-		window.location.href ='/mwdk/widgets/1-mwdk/create/' + id
+		window.location.href ='/mwdk/widgets/1-mwdk/create/' + id + '?is_embedded=true'
 	}
 
 	var showPlayer = () => {
