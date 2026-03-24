@@ -736,7 +736,7 @@ app.get([
 	let instId = req.params.instance
 	if ( instId == '0') {
 		instId = generateInstanceID()
-		res.redirect(`/mwdk/widgets/1-mwdk/embed/create/${instId}/`)
+		res.redirect(`/mwdk/widgets/1-mwdk/embed/create/${instId}`)
 	} else {
 		res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: instId })
 		res.render(res.locals.template, { layout: false})
