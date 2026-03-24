@@ -1580,4 +1580,3 @@ app.get('/api/scores/details', (req, res) => {
 app.listen(port, function () {
 	console.log(`Listening on port ${port}`);
 })
-

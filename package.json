@@ -24,6 +24,7 @@
   "materia": {
     "cleanName": "MWDK"
   },
+  "types": "./types/materia.d.ts",
   "dependencies": {
     "@babel/core": "^7.22.17",
     "@babel/preset-env": "^7.20.2",
