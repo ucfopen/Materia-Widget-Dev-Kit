@@ -310,6 +310,8 @@ const createApiWidgetData = (id) => {
 	widget.href = '/preview/' + id
 	if (widget.score.score_screen) {
 		customScoreScreen = widget.score.score_screen;
+		// in Materia proper the Widget model features score_screen as its own property
+		widget.score_screen = widget.score.score_screen;
 	}
 	// attach everything from 'general' directly to the widget object itself
 	for (const [genKey, genVal] of Object.entries(widget.general)) {
@@ -538,6 +540,7 @@ app.use(cors({
 app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 app.use('/mwdk/assets/', express.static(path.join(__dirname, 'assets')))
 app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
+app.use('/static/img/materia-logo-thin.svg', express.static(path.join(__dirname, 'assets', 'img', 'materia-logo-thin.svg')))
 
 // Assets from Materia widget dependencies
 let clientAssetsPath = require('materia-widget-dependencies/path')
@@ -709,7 +712,8 @@ app.post('/mwdk/remove_play_logs', async (req, res) => {
 // TODO: revisit storing play data JSON so we can track multiple plays per widget instance
 app.get([
 	'/mwdk/scores/preview/:id?',
-	'/mwdk/scores/embed/:instance?/:play?'
+	'/mwdk/scores/embed/:instance?/:play?',
+	'/mwdk/scores/preview/:instance?/:play?'
 ], (req, res) => {
 	renderScoreScreen(req, res, true)
 })
@@ -1530,6 +1534,7 @@ app.put('/api/play-sessions/:instance/', (req, res) => {
 app.get('/api/play-sessions/:instance/', (req, res) => {
 	console.log('getting play data')
 })
+// TODO: add something here to optionally use uploaded play data JSON
 app.get('/api/scores/details/', async (req, res) => {
 	res.set('Content-Type', 'application/json')
 
