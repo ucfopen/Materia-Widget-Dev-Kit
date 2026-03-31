@@ -712,13 +712,16 @@ app.post('/mwdk/remove_play_logs', async (req, res) => {
 // TODO: revisit storing play data JSON so we can track multiple plays per widget instance
 app.get([
 	'/mwdk/scores/preview/:id?',
-	'/mwdk/scores/embed/:instance?/:play?',
 	'/mwdk/scores/preview/:instance?/:play?'
 ], (req, res) => {
 	renderScoreScreen(req, res, true)
 })
 // Play widget scores
-app.get(['/mwdk/scores/:id?'], (req, res) => {
+app.get([
+	'/mwdk/scores/:instance?/:play?',
+	'/mwdk/scores/embed/:instance?/:play?'
+	// '/mwdk/scores/:id?'
+], (req, res) => {
 	renderScoreScreen(req, res, false)
 })
 
@@ -739,7 +742,7 @@ app.get([
 ], (req, res) => {
 	let instId = req.params.instance
 	if ( instId == '0') {
-		instId = generateInstanceID()
+		instId = generateAlphanumericID()
 		res.redirect(`/mwdk/widgets/1-mwdk/embed/create/${instId}`)
 	} else {
 		res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: instId })
@@ -779,7 +782,7 @@ app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
 	res.redirect('/')
 })
 
-function generateInstanceID() {
+function generateAlphanumericID(longer=false) {
 	const allowedCharacters = []
 	let str = ""
 	let i
@@ -800,7 +803,8 @@ function generateInstanceID() {
 	// 	str += String.fromCharCode(c);
 	// }
 	// instance ids are 10-character alphanumeric strings using any digit or letter in upper or lower case
-	for (i = 0; i <= 10; i++) {
+	const targetLength = longer ? 15 : 10
+	for (i = 0; i <= targetLength; i++) {
 		str += allowedCharacters[Math.floor(Math.random() * allowedCharacters.length)]
 	}
 	return str
@@ -1354,8 +1358,19 @@ app.get([
 	'/play/:id?',
 	'/embed/:id?',
 ], (req, res) => {
-	let widget = yaml.parse(getInstall().toString());
-	res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo', widgetWidth: widget.general.width, widgetHeight: widget.general.height })
+	let widget = yaml.parse(getInstall().toString())
+	const instanceId = req.params.id || 'demo'
+	res.locals = Object.assign(res.locals, {
+		template: 'player_mwdk',
+		instance: instanceId,
+		// stupid hack - overload the playId value to contain both the instance
+		//  and play IDs separated by a double dash
+		// this sucks, if there's any way of elegantly passing both of these
+		//  values through the entire play/score process then definitely do that
+		playId: instanceId + '--' + generateAlphanumericID(true),
+		widgetWidth: widget.general.width,
+		widgetHeight: widget.general.height
+	})
 	res.render(res.locals.template, { layout: false})
 });
 
@@ -1447,7 +1462,7 @@ app.post('/api/instances/', (req, res) => {
 		}
 	}
 
-	const id = generateInstanceID()
+	const id = generateAlphanumericID()
 	// add IDs to questions and answers that might be missing them
 	const qset = JSON.stringify(performQSetSubsitutions(JSON.stringify(data.qset)));
 	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
@@ -1514,16 +1529,41 @@ app.get('/api/instances/:instance/', (req, res) => {
 	res.json(instance)
 })
 
-app.put('/api/play-sessions/:instance/', (req, res) => {
-	console.log('saving play data')
+app.put('/api/play-sessions/:playId/', (req, res) => {
 	const logs = req.body
 	try {
-		fs.writeFileSync(path.join(qsets, `${req.params.instance}-log.json`), JSON.stringify(logs));
-		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================");
+		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================")
+		const logFilePath = path.join(qsets, `${req.params.playId}-log.json`)
+		// check to see if we have a 'WIDGET_END' log type in the provided logs
+		// incremental widgets i.e. This or That and Enigma will send logs
+		//  one at a time, as questions are answered
+		// so we should be able to detect a widget that behaves this way by
+		//  checking whether we got one log or multiple in the payload
+		if (logs.logs.length === 1) {
+			// if the corresponding logs file doesn't exist yet, just write it
+			if (!fs.existsSync(logFilePath)) {
+				fs.writeFileSync(logFilePath, JSON.stringify(logs))
+			} else {
+				// we'll need to read the existing logs and append this new one to the end
+				const existingLogs = JSON.parse(fs.readFileSync(logFilePath))
+				existingLogs.logs = [...existingLogs.logs, ...logs.logs]
+				fs.writeFileSync(logFilePath, JSON.stringify(existingLogs))
+			}
+		} else {
+			// we should probably evaluate all logs to make sure we got at least one `WIDGET_END`
+			// but it's probably safe enough to assume we got the entire play in one shot
+			fs.writeFileSync(logFilePath, JSON.stringify(logs))
+		}
+
+		// surely there's a better way of carrying instance ID through to this point
+		// but for now, it's baked into the play ID - format is instanceId:playId
+		// so we can split on the ':' character to extract both from the single value
+		const instanceId = req.params.playId.split('--')[0]
+
 		res.json({
 			success: true,
-			score_url: `/mwdk/scores/embed/${req.params.instance}/${req.params.instance}`
-		});
+			score_url: `/mwdk/scores/embed/${instanceId}/${req.params.playId}`
+		})
 	} catch(err) {
 		console.log(err)
 		res.json({success: false});
@@ -1540,8 +1580,13 @@ app.get('/api/scores/details/', async (req, res) => {
 
 	let id = 'demo';
 	id = req.query.play_id
+
 	if (id == null) {
 		return res.json([])
+	}
+	let instId, playId
+	if (id !== 'demo') {
+		[instId, playId] = id.split('--')
 	}
 
 	// only bother with pyodide if we have a python score module for the widget we're developing
@@ -1558,15 +1603,15 @@ from scoring.module_factory import ScoreModuleFactory
 logger = logging.getLogger(__name__)
 
 try:
-	inst = WidgetInstance("${id}")
-	play = LogPlay(inst)
+	inst = WidgetInstance("${instId}")
+	play = LogPlay("${playId}", inst)
 	sm = ScoreModuleFactory.create_score_module(instance=inst,play=play)
 	score_report = sm.get_score_report()
 	# this would ordinarily be handled mostly automatically by a serializer
 	score_report["qset"] = sm.qset
 	# easier here to just attach these values manually
 	score_report["qset"]["id"] = 0
-	score_report["qset"]["instance"] = "${id}"
+	score_report["qset"]["instance"] = "${instId}"
 	score_report["qset"]["created_at"] = score_report["overview"]["created_at"]
 	output_val = json.dumps(score_report, default=str)
 except Exception :

@@ -182,8 +182,8 @@ class LogPlay():
     context_id=""
     semester=""
 
-    def __init__(self, inst):
-        self.id=""
+    def __init__(self, id, inst):
+        self.id=id
         self.instance=inst
         self.is_valid=""
         self.created_at=datetime.now(ZoneInfo("America/New_York"))
@@ -209,7 +209,9 @@ class LogPlay():
 
     def get_logs(self):
         logs = []
-        with open(f"/qsets/{self.instance.id}-log.json", "r") as file:
+        # revisit this if we ever get around to changing the hacky approach to
+        #  persisting instance IDs and play IDs across the jank MWDK workflow
+        with open(f"/qsets/{self.instance.id}--{self.id}-log.json", "r") as file:
             data = json.load(file)
             for log in data["logs"]:
                 log_obj = Log(log)
@@ -374,7 +376,7 @@ class WidgetQset():
         self.instance=instance
         self.created_at=""
         self.data=data
-        self.version=""
+        self.version=data["version"]
 
     def get_questions(self):
         def find_questions(source):

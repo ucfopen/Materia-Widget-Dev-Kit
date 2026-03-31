@@ -66,14 +66,36 @@ Namespace('MWDK').Package = (() => {
 
 	var showCreator = () => {
 		const pathnames = window.location.pathname.split('/')
-		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z0-9]{10})+/g) ? pathnames[pathnames.length - 1] : 'demo')
-		window.location.hash = ''
+		let id = 'demo'
+
+		// coming from the score screen, probably
+		if (pathnames.length > 3) {
+			id = pathnames[4]
+		} else {
+			// probably coming from the player
+			if (window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z0-9]{10})+/g))) {
+				id = pathnames[pathnames.length - 1]
+			}
+		}
+
 		window.location.href ='/mwdk/widgets/1-mwdk/create/' + id + '?is_embedded=true'
 	}
 
 	var showPlayer = () => {
 		const pathnames = window.location.pathname.split('/')
-		const id = pathnames[pathnames.length - 1].match(/([A-Za-z0-9]{10})+/g) && pathnames[pathnames.length - 1] != "create" ? pathnames[pathnames.length - 1] : 'demo'
+		let id = 'demo'
+
+		// coming from the score screen, probably
+		let maybeId = pathnames[4]
+		if (maybeId !== 'create') {
+			id = pathnames[4]
+		} else {
+			// probably coming from the creator
+			maybeId = pathnames[5].match(/([A-Za-z0-9]{10})+/g)
+			if (maybeId !== 'create') {
+				id = pathnames[5]
+			}
+		}
 		window.location.href='/embed/' + id
 	}
 
