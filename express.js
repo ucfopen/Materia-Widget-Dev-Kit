@@ -1650,30 +1650,19 @@ app.put('/api/play-sessions/:playId/', (req, res) => {
 	try {
 		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================")
 		const logFilePath = path.join(qsets, `${req.params.playId}-log.json`)
-		// check to see if we have a 'WIDGET_END' log type in the provided logs
-		// incremental widgets i.e. This or That and Enigma will send logs
-		//  one at a time, as questions are answered
-		// so we should be able to detect a widget that behaves this way by
-		//  checking whether we got one log or multiple in the payload
-		if (logs.logs.length === 1) {
-			// if the corresponding logs file doesn't exist yet, just write it
-			if (!fs.existsSync(logFilePath)) {
-				fs.writeFileSync(logFilePath, JSON.stringify(logs))
-			} else {
-				// we'll need to read the existing logs and append this new one to the end
-				const existingLogs = JSON.parse(fs.readFileSync(logFilePath))
-				existingLogs.logs = [...existingLogs.logs, ...logs.logs]
-				fs.writeFileSync(logFilePath, JSON.stringify(existingLogs))
-			}
-		} else {
-			// we should probably evaluate all logs to make sure we got at least one `WIDGET_END`
-			// but it's probably safe enough to assume we got the entire play in one shot
+
+		if (!fs.existsSync(logFilePath)) {
 			fs.writeFileSync(logFilePath, JSON.stringify(logs))
+		} else {
+			// we'll need to read the existing logs and append this new one(s) to the end
+			const existingLogs = JSON.parse(fs.readFileSync(logFilePath))
+			existingLogs.logs = [...existingLogs.logs, ...logs.logs]
+			fs.writeFileSync(logFilePath, JSON.stringify(existingLogs))
 		}
 
 		// surely there's a better way of carrying instance ID through to this point
-		// but for now, it's baked into the play ID - format is instanceId:playId
-		// so we can split on the ':' character to extract both from the single value
+		// but for now, it's baked into the play ID - format is instanceId--playId
+		// so we can split on the '--' pattern to extract both from the single value
 		const instanceId = req.params.playId.split('--')[0]
 
 		res.json({
