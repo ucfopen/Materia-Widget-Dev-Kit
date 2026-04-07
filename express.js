@@ -10,6 +10,7 @@ const sharp                = require('sharp')
 const util                 = require('util');
 const cors                 = require('cors')
 const hbs                  = require('hbs');
+const pyodide              = require('pyodide')
 
 // common paths used here
 const outputPath           = path.join(process.cwd(), 'build') + path.sep
@@ -38,7 +39,7 @@ let customScoreScreen = null;
 // 1. talk to the middlware
 // 2. load the widget's install.yaml from webpack's in-memory files
 // 3. initiate the widget's demo.json from webpack's in-memory files into qsets
-const waitForWebpack = (app, next) => {
+const waitForWebpack = async (app, next) => {
 	if(hasCompiled) return next(); // short circuit if ready
 
 	waitUntil(() => {
@@ -47,23 +48,30 @@ const waitForWebpack = (app, next) => {
 			// clean up
 			fs.readdir(qsets, async (err, files) => {
 				if (err) throw err;
-				for (const file of files) {
-					if (file == '.gitkeep') continue
-					console.log("removing file: " + file)
-					await fs.promises.unlink(path.join(qsets, file), (err) => {
-						if (err) throw err;
-					});
+				// don't delete existing qset files on startup
+				//  consider reinstituting this after pyodide dev is done
+				// for (const file of files) {
+				// 	if (file == '.gitkeep') continue
+				// 	console.log("removing file: " + file)
+				// 	await fs.promises.unlink(path.join(qsets, file), (err) => {
+				// 		if (err) throw err;
+				// 	});
+				// }
+				try {
+					await fs.promises.unlink(path.join(qsets,'demo.json'))
+					await fs.promises.unlink(path.join(qsets,'demo.instance.json'))
+				} catch(e) {
+					console.log('demo.json and demo.instance.json already did not exist')
 				}
 
 				console.log("creating demo instance")
-				const instance = createApiWidgetInstanceData('demo', true)[0];
-				instance.name = instance.name
+				const instance = createApiWidgetInstanceData('demo', true);
 				instance.id = 'demo'
 
 				if (process.env.TEST_MWDK) {
 					fs.copyFileSync('sample-demo.json', path.join(qsets, 'demo.json'));
 				} else {
-					fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify([instance]));
+					fs.writeFileSync(path.join(qsets, 'demo.instance.json'), JSON.stringify(instance));
 					fs.writeFileSync(path.join(qsets, 'demo.json'), JSON.stringify(instance.qset)); // must use instance.qset so IDs match
 				}
 
@@ -217,7 +225,7 @@ const findAndStandardizeQuestions = (potentialQ) => {
 const createApiWidgetInstanceData = (id) => {
 	// attempt to load a previously saved instance with the given ID
 	try {
-		let savedInstance = JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')))[0]
+		let savedInstance = JSON.parse(fs.readFileSync(path.join(qsets, id+'.instance.json')))
 		// add id's to the qset questions
 		if (hasSampleScoreData) {
 			try {
@@ -244,7 +252,7 @@ const createApiWidgetInstanceData = (id) => {
 			savedInstance.widget.score_screen = customScoreScreen
 		}
 
-		return [savedInstance];
+		return savedInstance
 	} catch (e) {
 		console.log(`creating instance qset ${id}`)
 		// console.error(e)
@@ -263,7 +271,7 @@ const createApiWidgetInstanceData = (id) => {
 		qset = demoQset.qset
 	}
 
-	return [{
+	return {
 		'attempts': '-1',
 		'clean_name': '',
 		'close_at': '-1',
@@ -281,7 +289,7 @@ const createApiWidgetInstanceData = (id) => {
 		'user_id': '1',
 		'widget': widget,
 		'width': 0
-	}];
+	};
 };
 
 // Build a mock widget data structure
@@ -302,7 +310,15 @@ const createApiWidgetData = (id) => {
 	widget.href = '/preview/' + id
 	if (widget.score.score_screen) {
 		customScoreScreen = widget.score.score_screen;
+		// in Materia proper the Widget model features score_screen as its own property
+		widget.score_screen = widget.score.score_screen;
 	}
+	// attach everything from 'general' directly to the widget object itself
+	for (const [genKey, genVal] of Object.entries(widget.general)) {
+		widget[genKey] = genVal
+	}
+	widget.id = 1
+
 	return widget;
 };
 
@@ -441,6 +457,54 @@ const verifyInstallProp = (prop, desiredType = null) => {
 	return true
 }
 
+// BEGIN PYODIDE CODE
+
+let py = null
+
+// initialize pyodide or, if we did that already, return it
+const getPyodide = async () => {
+	// we've already initialized pyodide, just pass it back
+	if (py) return py
+
+	py = await pyodide.loadPyodide()
+	py.setStdout({ batched: msg => console.log(msg) })
+	// mount our local python folder with Pyodide so the files are available
+	py.mountNodeFS("/python", path.resolve(__dirname, '_python'))
+	// also mount the qset directory we can access our qset and play log JSON files in Python
+	py.mountNodeFS("/qsets", path.resolve(__dirname, 'qsets'))
+	// mount the widget's score module as well
+	py.mountNodeFS("/score_module", path.join(process.cwd(), 'src', '_score'))
+
+	let pyResult = py.runPython(`
+import sys
+import importlib
+
+# Remove possibly cached modules
+for name in list(sys.modules):
+    if name.startswith("core") or name.startswith("scoring"):
+        del sys.modules[name]
+importlib.invalidate_caches()
+
+# make sure our mounted file system is available
+sys.path.append("/python")
+	`)
+
+	// despite datetime and zoneinfo being standard modules,
+	// zoneinfo relies on timezone data which pyodide does not
+	// have because it's not running in anything remotely close
+	// to a normal context
+	// if we install the tzdata library we can sidestep it
+	await py.loadPackage("micropip")
+	await py.runPythonAsync(`
+import micropip
+await micropip.install("tzdata")
+	`)
+
+	return py
+}
+
+// END PYODIDE CODE
+
 // ============= ASSETS and SETUP =======================
 const app = express();
 const port = process.env.PORT || 8118;
@@ -476,6 +540,7 @@ app.use(cors({
 app.use('/favicon.ico', express.static(path.join(__dirname, 'assets', 'img', 'favicon.ico')))
 app.use('/mwdk/assets/', express.static(path.join(__dirname, 'assets')))
 app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
+app.use('/static/img/materia-logo-thin.svg', express.static(path.join(__dirname, 'assets', 'img', 'materia-logo-thin.svg')))
 
 // Assets from Materia widget dependencies
 let clientAssetsPath = require('materia-widget-dependencies/path')
@@ -644,21 +709,46 @@ app.post('/mwdk/remove_play_logs', async (req, res) => {
 })
 
 // Preview widget scores
-app.get('/mwdk/scores/preview/:id?', (req, res) => {
-	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: 'true'})
-	res.render(res.locals.template)
+// we're kind of hacking around this by sending the instance ID as both values
+// TODO: revisit storing play data JSON so we can track multiple plays per widget instance
+app.get([
+	'/mwdk/scores/preview/:id?',
+	'/mwdk/scores/preview/:instance?/:play?'
+], (req, res) => {
+	renderScoreScreen(req, res, true)
 })
 // Play widget scores
-app.get(['/mwdk/scores/:id?'], (req, res) => {
-	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: 'false'})
-	res.render(res.locals.template)
+app.get([
+	'/mwdk/scores/:instance?/:play?',
+	'/mwdk/scores/embed/:instance?/:play?'
+	// '/mwdk/scores/:id?'
+], (req, res) => {
+	renderScoreScreen(req, res, false)
 })
 
+const renderScoreScreen = (req, res, isPreview) => {
+	res.locals = Object.assign(res.locals, { template: 'score_mwdk', IS_PREVIEW: isPreview ? 'true' : 'false'})
+	res.render(res.locals.template)
+}
+
 // The create page frame that loads the widget creator
-// Must have hash '1' to work
-app.get('/mwdk/widgets/1-mwdk/create', (req, res) => {
-	res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: req.params.hash || generateInstanceID() })
+app.get([
+	'/mwdk/widgets/1-mwdk/create/'
+], (req, res) => {
+	res.locals = Object.assign(res.locals, {template: 'creator_mwdk'})
 	res.render(res.locals.template, { layout: false})
+});
+app.get([
+	'/mwdk/widgets/1-mwdk/create/:instance',
+], (req, res) => {
+	let instId = req.params.instance
+	if ( instId == '0') {
+		instId = generateAlphanumericID()
+		res.redirect(`/mwdk/widgets/1-mwdk/embed/create/${instId}`)
+	} else {
+		res.locals = Object.assign(res.locals, {template: 'creator_mwdk', instance: instId })
+		res.render(res.locals.template, { layout: false})
+	}
 });
 
 app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
@@ -693,13 +783,32 @@ app.get('/mwdk/widgets/1-mwdk/:instance?', (req, res) => {
 	res.redirect('/')
 })
 
-function generateInstanceID() {
+function generateAlphanumericID(longer=false) {
+	const allowedCharacters = []
 	let str = ""
-	for (let i = 0; i < 5; i++) {
-		let c = Math.floor(Math.random() * (("Z").charCodeAt(0) - ("A").charCodeAt(0) + 1) + ("A").charCodeAt(0));
-		str += String.fromCharCode(c);
+	let i
+	// digits
+	for(i = 48; i <= 57; i++) {
+		allowedCharacters.push(String.fromCharCode(i))
 	}
-	return str;
+	// uppercase
+	for(i = 65; i <= 90; i++) {
+		allowedCharacters.push(String.fromCharCode(i))
+	}
+	// lowercase
+	for(i = 97; i <= 122; i++) {
+		allowedCharacters.push(String.fromCharCode(i))
+	}
+	// for (let i = 0; i < 5; i++) {
+	// 	let c = Math.floor(Math.random() * (("Z").charCodeAt(0) - ("A").charCodeAt(0) + 1) + ("A").charCodeAt(0));
+	// 	str += String.fromCharCode(c);
+	// }
+	// instance ids are 10-character alphanumeric strings using any digit or letter in upper or lower case
+	const targetLength = longer ? 15 : 10
+	for (i = 0; i <= targetLength; i++) {
+		str += allowedCharacters[Math.floor(Math.random() * allowedCharacters.length)]
+	}
+	return str
 }
 
 function processStatus(actionObj) {
@@ -1344,7 +1453,7 @@ app.use(['/qsets/import', '/mwdk/saved_qsets'], (req, res) => {
 		}
 
 		const actual_path = path.join(qsets, file);
-		const qset_data = JSON.parse(fs.readFileSync(actual_path).toString())[0];
+		const qset_data = JSON.parse(fs.readFileSync(actual_path).toString());
 		saved_qsets[qset_data.id] = qset_data.name;
 	}
 
@@ -1359,9 +1468,25 @@ app.get('/mwdk/player/:instance?', (req, res) => {
 	else res.redirect('/preview/' + (req.params.instance ? req.params.instance : ''))
 })
 
-app.get(['/preview/:id?'], (req, res) => {
-	let widget = yaml.parse(getInstall().toString());
-	res.locals = Object.assign(res.locals, { template: 'player_mwdk', instance: req.params.id || 'demo', widgetWidth: widget.general.width, widgetHeight: widget.general.height })
+app.get([
+	'/preview/:id?',
+	'/preview-embed/:id?',
+	'/play/:id?',
+	'/embed/:id?',
+], (req, res) => {
+	let widget = yaml.parse(getInstall().toString())
+	const instanceId = req.params.id || 'demo'
+	res.locals = Object.assign(res.locals, {
+		template: 'player_mwdk',
+		instance: instanceId,
+		// stupid hack - overload the playId value to contain both the instance
+		//  and play IDs separated by a double dash
+		// this sucks, if there's any way of elegantly passing both of these
+		//  values through the entire play/score process then definitely do that
+		playId: instanceId + '--' + generateAlphanumericID(true),
+		widgetWidth: widget.general.width,
+		widgetHeight: widget.general.height
+	})
 	res.render(res.locals.template, { layout: false})
 });
 
@@ -1379,258 +1504,6 @@ app.get('/preview_blocked/:instance?', (req, res) => {
 });
 
 // ============= MOCK API ROUTES =======================
-
-// API endpoint for getting the widget instance data
-app.use('/api/json/widget_instances_get', (req, res) => {
-	const id = JSON.parse(req.body.data)[0];
-	res.json(createApiWidgetInstanceData(id, false));
-});
-
-app.use('/api/json/widget_publish_perms_verify', (req, res) => {
-	res.json(true);
-})
-
-app.use('/api/json/widget_instance_lock', (req, res) => {
-	res.json(true)
-})
-
-app.use('/api/json/widgets_get', (req, res) => {
-	const id = JSON.parse(req.body.data);
-	res.json([createApiWidgetData(id)]);
-});
-
-app.use('/api/json/question_set_get', (req, res) => {
-
-	res.set('Content-Type', 'application/json')
-	// load instance, fallback to demo
-	try {
-		const id = JSON.parse(req.body.data)[0];
-		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
-		qset = performQSetSubsitutions(qset, false)
-		findAndStandardizeQuestions(qset)
-		qset = JSON.stringify(qset)
-		res.send(qset.toString());
-	} catch (e) {
-		res.json(getDemoQset(false).qset);
-	}
-});
-
-app.use(['/api/json/session_play_verify', '/api/json/session_author_verify'] , (req, res) => res.send('true'));
-
-app.use('/api/json/play_logs_save', (req, res) => {
-	const logs = JSON.parse(req.body.data)[1];
-	try {
-		fs.writeFileSync(path.join(qsets, 'log.json'), JSON.stringify(logs));
-		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================");
-		res.json(true);
-	} catch(err) {
-		console.log(err)
-		res.json(false);
-	}
-});
-
-// api mock for saving widget instances
-// creates files in our qset directory (probably should use a better thing)session
-app.use(['/api/json/widget_instance_new', '/api/json/widget_instance_update', '/api/json/widget_instance_save'], (req, res) => {
-	const data = JSON.parse(req.body.data);
-
-	// sweep through the qset items and make sure there aren't any nonstandard question properties
-	const standard_props = [
-		'materiaType',
-		'id',
-		'type',
-		'created_at',
-		'questions',
-		'answers',
-		'options',
-		'assets',
-		'items' //some widgets double-nest 'items'
-	];
-
-	const nonstandard_props = [];
-
-	for (let index in data[2].data.items) {
-		const item = data[2].data.items[index];
-
-		for (let prop in item) {
-			if (!Array.from(standard_props).includes(prop)) {
-				nonstandard_props.push(`"${prop}"`);
-				console.log(`Nonstandard property found in qset: ${prop}`);
-			}
-		}
-	}
-
-	const id = (data[0].match(/([A-Za-z]{5})+/g) ? data[0] : generateInstanceID());
-	const qset = JSON.stringify(data[2]);
-	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
-
-	const instance = createApiWidgetInstanceData(data[0], true)[0];
-	instance.id = id;
-	instance.name = data[1];
-
-	instance.qset = JSON.parse(qset)
-
-	fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify([instance]));
-
-	// send a warning back to the creator if any nonstandard question properties were detected
-	if (nonstandard_props.length > 0) {
-		const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
-		console.log ('Warning: Nonstandard qset item ' +
-			plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
-			plurals[1]);
-	}
-
-	res.json(instance);
-});
-
-// API mock for getting questions for the question importer
-app.use('/api/json/questions_get/', (req, res) => {
-	const given = JSON.parse(req.body.data);
-	let questions
-	if (given[0]) {
-		// we selected specific questions
-		questions = getQuestion(given[0])
-	} else {
-		// we just want all of them from the given type
-		questions = getAllQuestions(given[1])
-	}
-
-	res.json(questions)
-});
-
-app.use('/api/json/user_get', (req, res) => {
-	res.json([{
-		id: '1'
-	}])
-})
-
-app.use('/api/json/notifications_get', (req, res) => {
-	res.json([])
-})
-
-app.use('/api/json/score_summary_get', (req, res) => {
-	let summary = [{
-		"id": 69,
-		"term": "Fall",
-		"year": 2023,
-		"students": 1,
-		"average": 100,
-		"distribution": [
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			2
-		],
-		"graphData": [
-			{
-			"label": "0-9",
-			"value": 0
-			},
-			{
-			"label": "10-19",
-			"value": 0
-			},
-			{
-			"label": "20-29",
-			"value": 0
-			},
-			{
-			"label": "30-39",
-			"value": 0
-			},
-			{
-			"label": "40-49",
-			"value": 0
-			},
-			{
-			"label": "50-59",
-			"value": 0
-			},
-			{
-			"label": "60-69",
-			"value": 0
-			},
-			{
-			"label": "70-79",
-			"value": 0
-			},
-			{
-			"label": "80-89",
-			"value": 0
-			},
-			{
-			"label": "90-100",
-			"value": 1
-			}
-		],
-		"totalScores": 1
-	}]
-	res.json(summary)
-})
-
-function get_detail_style(score)
-{
-	style = '';
-	switch (score)
-	{
-		case -1:
-		case '-1':
-			style = 'ignored-value';
-			break;
-
-		case 100:
-		case '100':
-			style = 'full-value';
-			break;
-
-		case '0':
-		case 0:
-			style = 'no-value';
-			break;
-
-		default:
-			style = 'partial-value';
-			break;
-	}
-	return style;
-}
-
-function get_ss_expected_answers(log, question)
-{
-	console.log(question)
-	switch (question.type)
-	{
-		case 'MC':
-			max_value = 0;
-			max_answers = [];
-
-			// find the correct answer(s)
-			question.answers.forEach(answer =>
-			{
-				if (answer.value > max_value)
-				{
-					max_value = answer.value;
-					max_answers.push(answer.text);
-				}
-			})
-
-			// display all of the correct answers
-			if (max_answers.length > 0)
-				if (max_answers.length > 1)
-					return max_answers.join(" or ")
-				return max_answers[0]
-
-		case 'QA':
-		default:
-			return question.answers[0].text;
-	}
-}
 
 const findQuestion = (q, id) => {
 	if (id == null) return null
@@ -1655,219 +1528,219 @@ const findQuestion = (q, id) => {
 	return null
 }
 
-app.use(['/api/json/widget_instance_play_scores_get', '/api/json/guest_widget_instance_scores_get'], (req, res) => {
-	const initialValue = 0
+app.use('/api/session/verify/', (req, res) => {
+	res.json([{
+		isAuthenticated: true,
+		permLevel: 'basic_author'
+	}])
+})
 
+app.get('/api/widgets/', (req, res) => {
+	let widgetData = createApiWidgetData();
+
+	return res.json([widgetData])
+})
+
+app.get('/api/widgets/:widget/publish_perms_verify/', (req, res) => {
+	return res.json({
+		publishPermsValid: true
+	})
+})
+
+app.post('/api/instances/', (req, res) => {
+	const data = req.body
+
+	// sweep through the qset items and make sure there aren't any nonstandard question properties
+	// TODO: probably need to audit this list
+	const standard_props = [
+		'materiaType',
+		'id',
+		'type',
+		'created_at',
+		'questions',
+		'answers',
+		'options',
+		'assets',
+		'name',
+		'items' //some widgets double-nest 'items'
+	];
+
+	const nonstandard_props = [];
+
+	for (let index in data.qset.data.items) {
+		const item = data.qset.data.items[index];
+
+		for (let prop in item) {
+			if (!Array.from(standard_props).includes(prop)) {
+				nonstandard_props.push(`"${prop}"`);
+				console.log(`Nonstandard property found in qset: ${prop}`);
+			}
+		}
+	}
+
+	const id = generateAlphanumericID()
+	// add IDs to questions and answers that might be missing them
+	const qset = JSON.stringify(performQSetSubsitutions(JSON.stringify(data.qset)));
+	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
+
+	const instance = createApiWidgetInstanceData(id)
+	instance.id = id
+	instance.name = data.name
+
+	instance.qset = JSON.parse(qset)
+
+	fs.writeFileSync(path.join(qsets, id + '.instance.json'), JSON.stringify(instance));
+
+	// send a warning back to the creator if any nonstandard question properties were detected
+	if (nonstandard_props.length > 0) {
+		const plurals = nonstandard_props.length > 1 ? ['properties', 'were'] : ['property', 'was'];
+		console.log ('Warning: Nonstandard qset item ' +
+			plurals[0] + ' ' + nonstandard_props.join(', ') + ' ' +
+			plurals[1]);
+	}
+
+	res.json(instance);
+})
+
+app.patch('/api/instances/:instance/', (req, res) => {
+	const id = req.params.instance
+	const data = req.body
+	// add IDs to questions and answers that might be missing them
+	const qset = JSON.stringify(performQSetSubsitutions(JSON.stringify(data.qset)));
+	fs.writeFileSync(path.join(qsets, id + '.json'), qset);
+	
+	const instance = createApiWidgetInstanceData(id)
+	instance.id = id
+	instance.name = data.name
+
+	instance.qset = JSON.parse(qset)
+	
+	res.json(instance)
+})
+
+app.get('/api/instances/:instance/lock/', (req, res) => {
+	res.json({ lock_obtained: true })
+})
+
+app.get('/api/instances/:instance/question_sets/', (req, res) => {
+	res.set('Content-Type', 'application/json')
+	// load instance, fallback to demo
+	try {
+		const id = req.params.instance
+		let qset = fs.readFileSync(path.join(qsets, id+'.json')).toString()
+		qset = performQSetSubsitutions(qset, false)
+		findAndStandardizeQuestions(qset)
+		qset = JSON.stringify(qset)
+		res.send(qset.toString());
+	} catch (e) {
+		res.json(getDemoQset(false).qset);
+	}
+})
+
+app.get('/api/instances/:instance/', (req, res) => {
+	const instId = req.params.instance
+
+	let instance = JSON.parse(fs.readFileSync(path.join(qsets, instId+'.instance.json')))
+
+	res.json(instance)
+})
+
+app.put('/api/play-sessions/:playId/', (req, res) => {
+	const logs = req.body
+	try {
+		console.log("========== Play Logs Received ==========\r\n", logs, "\r\n============END PLAY LOGS================")
+		const logFilePath = path.join(qsets, `${req.params.playId}-log.json`)
+		// check to see if we have a 'WIDGET_END' log type in the provided logs
+		// incremental widgets i.e. This or That and Enigma will send logs
+		//  one at a time, as questions are answered
+		// so we should be able to detect a widget that behaves this way by
+		//  checking whether we got one log or multiple in the payload
+		if (logs.logs.length === 1) {
+			// if the corresponding logs file doesn't exist yet, just write it
+			if (!fs.existsSync(logFilePath)) {
+				fs.writeFileSync(logFilePath, JSON.stringify(logs))
+			} else {
+				// we'll need to read the existing logs and append this new one to the end
+				const existingLogs = JSON.parse(fs.readFileSync(logFilePath))
+				existingLogs.logs = [...existingLogs.logs, ...logs.logs]
+				fs.writeFileSync(logFilePath, JSON.stringify(existingLogs))
+			}
+		} else {
+			// we should probably evaluate all logs to make sure we got at least one `WIDGET_END`
+			// but it's probably safe enough to assume we got the entire play in one shot
+			fs.writeFileSync(logFilePath, JSON.stringify(logs))
+		}
+
+		// surely there's a better way of carrying instance ID through to this point
+		// but for now, it's baked into the play ID - format is instanceId:playId
+		// so we can split on the ':' character to extract both from the single value
+		const instanceId = req.params.playId.split('--')[0]
+
+		res.json({
+			success: true,
+			score_url: `/mwdk/scores/embed/${instanceId}/${req.params.playId}`
+		})
+	} catch(err) {
+		console.log(err)
+		res.json({success: false});
+	}
+})
+
+// TODO: is this used?
+app.get('/api/play-sessions/:instance/', (req, res) => {
+	console.log('getting play data')
+})
+// TODO: add something here to optionally use uploaded play data JSON
+app.get('/api/scores/details/', async (req, res) => {
 	res.set('Content-Type', 'application/json')
 
-	const body = JSON.parse(req.body.data)
 	let id = 'demo';
-	if (req.originalUrl.substring(req.originalUrl.lastIndexOf('/') + 1) == 'widget_instance_play_scores_get' && body[1] !== null) {
-		// preview inst id is not null
-		id = body[1]
-	} else {
-		// use play id
-		id = body[0]
-	}
+	id = req.query.play_id
+
 	if (id == null) {
 		return res.json([])
 	}
-
-	// get play logs
-	let logs = null
-	try {
-		logs = fs.readFileSync(path.join(qsets,'log.json')).toString()
-		logs = JSON.parse(logs)
-	}
-	catch (err) {
-		console.log("log.json not found")
-		// change id to demo to load the demo qset instead
-		id = "demo"
+	let instId, playId
+	if (id !== 'demo') {
+		[instId, playId] = id.split('--')
 	}
 
-	// load instance, fallback to demo
-	let questions = []
-	try {
-		let qset = fs.readFileSync(path.join(qsets, id+'.json'))
-		qset = JSON.parse(qset)
-		questions = qset.data.items
-	} catch (e) {
-		demoqset = getDemoQset(false)
-		questions = demoqset.qset.data.items
+	// only bother with pyodide if we have a python score module for the widget we're developing
+	let scoreModule = getFileFromWebpack(path.join('_score-modules', 'score_module.py'))
+	if (!!scoreModule) {
+		install = yaml.parse(getInstall().toString())
+		const p = await getPyodide()
+		await p.runPythonAsync(`
+import json
+import logging
+from core.models import LogPlay, WidgetInstance, Widget
+from scoring.module_factory import ScoreModuleFactory
+
+logger = logging.getLogger(__name__)
+
+try:
+	inst = WidgetInstance("${instId}")
+	play = LogPlay("${playId}", inst)
+	sm = ScoreModuleFactory.create_score_module(instance=inst,play=play)
+	score_report = sm.get_score_report()
+	# this would ordinarily be handled mostly automatically by a serializer
+	score_report["qset"] = sm.qset
+	# easier here to just attach these values manually
+	score_report["qset"]["id"] = 0
+	score_report["qset"]["instance"] = "${instId}"
+	score_report["qset"]["created_at"] = score_report["overview"]["created_at"]
+	output_val = json.dumps(score_report, default=str)
+except Exception :
+	logger.error('L', exc_info=True)`)
+		const output = p.globals.get('output_val')
+		res.json(JSON.parse(output))
+	} else {
+		res.json({})
 	}
-
-	if (questions[0] && Object.hasOwn(questions[0], 'items')) {
-		// legacy qsets
-		questions = questions[0].items
-	}
-
-	// get sample play scores to model data off of
-	// copy everything but data
-	// look at data style and fill data in respectively (switch case)
-	let sample_score_data = null
-	if (hasSampleScoreData) {
-		try {
-			let scoreDataFile = fs.readFileSync(path.join(qsets, 'sample_score_data.json')).toString()
-			sample_score_data = JSON.parse(scoreDataFile)
-		} catch (err) {
-			console.log(err)
-		}
-	}
-
-	// if there are no play logs, return sample score data
-	if (logs == null) {
-		if (sample_score_data != null) {
-			return res.json(sample_score_data)
-		} else {
-			return false;
-		}
-	}
-
-	let playLogs = logs.filter(log => !log.is_end)
-
-	let totalScore = 0, totalLength = 0;
-	let table = playLogs.map((log, index) => {
-		let question = findQuestion(questions, log.item_id)
-		// let question = questions[index]
-		if (question) {
-			let answer = null
-			// find the answer for the log in the qset
-			if (question.answers) answer = question.answers.find(a => log.text == a.text || log.value == a.text)
-			// get the feedback
-			let feedback = null
-			if (answer && answer.options && answer.options.feedback) {
-				feedback = answer.options.feedback
-			}
-			let logScore = -1
-
-			if (sample_score_data != null) {
-				data = []
-				let samplelogIndex = index
-				// if there are more logs than there is sample data, use first sample element
-				if (index >= sample_score_data[0].details[0].table.length)
-					samplelogIndex = 0
-				// store location of response and answer for scoring
-				let responseIndex = -1;
-				let answerIndex = -1;
-				// create the data
-				sample_score_data[0].details[0].table[samplelogIndex].data_style.forEach((type, i) => {
-					switch (type) {
-						case 'question':
-							data.push(question.questions[0]['text'])
-							break;
-						case 'response':
-							if (log.text != undefined && log.text != null && log.text.slice(0, 8) != 'mwdk-mock')
-								data.push(log.text)
-							else if (log.value != undefined && log.value != null  && log.value.slice(0, 8) != 'mwdk-mock')
-								data.push(log.value) // some widgets' qsets store response in log.value
-							responseIndex = i
-							break;
-						case 'answer':
-							data.push(get_ss_expected_answers(log, question))
-							answerIndex = i
-							break;
-						default:
-							data.push(sample_score_data[0].details[0].table[samplelogIndex].data[i])
-					}
-				})
-
-				// shoe in check_answer
-				if (responseIndex >= 0 && answerIndex >=0)
-					logScore = data[responseIndex] == data[answerIndex] ? 100 : 0;
-
-				totalScore += logScore;
-				totalLength++;
-
-				return {
-					'data'			: data,
-					'data_style'    : sample_score_data[0].details[0].table[samplelogIndex].data_style,
-					'score'         : logScore,
-					'feedback'      : feedback,
-					'type'          : sample_score_data[0].details[0].table[samplelogIndex].type,
-					'style'         : get_detail_style(logScore),
-					'tag'           : 'div',
-					'symbol'        : '%',
-					'graphic'       : 'score',
-					'display_score' : sample_score_data[0].details[0].table[samplelogIndex].display_score
-				}
-			}
-
-			// find which log field is the response
-			// is not foolproof or comprehensive
-			let responseData = ''
-			if (log.text && log.text.slice(0, 9) != 'mwdk-mock')
-				responseData = log.text
-			else if (log.value && log.value.slice(0, 9) != 'mwdk-mock')
-				responseData = log.value // some widgets' qsets store response in log.value
-
-			let answerData = get_ss_expected_answers(log, question)
-
-			logScore = typeof(log.value) == 'number' ? log.value : (responseData == answerData ? 100 : 0);
-
-			totalScore += logScore;
-			totalLength++;
-
-			return {
-					'data'			: [
-						question.questions[0]['text'],
-						responseData, // some widgets' qsets store response in log.value
-						answerData],
-					'data_style'    : ['question', 'response', 'answer'],
-					'score'         : logScore,
-					'feedback'      : feedback,
-					'type'          : log.is_end ? 'SCORE_FINAL_FROM_CLIENT' : 'SCORE_QUESTION_ANSWERED',
-					'style'         : get_detail_style(logScore),
-					'tag'           : 'div',
-					'symbol'        : '%',
-					'graphic'       : 'score',
-					'display_score' : logScore != -1
-			}
-		}
-	})
-
-	table = table.filter(deet => deet != null)
-
-	let header = [
-		"Question Score",
-		"The Question",
-		"Your Response",
-		"Correct Answer"
-	]
-	let title = ''
-
-	if (sample_score_data != null) {
-		header = sample_score_data[0].details[0].header
-		title = sample_score_data[0].details[0].title
-	}
-
-	let details = [{
-		title: title,
-		header: header,
-		table: table
-	}]
-
-	score = totalLength > 0 ? totalScore / totalLength : 0;
-
-	overview_items = [
-		{'message': 'Points Lost', 'value': score - 100},
-		{'message': 'Final Score', 'value': score}
-	];
-
-	let overview = {
-		'complete': true,
-		'score': score,
-		'table': overview_items,
-		'referrer_url': '',
-		'created_at': '',
-		'auth': ''
-	}
-
-	let result = [{
-		overview,
-		details
-	}]
-
-	res.json(result)
+	return
+})
+app.get('/api/scores/details', (req, res) => {
+	console.log('generic scores api endpoint')
 })
 
 app.listen(port, function () {

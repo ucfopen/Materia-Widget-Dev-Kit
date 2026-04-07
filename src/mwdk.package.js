@@ -55,7 +55,7 @@ Namespace('MWDK').Package = (() => {
 		xhr.onreadystatechange = function() {
 			if (xhr.readyState === XMLHttpRequest.DONE) {
 				if (xhr.status === 200) {
-					window.location.pathname='/mwdk/scores/preview/demo'
+					window.location.pathname='/mwdk/scores/embed/demo/'
 				} else {
 					_dom("message", "Play logs do not exist or there was an error removing them.")
 				}
@@ -66,15 +66,37 @@ Namespace('MWDK').Package = (() => {
 
 	var showCreator = () => {
 		const pathnames = window.location.pathname.split('/')
-		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z]{5})+/g) ? pathnames[pathnames.length - 1] : 'demo')
-		window.location.hash = ''
-		window.location.href ='/mwdk/widgets/1-mwdk/create#' + id
+		let id = 'demo'
+
+		// coming from the score screen, probably
+		if (pathnames.length > 3) {
+			id = pathnames[4]
+		} else {
+			// probably coming from the player
+			if (window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z0-9]{10})+/g))) {
+				id = pathnames[pathnames.length - 1]
+			}
+		}
+
+		window.location.href ='/mwdk/widgets/1-mwdk/create/' + id + '?is_embedded=true'
 	}
 
 	var showPlayer = () => {
 		const pathnames = window.location.pathname.split('/')
-		const id = window.location.hash?.slice(1) || (pathnames[pathnames.length - 1].match(/([A-Za-z]{5})+/g) && pathnames[pathnames.length - 1] != "create" ? pathnames[pathnames.length - 1] : 'demo')
-		window.location.href='/preview/' + id
+		let id = 'demo'
+
+		// coming from the score screen, probably
+		let maybeId = pathnames[4]
+		if (maybeId !== 'create') {
+			id = pathnames[4]
+		} else {
+			// probably coming from the creator
+			maybeId = pathnames[5].match(/([A-Za-z0-9]{10})+/g)
+			if (maybeId !== 'create') {
+				id = pathnames[5]
+			}
+		}
+		window.location.href='/embed/' + id
 	}
 
 	var closeDialog = () => {
