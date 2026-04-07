@@ -479,7 +479,8 @@ app.use('/mwdk/mwdk-assets/js', express.static(path.join(__dirname, 'build')))
 
 // Assets from Materia widget dependencies
 let clientAssetsPath = require('materia-widget-dependencies/path')
-const creator = require('postcss-preset-env')
+const creator = require('postcss-preset-env');
+const e = require('express');
 app.use('/materia-assets/css', express.static(path.join(clientAssetsPath, 'css')))
 app.use('/materia-assets/js', express.static(path.join(clientAssetsPath, 'js')))
 app.use('/js', express.static(path.join(clientAssetsPath, 'js')))
@@ -1043,10 +1044,19 @@ app.get('/mwdk/package', (req, res) => {
 
 	//check score module
 	if (install?.score?.score_module) {
-		const scoreModulePath = path.join('_score-modules', 'score_module.php')
+		const scoreModulePath = path.join('_score-modules', 'score_module.py')
 		try {
-			getFileFromWebpack(path.join('_score-modules', 'score_module.php'))
-			action.scoreModule.status = 'pass'
+			if(getFileFromWebpack(path.join('_score-modules', 'score_module.py')))
+				action.scoreModule.status = 'pass'
+			else {
+				if(getFileFromWebpack(path.join('_score-modules', 'score_module.php'))) {
+					action.scoreModule.status = 'custom_fail'
+					action.scoreModule.msg = '.php module found, but no .py'
+				} else {
+					action.scoreModule.status = 'missing_files'
+					action.scoreModule.missing.push(scoreModulePath)			
+				}
+			}
 		} catch(error) {
 			action.scoreModule.status = 'missing_files'
 			action.scoreModule.missing.push(scoreModulePath)
@@ -1123,42 +1133,35 @@ app.get('/mwdk/helper/annotations', (req, res) => {
 
 app.get('/mwdk/install', (req, res) => {
 	res.write('<html><body id="result"><pre>');
-	// Find the docker-compose container for materia-web
+	// GREP GUIDE FOR BOTH IMAGE VARS
+	// Find the docker-compose container for materia-django-python
 	// 1. lists all containers
-	// 2. filter for materia-web image and named xxxx_phpfpm_1 name
+	// 2. filter for materia python image, named "materia-django-python-x"
 	// 3. pick the first line
 	// 4. pick the container name
-	let targetImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia:.* docker[-_]app[-_].*" | head -n 1 | cut -d" " -f2');
-	if(!targetImage){
+
+	// attempt to install on both versions of materia if they are found
+	let pyImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e "materia-django[-_]python[-_]*" | head -n 1 | cut -d" " -f2');
+	let phpImage = execSync('docker ps -a --format "{{.Image}} {{.Names}}" | grep -e ".*materia:.* docker[-_]app[-_].*" | head -n 1 | cut -d" " -f2');
+	if(pyImage.length == 0 && phpImage.length == 0){
 		console.log(`Couldn't find docker container`)
+		res.write(`<h3>Could not find any Materia Docker containers.</h3>`)
+		res.write(`<p>Make sure you have either PhP or Django Materia running, then try again.</p>`)
+		res.write('<br><a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
+		res.end()
 		throw "MWDK Couldn't find a docker container."
 	}
-	targetImage = targetImage.toString().trim();
-	console.log(`Using Docker image '${targetImage}' to install widgets`)
-	res.write(`> Using Docker image '${targetImage}' to install widgets<br/>`);
 
-	// get the image information
-	let containerInfo = execSync(`docker inspect ${targetImage}`);
-	containerInfo = JSON.parse(containerInfo.toString());
-
-	// Find mounted volume that will tell us where materia is on the host system
-	let found = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
-	if(!found){
-		console.error('MWDK Couldnt find the Materia mount on the host system')
-		res.write(`</pre><h1>Cant Find Materia</h1>`);
-		throw `MWDK Couldn't find the Materia mount on the host system'`
-	}
-	let materiaPath = found[0].Source.replace(/^\/host_mnt/, '') // depending on your Docker version, host_mnt may be prepended to the directory path
-	let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
-
-	// make sure the dir exists
-	console.log(`Checking if ${materiaPath}/fuel/app/tmp/widget_packages exists`)
-	if(!fs.existsSync(serverWidgetPath)){
-		console.log(`Making directory ${materiaPath}/fuel/app/tmp/widget_packages`)
-		fs.mkdirSync(serverWidgetPath);
-	}
+	// stores what versions/paths of materia we are installing
+	// so that we do not have a mess of repeated installation instructions
+	// {version: "php" || "django", materiaPath: string, serverWidgetPath: string, dest: string}[]
+	const installs = []
 
 	// Build!
+	// NOTE: moved build statement here as we dont want to 
+	// build the widget again for each version of Materia.
+	// moving the statement here only wastes time on a build if
+	// containers are improperly configured, which is unlikely
 	console.log('Building widget')
 	res.write(`> Building widget<br/>`);
 	let { widgetPath, widgetData } = buildWidget()
@@ -1169,48 +1172,161 @@ app.get('/mwdk/install', (req, res) => {
 
 	// get the widget I just built
 	let widgetPacket = fs.readFileSync(widgetPath)
+	
+	try {
+		if(pyImage.length > 0){
+			pyImage = pyImage.toString().trim();
+			console.log(`Installing widget to Django Materia on image '${pyImage}'.`)
+			res.write(`> Installing widget to Django Materia on image '${pyImage}'.<br/>`)
 
-	// write the built widget to that path
-	let target = path.join(serverWidgetPath, filename)
-	console.log(`> Writing to ${target}<br/>`)
-	res.write(`> Writing to ${target}<br/>`);
-	fs.writeFileSync(target, widgetPacket);
+			// get the image information
+			let containerInfo = execSync(`docker inspect ${pyImage}`);
+			containerInfo = JSON.parse(containerInfo.toString());
 
-	// run the install command
-	console.log(`Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`)
-	res.write(`Running > cd ${materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
+			// Find mounted volume that will tell us where materia is on the host system
+			let foundMateria = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
+			if(!foundMateria){
+				console.error('[DJANGO] MWDK Couldnt find the Materia mount on the host system')
+				res.write(`</pre><h1>Cant Find Materia Django</h1>`);
+				throw `[DJANGO] MWDK Couldn't find the Materia mount on the host system'`
+			}
+
+			// find mounted volume for the local widget storage
+			let foundWidgets = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html/staticfiles/widget')
+			if(!foundWidgets){
+				console.error('[DJANGO] MWDK Couldnt find the Materia Widget storage mount on the host system')
+				res.write(`</pre><h1>Cant Find Materia Django Widgets</h1>`);
+				throw `[DJANGO] MWDK Couldnt find the Materia Widget storage mount on the host system'`
+			}
+
+			// depending on your Docker version, host_mnt may be prepended to the directory path
+			let materiaPath = foundMateria[0].Source.replace(/^\/host_mnt/, '') 
+			let serverWidgetPath = foundWidgets[0].Source.replace(/^\/host_mnt/, '')
+
+			// make sure the dir exists
+			console.log(`[DJANGO] Checking if ${serverWidgetPath} exists`)
+			if(!fs.existsSync(serverWidgetPath)){
+				console.log(`[DJANGO] Making directory ${serverWidgetPath}`)
+				fs.mkdirSync(serverWidgetPath);
+			}
+
+			installs.push({
+				version: "django", 
+				materiaPath: materiaPath, 
+				serverWidgetPath: serverWidgetPath,
+				dest: path.join(foundWidgets[0].Destination, filename)
+			})
+		} 
+	} catch(err) {
+		console.error('[DJANGO] MWDK Install Failed')
+		res.write(`</pre><h1>Materia Django Install Failed</h1>`);
+	}
 
 	try {
-		let run = require('child_process').spawn(`./run_widgets_install.sh`, [`${filename}`], {cwd: `${materiaPath}/docker/`})
+		if(phpImage.length > 0){
+			phpImage = phpImage.toString().trim();
+			console.log(`Installing widget to PhP Materia on image '${phpImage}'.`)
+			res.write(`> Installing widget to PhP Materia on image '${phpImage}'.<br/>`)
 
-		run.stdout.on('data', function(data) {
-			console.log('stdout: ' + data.toString());
-			res.write(data.toString());
-		})
-		run.stderr.on('data', function(data) {
-			console.error('stderr: ' + data.toString());
-			res.write(data.toString());
-		})
-		run.on('close', function(code) {
-			if (code == 0) {
-				res.write("<h2>SUCCESS!<h2/>");
-			} else {
-				res.write("<h2>Something failed!<h2/>");
+			// get the image information
+			let containerInfo = execSync(`docker inspect ${phpImage}`);
+			containerInfo = JSON.parse(containerInfo.toString());
+
+			// Find mounted volume that will tell us where materia is on the host system
+			let found = containerInfo[0].Mounts.filter(m => m.Destination === '/var/www/html')
+			if(!found){
+				console.error('[PHP] MWDK Couldnt find the Materia mount on the host system')
+				res.write(`</pre><h1>Cant Find Materia PhP</h1>`);
+				throw `[PHP] MWDK Couldn't find the Materia mount on the host system'`
 			}
-			res.write('child process exited with code ' + code.toString());
-			console.log(`ps process exited with code ${code}`);
+			let materiaPath = found[0].Source.replace(/^\/host_mnt/, '') // depending on your Docker version, host_mnt may be prepended to the directory path
+			let serverWidgetPath = `${materiaPath}/fuel/app/tmp/widget_packages`
 
-			res.write('<br><a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
-			res.end()
-		})
+			// make sure the dir exists
+			console.log(`[PHP] Checking if ${materiaPath}/fuel/app/tmp/widget_packages exists`)
+			if(!fs.existsSync(serverWidgetPath)){
+				console.log(`[PHP] Making directory ${materiaPath}/fuel/app/tmp/widget_packages`)
+				fs.mkdirSync(serverWidgetPath);
+			}
+
+			installs.push({
+				version: "php", 
+				materiaPath: materiaPath, 
+				serverWidgetPath: serverWidgetPath,
+				dest: ""
+			})
+		}
+	} catch {
+		console.error('[PHP] MWDK Install Failed')
+		res.write(`</pre><h1>Materia PhP Install Failed</h1>`);
 	}
-	catch (err) {
-		throw err;
-		res.write("<h2>Something failed!<h2/>");
 
-		res.write('<a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
+	if(installs.length == 0) {
+		console.error('MWDK No installs were successful')
+		res.write(`</pre><h1>No installs were successful</h1>`);
+		res.write('<br><a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
 		res.end()
+		throw `MWDK No installs were successful`
 	}
+
+	// try installing on each of our prepared versions
+	installs.forEach((install, i)=>{
+		// write the built widget to that path
+		let target = path.join(install.serverWidgetPath, filename)
+		console.log(`> Writing to ${target}<br/>`)
+		res.write(`> Writing to ${target}<br/>`);
+		fs.writeFileSync(target, widgetPacket);
+
+		// attempt install for given version
+		try {
+			let run;
+			
+			// run the install command
+			if(install.version == "django") {
+				console.log(`[DJANGO] Running > make install-widget-file file="${install.dest}"`)
+				res.write(`[DJANGO] Running > make install-widget-file file="${install.dest}"`);
+				run = require('child_process').spawn(`make`, [`install-widget-file`, `file="${install.dest}"`], {cwd: `${install.materiaPath}/..`})
+			} else {
+				console.log(`[PHP] Running > cd ${install.materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`)
+				res.write(`[PHP] Running > cd ${install.materiaPath}/docker/ && ./run_widgets_install.sh ${filename}`);
+				run = require('child_process').spawn(`./run_widgets_install.sh`, [`${install.filename}`], {cwd: `${install.materiaPath}/docker/`})
+			}
+
+			run.stdout.on('data', function(data) {
+				console.log('stdout: ' + data.toString());
+				res.write(data.toString());
+			})
+			run.stderr.on('data', function(data) {
+				console.error('stderr: ' + data.toString());
+				res.write(data.toString());
+			})
+			run.on('close', function(code) {
+				if (code == 0) {
+					res.write(`<h2>[${install.version.toUpperCase()}] SUCCESS!<h2/>`);
+				} else {
+					res.write(`<h2>[${install.version.toUpperCase()}] Something failed!<h2/>`);
+				}
+				res.write('<h3>child process exited with code ' + code.toString() + '</h3>');
+				console.log(`ps process exited with code ${code}`);
+				
+				// only exit response if this is the last install performed
+				if(i+1 == installs.length) {
+					res.write('<br><a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
+					res.end()
+				}
+			})			
+		}
+		catch (err) {
+			throw err;
+			res.write("<h2>Something failed!<h2/>");
+
+			res.write('<a onclick="window.parent.MWDK.Package.cancel();"><button>Close</button></a></body></html>');
+			res.end()
+		}
+	})
+
+	
+	
 });
 
 // ============= MATERIA-SPECIFIC ROUTES =============
