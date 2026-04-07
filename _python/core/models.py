@@ -106,8 +106,8 @@ class Log():
         self.play_id=""
         self.log_type=input["type"]
         self.item_id=input["item_id"]
-        self.text=input["text"]
-        self.value=input["value"]
+        self.text=input["text"] if "text" in input else ""
+        self.value=input["value"] if "value" in input else ""
         self.created_at=datetime.now(ZoneInfo("America/New_York"))
         self.game_time=input["game_time"]
         self.ip=""
