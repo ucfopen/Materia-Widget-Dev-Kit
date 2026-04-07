@@ -14,7 +14,10 @@ fetch('mwdk/saved_qsets')
   }
 
   qsets.onchange = (e) => {
-    document.getElementById('player_button').setAttribute('href', "/preview/" + e.target.value)
-    document.getElementById('creator_button').setAttribute('href', "/mwdk/widgets/1-mwdk/create#" + e.target.value)
+    let val = e.target.value
+    document.getElementById('player_button').setAttribute('href', "/embed/" + val)
+    document.getElementById('creator_button').setAttribute('href', "/mwdk/widgets/1-mwdk/create/" + val + "?is_embedded=true")
+    if ( ! val) val = 'preview/demo'
+    document.getElementById('score_button').setAttribute('href', "/mwdk/scores/" + val)
   }
 })
