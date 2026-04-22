@@ -1683,8 +1683,13 @@ app.get('/api/play-sessions/:instance/', (req, res) => {
 app.get('/api/scores/details/', async (req, res) => {
 	res.set('Content-Type', 'application/json')
 
-	let id = 'demo';
-	id = req.query.play_id
+	const id = req.query.play_id
+
+	// make sure we actually have a play log file, or we get catastrophic errors
+	const logFilePath = path.join(qsets, `${id}-log.json`)
+	if (!fs.existsSync(logFilePath)) {
+		return res.status(500).json([])
+	}
 
 	if (id == null) {
 		return res.json([])
