@@ -11,6 +11,7 @@
 <script src="/materia-assets/js/materia.enginecore.js"></script>
 
 <script src="/mwdk/mwdk-assets/js/mwdk-package.js"></script>
+<script src='/mwdk/mwdk-assets/js/mwdk-guidehack.js'></script>
 
 <script >
 	var WIDGET_HEIGHT = '600';
@@ -26,11 +27,17 @@
     var HAS_PLAYER_GUIDE = '{{ hasPlayerGuide }}'
     var HAS_CREATOR_GUIDE = '{{ hasCreatorGuide }}'
     var DOC_PATH = '{{ docPath }}'
+	var IS_EMBEDDED = true
 </script>
 
 <div id="topbar">
 	<a class="logo" href="/">Materia Widget Developer Kit</a>
 	<div class="tools">
+		<button
+			class="action_button"
+			onclick="MWDK.GuideHack.handleGuideToggleDarkMode();">
+			Toggle Dark Mode
+		</button>
 		<button class="edit_button action_button" onclick="MWDK.Package.showPlayer();">Player</button>
 		<button id="downloadLink" class="edit_button action_button" onclick="MWDK.Package.showPackageDownload();">Download Package</button>
 	</div>

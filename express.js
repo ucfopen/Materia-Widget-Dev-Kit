@@ -24,7 +24,7 @@ const webpackConfLocation  = fs.existsSync(wpConfCjsLocation) ? wpConfCjsLocatio
 const webpack              = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
 const config               = require(webpackConfLocation);
-const compiler = webpack(config);
+const compiler             = webpack(config);
 
 
 const webpackMiddleware = webpackDevMiddleware(compiler, {
@@ -457,6 +457,10 @@ const verifyInstallProp = (prop, desiredType = null) => {
 	return true
 }
 
+const guideExists = playerOrCreator => {
+	return !!getFileFromWebpack(`guides/${playerOrCreator}.html`)
+}
+
 // BEGIN PYODIDE CODE
 
 let py = null
@@ -511,6 +515,12 @@ const port = process.env.PORT || 8118;
 // ============= ASSETS and SETUP =======================
 
 hbs.registerPartials(__dirname + 'views/partials', function(err) {});
+hbs.registerHelper('or', function(arg1, arg2, options) {
+	if (arg1 || arg2) {
+		return options.fn(this)
+	}
+	return options.inverse(this)
+});
 hbs.localsAsTemplateData(app);
 
 app.set('views', path.join(__dirname , 'views/')); // set the views directory
@@ -560,7 +570,12 @@ app.use( (req, res, next) => {
 
 // Display index page
 app.get('/', (req, res) => {
-	res.locals = Object.assign(res.locals, {template: 'index', title: getWidgetTitle()})
+	res.locals = Object.assign(res.locals, {
+		template: 'index',
+		title: getWidgetTitle(),
+		hasPlayerGuide: guideExists('player'),
+		hasCreatorGuide: guideExists('creator')
+	})
 	res.render(res.locals.template)
 });
 
@@ -756,8 +771,8 @@ app.get('/mwdk/widgets/1-mwdk/creators-guide', (req, res) => {
 		template: 'guide_page',
 		name: '1-mwdk',
 		type: 'creator',
-		hasPlayerGuide: true,
-		hasCreatorGuide: true,
+		hasPlayerGuide: guideExists('player'),
+		hasCreatorGuide: guideExists('creator'),
 		docPath: '/guides/creator.html',
 		instance: req.params.hash || 'demo'
 	})
@@ -769,8 +784,8 @@ app.get('/mwdk/widgets/1-mwdk/players-guide', (req, res) => {
 		template: 'guide_page',
 		name: '1-mwdk',
 		type: 'player',
-		hasPlayerGuide: true,
-		hasCreatorGuide: true,
+		hasPlayerGuide: guideExists('player'),
+		hasCreatorGuide: guideExists('creator'),
 		docPath: '/guides/player.html',
 		instance: req.params.hash || 'demo'
 	})
@@ -1730,6 +1745,10 @@ except Exception :
 })
 app.get('/api/scores/details', (req, res) => {
 	console.log('generic scores api endpoint')
+})
+
+app.get('/api/site-messages', (req, res) => {
+	return res.json({})
 })
 
 app.listen(port, function () {

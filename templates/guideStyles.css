@@ -8,10 +8,24 @@ body {
 	padding: 10px;
 
 	font-family: 'Lato', arial, serif;
+
+	--main-header-color: #333333;
+	--secondary-header-color: #5e5e5e;
+	--paragraph-color: #000;
+}
+
+body.darkMode {
+	background-color: #21232a;
+	/* catch any text not explicitly given a color */
+	color: var(--paragraph-color);
+
+	--main-header-color: #c7c7c7;
+	--secondary-header-color: #c7c7c7;
+	--paragraph-color: #fff;
 }
 
 h1, h2, h3, h4 {
-	color: #333333;
+	color: var(--main-header-color);
 	word-break: break-word;
 }
 
@@ -24,13 +38,13 @@ h1 {
 }
 
 h3 {
-	color: #5e5e5e;
+	color: var(--secondary-header-color);
 	font-size: 18px;
 }
 
 h4, h5, h6 {
 	font-size: 16px;
-	color: #5e5e5e;
+	color: var(--secondary-header-color);
 }
 
 img + h2,
@@ -65,7 +79,7 @@ table code {
 }
 
 p {
-	color: black;
+	color: var(--paragraph-color);
 	font-size: 16px;
 }
 
