@@ -5,6 +5,11 @@
   "homepage": "https://ucfopen.github.io/Materia-Docs/",
   "version": "3.0.5",
   "author": "University of Central Florida, Center for Distributed Learning",
+  "engines": {
+    "node": ">=24.18.0 <25.0.0",
+    "npm": "please-use-yarn",
+    "yarn": ">= 1.22.0"
+  },
   "scripts": {
     "build": "webpack",
     "mwdk-start": "./bin/mwdk-start.js",
