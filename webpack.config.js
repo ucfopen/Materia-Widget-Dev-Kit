@@ -19,6 +19,9 @@ module.exports =
 			],
 			'mwdk-helpers.js': [
 				path.join(srcPath, 'mwdk.helpers.js')
+			],
+			'mwdk-guidehack.js': [
+				path.join(srcPath, 'mwdk.guidehack.js')
 			]
 		},
 
